@@ -1,0 +1,29 @@
+# ============================================================================
+# Config file for Quality Control
+# ==========================================[ Sections for the users ]========
+#
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# ============================================================================
+
+
+input_directory: '{}'
+input_readtag: _R[12]_
+input_pattern: '{}'
+
+
+##############################################################################
+# Your section
+#
+# :Parameters:
+#
+# - options: string with any valid FastQC options
+todo:
+    example1: true
+
+
+##############################################################################
+#
+onsuccess:
+    toclean: " slurm*out lora.rules config.yaml stats.txt "

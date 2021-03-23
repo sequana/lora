@@ -1,0 +1,10 @@
+language: Snakemake
+name: sequana_lora
+description: long read assembly pipeline
+url: https://github.com/sequana/sequana_lora/blob/master/sequana_pipelines/lora/lora.rules
+categories: [NGS, snakemake, sequana]
+authors:
+    - firstname: Thomas
+      lastname: Cokelaer
+      email: thomas.cokelaer@pasteur.fr
+

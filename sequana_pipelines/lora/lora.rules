@@ -1,0 +1,75 @@
+"""lora pipeline
+
+Author: Thomas Cokelaer
+Affiliation: Institut Pasteur @ 2019
+
+This pipeline is part of Sequana software (sequana.readthedocs.io)
+
+snakemake -s lora.rules --forceall --stats stats.txt --cores 4
+
+
+"""
+import sequana
+from sequana import snaketools as sm
+from sequana import sequana_data
+
+#sm.init("fastqc.rules", globals())
+
+# This must be defined before the include
+configfile: "config.yaml"
+
+# Generic include of some dynamic modules
+# exec(open(sequana.modules["fastqc_dynamic"], "r").read())
+
+# A convenient manager
+manager = sm.PipelineManager("lora", config)
+
+rule pipeline:
+    input: "multiqc/multiqc_report.html"
+
+
+# FASTQC on input data set
+__fastqc_samples__input_fastq = manager.getrawdata()
+__fastqc_samples__output_done = "samples/{sample}/{sample}.done"
+__fastqc_samples__wkdir       = "samples/{sample}" # manager.getwkdir("fastqc_samples")
+__fastqc_samples__log = "samples/%s/fastqc.log" % manager.sample
+include: fastqc_dynamic("samples", manager)
+
+
+__multiqc__input = expand(__fastqc_samples__output_done, sample=manager.samples)
+
+rule multiqc:
+    input: __multiqc__input
+    output: __multiqc__output
+    params:
+        inputdir = config['multiqc']['indir'],
+        outdir="multiqc",
+        config=sequana_data("multiqc_config.yaml", "../multiqc"),
+        options = config["multiqc"]["options"] 
+    shell:
+        """
+        multiqc {params.inputdir} -o {params.outdir} -c {params.config} {params.options} 2> multiqc/multiqc.log
+        """
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: multiqc
+
+
+onsuccess:
+    print("Please open the report index.html or {}".format(__multiqc__output))
+    shell("ln -f -s {} index.html".format(__multiqc__output))
+    shell("rm -f ./samples/*/*.done")
+    shell("rm -f ./samples/*/*.log")
+    shell("chmod -R g+w .")
+
+
+    from sequana.snaketools import OnSuccessCleaner
+    sc = OnSuccessCleaner()
+    sc.files_to_remove.append("fastqc.rules")
+    toremove = config["onsuccess"]["toclean"]
+    sc.files_to_remove.append(toremove)
+    sc.add_makefile()
+    print("Once done, please clean up the directory using\n'make clean'")
+
+onerror:
+    print("An error occurred. See message above.")
