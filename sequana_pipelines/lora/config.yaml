@@ -8,19 +8,187 @@
 # ============================================================================
 
 
-input_directory: '{}'
-input_readtag: _R[12]_
-input_pattern: '{}'
+input_directory: '/pasteur/zeus/projets/p02/Biomics/Users/ddesvill/lora_test/data'
+input_readtag: ''
+input_pattern: '*.bam'
 
 
 ##############################################################################
-# Your section
+# Default resources parameters
 #
 # :Parameters:
 #
-# - options: string with any valid FastQC options
-todo:
-    example1: true
+# - mem: Memory
+# - time: Job time
+default:
+    mem: 1000
+    time: 'fast'
+
+##############################################################################
+# CCS
+#
+# :Parameters:
+#
+# - min-rq: Minimum predicted accuracy in [0, 1].
+# - min-passes: Minimum number of full-length subreads required to generate CCS for a ZMW
+# - max-chunks: Determine maximum number of chunks.
+# - threads: Number of threads to use
+ccs:
+    min-rq: 0.9
+    min-passes: 0
+    max-chunks: 20
+    threads: 4
+    mem: 2000
+    time: 'fast'
+    do: True
+
+
+##############################################################################
+# Samtools merge
+#
+# :Parameters:
+#
+samtools_merge:
+    threads: 8
+    time: 'fast'
+    mem: 8000
+
+
+##############################################################################
+# Bam to Fastq
+#
+# :Parameters:
+#
+bam_to_fastq:
+    threads: 8
+    time: 'fast'
+    mem: 8000
+
+
+##############################################################################
+# Canu v2.1
+#
+# :Parameters:
+#   
+# - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
+# - use_grid: let canu run steps on cluster.
+# - threads: Number of threads to use
+# - mem: Memory
+canu:
+    genome_size: '3.3m'
+    use_grid: True 
+    threads: 1
+    time: 'normal'
+    mem: 1000
+
+
+##############################################################################
+# Circlator
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - options: String with any valid Circlator options
+# - threads: Number of threads to use
+# - mem: Memory
+circlator:
+    do: True
+    options: '--split_all_reads'
+    threads: 8
+    time: 'fast'
+    mem: 4000
+
+
+##############################################################################
+# Minimap2
+#
+# :Parameters:
+#   
+# - preset: Preset for application.
+# - threads: Number of threads to use
+# - mem: Memory
+minimap2:
+    preset: 'asm20'
+    threads: 8
+    time: 'fast'
+    mem: 4000
+
+##############################################################################
+# Sequana coverage
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - mem: Memory
+sequana_coverage:
+    do: True
+    time: 'fast'
+    mem: 4000
+
+##############################################################################
+# Quast
+#
+# :Parameters:
+#   
+# - preset: Preset for application (pacbio/nanopore).
+# - threads: Number of threads to use
+# - mem: Memory
+quast:
+    preset: 'pacbio'
+    threads: 4
+    time: 'fast'
+    mem: 4000
+
+##############################################################################
+# Busco
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - config_file: Busco config file.
+# - augustus: Augustus config directory.
+# - threads: Number of threads to use.
+# - mem: Memory needed.
+busco:
+    do: True
+    config_file: "/pasteur/sonic/homes/ddesvill/work/lora_test/config.ini"
+    augustus: "/pasteur/zeus/projets/p02/Biomics/resources/augustus"
+    threads: 4
+    time: 'fast'
+    mem: 4000
+
+
+##############################################################################
+# Prokka
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - threads: Number of threads to use.
+# - mem: Memory needed.
+prokka:
+    do: True
+    threads: 4
+    time: 'fast'
+    mem: 4000
+
+##############################################################################
+# Blast
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - db_dir: Path to BLAST databases.
+# - evalue: Expectation value (E) threshold for saving hits.
+# - threads: Number of threads to use.
+# - mem: Memory needed.
+blast:
+    do: True
+    db_dir: "/pasteur/zeus/services/p01/banques-prod/prod/blast2/"
+    evalue: "10e-10"
+    threads: 8
+    time: 'fast'
+    mem: 4000
 
 
 ##############################################################################
