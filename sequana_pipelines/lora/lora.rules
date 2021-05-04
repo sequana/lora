@@ -3,6 +3,8 @@
 
 from sequana import snaketools as sm
 
+from lora.enums import BLAST_KEY
+
 shell.executable('bash')
 
 configfile: "config.yaml"
@@ -68,14 +70,11 @@ rule index_bam:
         manager.getrawdata()
     output:
         "{sample}/ccs/{sample}.bam"
-    params:
-        mem = config['default']['mem'],
-        time = config['default']['time']
     shell:
         """
         mkdir -p {wildcards.sample}/ccs
         ln -sfn {input} {wildcards.sample}/ccs/{wildcards.sample}.bam
-        cd {wildcards.sample}/ccs; pbindex {wildcards.sample}.bam; cd -
+        cd {wildcards.sample}/ccs && pbindex {wildcards.sample}.bam; cd -
         """
 
 
@@ -85,9 +84,6 @@ rule setup_ccs_chunk:
         "{sample}/ccs/{sample}.bam"
     output:
         temp(expand("{{sample}}/ccs/{{sample}}.{chunk}.txt", chunk=range(1, CCS_MAX_CHUNKS + 1)))
-    params:
-        mem = config['default']['mem'],
-        time = config['default']['time']
     shell:
         """
         touch {output}
@@ -106,14 +102,13 @@ rule css:
         max_chunks = CCS_MAX_CHUNKS,
         min_rq = config['ccs']['min-rq'],
         min_passes = config['ccs']['min-passes'],
-        mem = config['ccs']['mem'],
-        time = config['ccs']['time']
+        options = config['ccs']['options']
     threads:
         config['ccs']['threads']
     shell:
         """
         ccs {input.bam} {output.bam} --chunk {wildcards.chunk}/{params.max_chunks} --min-rq {params.min_rq}\
-            --min-passes {params.min_passes} --num-threads {threads} --report-file {output.report}
+            --min-passes {params.min_passes} --num-threads {threads} --report-file {output.report} {params.options}
         """
 
 
@@ -123,13 +118,12 @@ rule ccs_merge:
     output:
         "{sample}/ccs/{sample}.ccs.bam"
     params:
-        mem = config['samtools_merge']['mem'],
-        time = config['samtools_merge']['time']
+        config['samtools_merge']['options']
     threads:
         config['samtools_merge']['threads'] - 1
     shell:
         """
-        samtools merge -@ {threads} {output} {input}
+        samtools merge -@ {threads} {params} {output} {input}
         """
 
 
@@ -139,11 +133,12 @@ rule bam_to_fastq:
     output:
         fastq = "{sample}/bam_to_fastq/{sample}.fastq"
     params:
-        mem = config['bam_to_fastq']['mem'],
-        time = config['bam_to_fastq']['time']
+        config['bam_to_fastq']['options']
+    threads:
+        config['bam_to_fastq']['threads'] - 1
     shell:
         """
-        samtools bam2fq {input} > {output.fastq}
+        samtools bam2fq -@ {threads} {params} {input} > {output.fastq}
         """
 
 
@@ -156,8 +151,7 @@ rule canu:
     params:
         genome_size = config['canu']['genome_size'],
         use_grid = config['canu']['use_grid'],
-        mem = config['canu']['mem'],
-        time = config['canu']['time']
+        options = config['canu']['options']
     threads:
         config['canu']['threads']
     shell:
@@ -167,7 +161,7 @@ rule canu:
         rm -f $outdir/{wildcards.sample}.{{done,failed}}
 
         # run canu
-        canu -p {wildcards.sample} -d $outdir genomeSize={params.genome_size} useGrid={params.use_grid}\
+        canu -p {wildcards.sample} -d $outdir genomeSize={params.genome_size} useGrid={params.use_grid} {params.options}\
             onSuccess='touch {wildcards.sample}.done' onFailure='touch {wildcards.sample}.failed' -pacbio {input}
 
         if [ '{params.use_grid}' = True ]; then        
@@ -187,9 +181,7 @@ rule circlator:
     output:
         "{sample}/circlator/{sample}.contigs.fasta"
     params:
-        options = config['circlator']['options'],
-        mem = config['circlator']['mem'],
-        time = config['circlator']['time']
+        options = config['circlator']['options']
     threads:
         config['circlator']['threads']
     shell:
@@ -209,13 +201,12 @@ rule minimap2_and_genomecov:
         bed = "{sample}/minimap2/{sample}.bed"
     params:
         preset = config['minimap2']['preset'],
-        mem = config['minimap2']['mem'],
-        time = config['minimap2']['time']
+        options = config['minimap2']['options']
     threads:
         config['minimap2']['threads']
     shell:
         """
-        minimap2 -t {threads} -ax {params.preset} {input.contigs} {input.fastq}\
+        minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq}\
             | samtools sort -@ $(({threads} - 1)) -o {output.bam}\
             && samtools index {output.bam}\
             && samtools depth -aa {output.bam} > {output.bed}
@@ -228,11 +219,10 @@ rule sequana_coverage:
     output:
         html = "{sample}/sequana_coverage/multiqc_report.html"
     params:
-        mem = config['sequana_coverage']['mem'],
-        time = config['sequana_coverage']['time']
+        config['sequana_coverage']['options']
     shell:
         """
-        sequana_coverage -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
+        sequana_coverage {params} -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
         """
 
 
@@ -244,13 +234,12 @@ rule quast:
         "{sample}/quast/quast.done"
     params:
         preset = config['quast']['preset'],
-        mem = config['quast']['mem'],
-        time = config['quast']['time']
+        options = config['quast']['options']
     threads:
         config['quast']['threads']
     shell:
         """
-        quast.py -t {threads} {input.contigs} --{params.preset} {input.fastq} -o {wildcards.sample}/quast\
+        quast.py {params.options} -t {threads} {input.contigs} --{params.preset} {input.fastq} -o {wildcards.sample}/quast\
             && touch {output}
         """
 
@@ -263,8 +252,6 @@ rule busco:
     params:
         config = config['busco']['config_file'],
         augustus = config['busco']['augustus'],
-        mem = config['busco']['mem'],
-        time = config['busco']['time']
     threads:
         config['busco']['threads']
     shell:
@@ -273,6 +260,8 @@ rule busco:
         export AUGUSTUS_CONFIG_PATH={params.augustus}
         
         contigs={input.contigs}
+
+        # parenthesis to run it in subshell and avoid side effects with cd
         cd {wildcards.sample}\
             && busco -i ${{contigs#{wildcards.sample}/}} -o busco -m genome -c {threads} --offline -f\
             && cd -\
@@ -286,13 +275,12 @@ rule prokka:
     output:
         "{sample}/prokka/{sample}.gbk"
     params:
-        mem = config['prokka']['mem'],
-        time = config['prokka']['time']
+        config['prokka']['options']
     threads:
         config['prokka']['threads']
     shell:
         """
-        prokka --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs}
+        prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs}
         """
 
 
@@ -304,15 +292,15 @@ rule blast:
     params:
         db = config['blast']['db_dir'],
         evalue = config['blast']['evalue'],
-        mem = config['blast']['mem'],
-        time = config['quast']['time']
+        outfmt = " ".join(BLAST_KEY),
+        options = config['blast']['options']
     threads:
         config['blast']['threads']
     shell:
         """
         export BLASTDB={params.db}
-        blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads}\
-            -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle"
+        blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads} {params.options}\
+            -outfmt "6 {params.outfmt}"
         """
 
 
@@ -321,9 +309,6 @@ rule multiqc:
         requested_output(manager)
     output:
         "multiqc/multiqc_report.html"
-    params:
-        mem = config['default']['mem'],
-        time = config['default']['time']
     shell:
         """
         multiqc -f . --outdir multiqc

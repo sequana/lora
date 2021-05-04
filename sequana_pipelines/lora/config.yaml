@@ -14,17 +14,6 @@ input_pattern: '*.bam'
 
 
 ##############################################################################
-# Default resources parameters
-#
-# :Parameters:
-#
-# - mem: Memory
-# - time: Job time
-default:
-    mem: 1000
-    time: 'fast'
-
-##############################################################################
 # CCS
 #
 # :Parameters:
@@ -32,15 +21,15 @@ default:
 # - min-rq: Minimum predicted accuracy in [0, 1].
 # - min-passes: Minimum number of full-length subreads required to generate CCS for a ZMW
 # - max-chunks: Determine maximum number of chunks.
+# - options: any options recognised by `ccs` cli
 # - threads: Number of threads to use
 ccs:
-    min-rq: 0.9
+    do: True
+    min-rq: 0.7
     min-passes: 0
     max-chunks: 20
+    options: ''
     threads: 4
-    mem: 2000
-    time: 'fast'
-    do: True
 
 
 ##############################################################################
@@ -49,20 +38,19 @@ ccs:
 # :Parameters:
 #
 samtools_merge:
-    threads: 8
-    time: 'fast'
-    mem: 8000
+    options: ''
+    threads: 4
 
 
 ##############################################################################
 # Bam to Fastq
 #
 # :Parameters:
+# - options: any options recognised by `samtools bam2fq` cli
 #
 bam_to_fastq:
-    threads: 8
-    time: 'fast'
-    mem: 8000
+    options: ''
+    threads: 4
 
 
 ##############################################################################
@@ -72,14 +60,13 @@ bam_to_fastq:
 #   
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
 # - use_grid: let canu run steps on cluster.
+# - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
-# - mem: Memory
 canu:
     genome_size: '3.3m'
     use_grid: True 
+    options: ''
     threads: 1
-    time: 'normal'
-    mem: 1000
 
 
 ##############################################################################
@@ -88,15 +75,12 @@ canu:
 # :Parameters:
 #   
 # - do: if unchecked, this rule is ignored
-# - options: String with any valid Circlator options
+# - options: any options recognised by `circlator` cli
 # - threads: Number of threads to use
-# - mem: Memory
 circlator:
     do: True
     options: '--split_all_reads'
-    threads: 8
-    time: 'fast'
-    mem: 4000
+    threads: 4
 
 
 ##############################################################################
@@ -105,13 +89,12 @@ circlator:
 # :Parameters:
 #   
 # - preset: Preset for application.
+# - options: any options recognised by `minimap2` cli
 # - threads: Number of threads to use
-# - mem: Memory
 minimap2:
     preset: 'asm20'
-    threads: 8
-    time: 'fast'
-    mem: 4000
+    options: ''
+    threads: 4
 
 ##############################################################################
 # Sequana coverage
@@ -119,11 +102,10 @@ minimap2:
 # :Parameters:
 #   
 # - do: if unchecked, this rule is ignored
-# - mem: Memory
+# - options: any options recognised by `sequana_coverage` cli
 sequana_coverage:
     do: True
-    time: 'fast'
-    mem: 4000
+    options: ''
 
 ##############################################################################
 # Quast
@@ -131,13 +113,12 @@ sequana_coverage:
 # :Parameters:
 #   
 # - preset: Preset for application (pacbio/nanopore).
+# - options: any options recognised by `quast` cli
 # - threads: Number of threads to use
-# - mem: Memory
 quast:
     preset: 'pacbio'
+    options: ''
     threads: 4
-    time: 'fast'
-    mem: 4000
 
 ##############################################################################
 # Busco
@@ -148,14 +129,11 @@ quast:
 # - config_file: Busco config file.
 # - augustus: Augustus config directory.
 # - threads: Number of threads to use.
-# - mem: Memory needed.
 busco:
     do: True
-    config_file: "/pasteur/sonic/homes/ddesvill/work/lora_test/config.ini"
-    augustus: "/pasteur/zeus/projets/p02/Biomics/resources/augustus"
+    config_file: 'path/to/config.ini'
+    augustus: 'path/to/resources/augustus'
     threads: 4
-    time: 'fast'
-    mem: 4000
 
 
 ##############################################################################
@@ -165,12 +143,11 @@ busco:
 #   
 # - do: if unchecked, this rule is ignored
 # - threads: Number of threads to use.
-# - mem: Memory needed.
+# - options: any options recognised by `prokka` cli
 prokka:
     do: True
+    options: ''
     threads: 4
-    time: 'fast'
-    mem: 4000
 
 ##############################################################################
 # Blast
@@ -180,15 +157,14 @@ prokka:
 # - do: if unchecked, this rule is ignored
 # - db_dir: Path to BLAST databases.
 # - evalue: Expectation value (E) threshold for saving hits.
+# - options: any options recognised by `blastn` cli (except --outfmt)
 # - threads: Number of threads to use.
-# - mem: Memory needed.
 blast:
     do: True
-    db_dir: "/pasteur/zeus/services/p01/banques-prod/prod/blast2/"
-    evalue: "10e-10"
-    threads: 8
-    time: 'fast'
-    mem: 4000
+    db_dir: 'path/to/blast_databases'
+    evalue: '1e-10'
+    options: ''
+    threads: 4
 
 
 ##############################################################################
