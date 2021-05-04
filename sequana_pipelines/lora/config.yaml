@@ -8,19 +8,163 @@
 # ============================================================================
 
 
-input_directory: '{}'
-input_readtag: _R[12]_
-input_pattern: '{}'
+input_directory: '/pasteur/zeus/projets/p02/Biomics/Users/ddesvill/lora_test/data'
+input_readtag: ''
+input_pattern: '*.bam'
 
 
 ##############################################################################
-# Your section
+# CCS
 #
 # :Parameters:
 #
-# - options: string with any valid FastQC options
-todo:
-    example1: true
+# - min-rq: Minimum predicted accuracy in [0, 1].
+# - min-passes: Minimum number of full-length subreads required to generate CCS for a ZMW
+# - max-chunks: Determine maximum number of chunks.
+# - options: any options recognised by `ccs` cli
+# - threads: Number of threads to use
+ccs:
+    do: True
+    min-rq: 0.7
+    min-passes: 0
+    max-chunks: 20
+    options: ''
+    threads: 4
+
+
+##############################################################################
+# Samtools merge
+#
+# :Parameters:
+#
+samtools_merge:
+    options: ''
+    threads: 4
+
+
+##############################################################################
+# Bam to Fastq
+#
+# :Parameters:
+# - options: any options recognised by `samtools bam2fq` cli
+#
+bam_to_fastq:
+    options: ''
+    threads: 4
+
+
+##############################################################################
+# Canu v2.1
+#
+# :Parameters:
+#   
+# - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
+# - use_grid: let canu run steps on cluster.
+# - options: any options recognised by `canu` cli
+# - threads: Number of threads to use
+canu:
+    genome_size: '3.3m'
+    use_grid: True 
+    options: ''
+    threads: 1
+
+
+##############################################################################
+# Circlator
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - options: any options recognised by `circlator` cli
+# - threads: Number of threads to use
+circlator:
+    do: True
+    options: '--split_all_reads'
+    threads: 4
+
+
+##############################################################################
+# Minimap2
+#
+# :Parameters:
+#   
+# - preset: Preset for application.
+# - options: any options recognised by `minimap2` cli
+# - threads: Number of threads to use
+minimap2:
+    preset: 'asm20'
+    options: ''
+    threads: 4
+
+##############################################################################
+# Sequana coverage
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - options: any options recognised by `sequana_coverage` cli
+sequana_coverage:
+    do: True
+    options: ''
+
+##############################################################################
+# Quast
+#
+# :Parameters:
+#   
+# - preset: Preset for application (pacbio/nanopore).
+# - options: any options recognised by `quast` cli
+# - threads: Number of threads to use
+quast:
+    preset: 'pacbio'
+    options: ''
+    threads: 4
+
+##############################################################################
+# Busco
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - config_file: Busco config file.
+# - augustus: Augustus config directory.
+# - threads: Number of threads to use.
+busco:
+    do: True
+    config_file: 'path/to/config.ini'
+    augustus: 'path/to/resources/augustus'
+    threads: 4
+
+
+##############################################################################
+# Prokka
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - threads: Number of threads to use.
+# - options: any options recognised by `prokka` cli
+prokka:
+    do: True
+    options: ''
+    threads: 4
+
+##############################################################################
+# Blast
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - db_dir: Path to BLAST databases.
+# - evalue: Expectation value (E) threshold for saving hits.
+# - options: any options recognised by `blastn` cli (except --outfmt)
+# - threads: Number of threads to use.
+blast:
+    do: True
+    db_dir: 'path/to/blast_databases'
+    evalue: '1e-10'
+    options: ''
+    threads: 4
 
 
 ##############################################################################

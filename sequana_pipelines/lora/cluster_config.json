@@ -1,0 +1,25 @@
+{
+    "__default__": {
+        "ram": "4G",
+        "time": "fast"
+    },
+    "index_bam": {
+        "ram": "2G"
+    },
+	"ccs": {
+        "ram": "2G"
+    },
+	"samtools_merge": {
+		"ram" : "8G"
+	},
+	"bam_to_fastq": {
+		"ram": "8G"
+	},
+	"canu": {
+        "ram": "1G",
+        "time": "normal"  
+	},
+    "multiqc": {
+        "ram": "2G"
+    }
+}

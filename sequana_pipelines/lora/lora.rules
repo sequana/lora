@@ -1,71 +1,339 @@
-"""lora pipeline
-
-Author: Thomas Cokelaer
-Affiliation: Institut Pasteur @ 2019
-
-This pipeline is part of Sequana software (sequana.readthedocs.io)
-
-snakemake -s lora.rules --forceall --stats stats.txt --cores 4
-
-
+""" LORA pipeline v0.0
 """
-import sequana
+
 from sequana import snaketools as sm
-from sequana import sequana_data
 
-#sm.init("fastqc.rules", globals())
+from lora.enums import BLAST_KEY
 
-# This must be defined before the include
+shell.executable('bash')
+
 configfile: "config.yaml"
 
-# Generic include of some dynamic modules
-# exec(open(sequana.modules["fastqc_dynamic"], "r").read())
-
-# A convenient manager
-manager = sm.PipelineManager("lora", config)
-
-rule pipeline:
-    input: "multiqc/multiqc_report.html"
+manager = sm.PipelineManager('lora', config, fastq=False)
 
 
-# FASTQC on input data set
-__fastqc_samples__input_fastq = manager.getrawdata()
-__fastqc_samples__output_done = "samples/{sample}/{sample}.done"
-__fastqc_samples__wkdir       = "samples/{sample}" # manager.getwkdir("fastqc_samples")
-__fastqc_samples__log = "samples/%s/fastqc.log" % manager.sample
-include: fastqc_dynamic("samples", manager)
+CCS_MAX_CHUNKS = config['ccs']['max-chunks']
 
 
-__multiqc__input = expand(__fastqc_samples__output_done, sample=manager.samples)
+def requested_output(manager):
+    """ Resolve all needed output knowing the user config.
+    """
+    output_list = [
+        expand("{sample}/canu/{sample}.contigs.fasta", sample=manager.samples),
+        expand("{sample}/quast/quast.done", sample=manager.samples)
+    ]
+    if config['circlator']['do']:
+        output_list += [expand("{sample}/circlator/{sample}.contigs.fasta", sample=manager.samples)]
+    if config['sequana_coverage']['do']:
+        output_list += [expand("{sample}/sequana_coverage/multiqc_report.html", sample=manager.samples)]
+    if config['busco']['do']:
+        output_list += [expand("{sample}/busco/short_summary_{sample}.txt", sample=manager.samples)]
+    if config['prokka']['do']:
+        output_list += [expand("{sample}/prokka/{sample}.gbk", sample=manager.samples)]
+    if config['blast']['do']:
+        output_list += [expand("{sample}/blast/{sample}.tsv", sample=manager.samples)]
+    return output_list
 
-rule multiqc:
-    input: __multiqc__input
-    output: __multiqc__output
-    params:
-        inputdir = config['multiqc']['indir'],
-        outdir="multiqc",
-        config=sequana_data("multiqc_config.yaml", "../multiqc"),
-        options = config["multiqc"]["options"] 
+    
+def get_bam(wildcards):
+    """ Use bam from ccs generation or raw bam.
+    """
+    if config['ccs']['do']:
+        return f'{wildcards.sample}/ccs/{wildcards.sample}.ccs.bam'
+    return manager.samples[wildcards.sample]
+
+
+def get_fastq(wildcards):
+    """ Convert bam to fastq format.
+    """
+    filename = manager.samples[wildcards.sample]
+    if filename.endswith('.bam'):
+        return f"{wildcards.sample}/bam_to_fastq/{wildcards.sample}.fastq"
+    return filename
+
+
+def get_contigs(wildcards):
+    """ Get contigs did with canu or circlator
+    """
+    if config['circlator']['do']:
+        return f'{wildcards.sample}/circlator/{wildcards.sample}.contigs.fasta'
+    return f'{wildcards.sample}/canu/{wildcards.sample}.contigs.fasta'
+
+
+rule lora:
+    input:
+        "multiqc/multiqc_report.html"
+
+
+rule index_bam:
+    input:
+        manager.getrawdata()
+    output:
+        "{sample}/ccs/{sample}.bam"
     shell:
         """
-        multiqc {params.inputdir} -o {params.outdir} -c {params.config} {params.options} 2> multiqc/multiqc.log
+        mkdir -p {wildcards.sample}/ccs
+        ln -sfn {input} {wildcards.sample}/ccs/{wildcards.sample}.bam
+        cd {wildcards.sample}/ccs && pbindex {wildcards.sample}.bam; cd -
         """
 
-# Those rules takes a couple of seconds so no need for a cluster
-localrules: multiqc
+
+# intermediate files are needed to parallelize ccs computation ( ͡° ͜ʖ ͡°)
+rule setup_ccs_chunk:
+    input:
+        "{sample}/ccs/{sample}.bam"
+    output:
+        temp(expand("{{sample}}/ccs/{{sample}}.{chunk}.txt", chunk=range(1, CCS_MAX_CHUNKS + 1)))
+    shell:
+        """
+        touch {output}
+        """
+
+
+rule css:
+    input:
+        "{sample}/ccs/{sample}.{chunk}.txt",
+        bam = "{sample}/ccs/{sample}.bam"
+    output:
+        bam = temp("{sample}/ccs/{sample}.ccs.{chunk}.bam"),
+        pbi = temp("{sample}/ccs/{sample}.ccs.{chunk}.bam.pbi"),
+        report = "{sample}/ccs/{sample}.{chunk}_report.txt"
+    params:
+        max_chunks = CCS_MAX_CHUNKS,
+        min_rq = config['ccs']['min-rq'],
+        min_passes = config['ccs']['min-passes'],
+        options = config['ccs']['options']
+    threads:
+        config['ccs']['threads']
+    shell:
+        """
+        ccs {input.bam} {output.bam} --chunk {wildcards.chunk}/{params.max_chunks} --min-rq {params.min_rq}\
+            --min-passes {params.min_passes} --num-threads {threads} --report-file {output.report} {params.options}
+        """
+
+
+rule ccs_merge:
+    input:
+        expand("{{sample}}/ccs/{{sample}}.ccs.{chunk}.bam", chunk=range(1, CCS_MAX_CHUNKS + 1))
+    output:
+        "{sample}/ccs/{sample}.ccs.bam"
+    params:
+        config['samtools_merge']['options']
+    threads:
+        config['samtools_merge']['threads'] - 1
+    shell:
+        """
+        samtools merge -@ {threads} {params} {output} {input}
+        """
+
+
+rule bam_to_fastq:
+    input:
+        get_bam
+    output:
+        fastq = "{sample}/bam_to_fastq/{sample}.fastq"
+    params:
+        config['bam_to_fastq']['options']
+    threads:
+        config['bam_to_fastq']['threads'] - 1
+    shell:
+        """
+        samtools bam2fq -@ {threads} {params} {input} > {output.fastq}
+        """
+
+
+rule canu:
+    input:
+        get_fastq
+    output:
+        contig = "{sample}/canu/{sample}.contigs.fasta",
+        done = "{sample}/canu/{sample}.done"
+    params:
+        genome_size = config['canu']['genome_size'],
+        use_grid = config['canu']['use_grid'],
+        options = config['canu']['options']
+    threads:
+        config['canu']['threads']
+    shell:
+        """
+        # clean up done/failed file
+        outdir={wildcards.sample}/canu
+        rm -f $outdir/{wildcards.sample}.{{done,failed}}
+
+        # run canu
+        canu -p {wildcards.sample} -d $outdir genomeSize={params.genome_size} useGrid={params.use_grid} {params.options}\
+            onSuccess='touch {wildcards.sample}.done' onFailure='touch {wildcards.sample}.failed' -pacbio {input}
+
+        if [ '{params.use_grid}' = True ]; then        
+            while [ ! -f $outdir/{wildcards.sample}.done ]; do
+                sleep 60;
+                [ -f $outdir/{wildcards.sample}.failed ] && exit 1;
+            done
+        fi
+        exit 0;
+        """
+
+
+rule circlator:
+    input:
+        contig = "{sample}/canu/{sample}.contigs.fasta",
+        fastq = get_fastq
+    output:
+        "{sample}/circlator/{sample}.contigs.fasta"
+    params:
+        options = config['circlator']['options']
+    threads:
+        config['circlator']['threads']
+    shell:
+        """
+        outdir={wildcards.sample}/circlator/
+        circlator all {params.options} --threads {threads} --data_type pacbio-corrected {input.contig} {input.fastq}\
+            ${{outdir}} && mv ${{outdir}}/06.fixstart.fasta {output}
+        """
+
+
+rule minimap2_and_genomecov:
+    input:
+        fastq = get_fastq,
+        contigs = get_contigs
+    output:
+        bam = "{sample}/minimap2/{sample}.bam",
+        bed = "{sample}/minimap2/{sample}.bed"
+    params:
+        preset = config['minimap2']['preset'],
+        options = config['minimap2']['options']
+    threads:
+        config['minimap2']['threads']
+    shell:
+        """
+        minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq}\
+            | samtools sort -@ $(({threads} - 1)) -o {output.bam}\
+            && samtools index {output.bam}\
+            && samtools depth -aa {output.bam} > {output.bed}
+        """
+
+
+rule sequana_coverage:
+    input:
+        bed = "{sample}/minimap2/{sample}.bed"
+    output:
+        html = "{sample}/sequana_coverage/multiqc_report.html"
+    params:
+        config['sequana_coverage']['options']
+    shell:
+        """
+        sequana_coverage {params} -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
+        """
+
+
+rule quast:
+    input:
+        fastq = get_fastq,
+        contigs = get_contigs
+    output:
+        "{sample}/quast/quast.done"
+    params:
+        preset = config['quast']['preset'],
+        options = config['quast']['options']
+    threads:
+        config['quast']['threads']
+    shell:
+        """
+        quast.py {params.options} -t {threads} {input.contigs} --{params.preset} {input.fastq} -o {wildcards.sample}/quast\
+            && touch {output}
+        """
+
+
+rule busco:
+    input:
+        contigs = get_contigs
+    output:
+        "{sample}/busco/short_summary_{sample}.txt"
+    params:
+        config = config['busco']['config_file'],
+        augustus = config['busco']['augustus'],
+    threads:
+        config['busco']['threads']
+    shell:
+        """
+        export BUSCO_CONFIG_FILE={params.config}
+        export AUGUSTUS_CONFIG_PATH={params.augustus}
+        
+        contigs={input.contigs}
+
+        # parenthesis to run it in subshell and avoid side effects with cd
+        cd {wildcards.sample}\
+            && busco -i ${{contigs#{wildcards.sample}/}} -o busco -m genome -c {threads} --offline -f\
+            && cd -\
+            && mv {wildcards.sample}/busco/short_summary.*.txt {output}
+        """
+
+
+rule prokka:
+    input:
+        contigs = get_contigs
+    output:
+        "{sample}/prokka/{sample}.gbk"
+    params:
+        config['prokka']['options']
+    threads:
+        config['prokka']['threads']
+    shell:
+        """
+        prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs}
+        """
+
+
+rule blast:
+    input:
+        contigs = get_contigs
+    output:
+        "{sample}/blast/{sample}.tsv"
+    params:
+        db = config['blast']['db_dir'],
+        evalue = config['blast']['evalue'],
+        outfmt = " ".join(BLAST_KEY),
+        options = config['blast']['options']
+    threads:
+        config['blast']['threads']
+    shell:
+        """
+        export BLASTDB={params.db}
+        blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads} {params.options}\
+            -outfmt "6 {params.outfmt}"
+        """
+
+
+rule multiqc:
+    input:
+        requested_output(manager)
+    output:
+        "multiqc/multiqc_report.html"
+    shell:
+        """
+        multiqc -f . --outdir multiqc
+        """
 
 
 onsuccess:
+    # Create LORA summary report
+    from lora import create_report
+    create_report(
+        "lora_report.html",
+        manager.samples,
+        busco_done=config['busco']['do'],
+        blast_done=config['blast']['do'],
+        sequana_done=config['sequana_coverage']['do']
+    )
+
     print("Please open the report index.html or {}".format(__multiqc__output))
     shell("ln -f -s {} index.html".format(__multiqc__output))
     shell("rm -f ./samples/*/*.done")
     shell("rm -f ./samples/*/*.log")
     shell("chmod -R g+w .")
 
-
     from sequana.snaketools import OnSuccessCleaner
     sc = OnSuccessCleaner()
-    sc.files_to_remove.append("fastqc.rules")
     toremove = config["onsuccess"]["toclean"]
     sc.files_to_remove.append(toremove)
     sc.add_makefile()

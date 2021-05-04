@@ -1,0 +1,12 @@
+blastn
+busco
+bwa
+canu
+ccs
+circlator
+minimap2
+multiqc
+prokka
+quast
+samtools
+sequana_coverage

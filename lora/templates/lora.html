@@ -1,0 +1,78 @@
+<html lang="en">
+  <head>
+    <!-- CCS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+    <!-- Roboto font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"> 
+  </head>
+  <body>
+
+    <h1>LORA summary report</h1>
+    <p class="introduction">
+        Short report to summarize de novo assembly quality with long reads.
+    </p>
+    <h2>General Information</h2>
+    <table id='lora_summary' class='table table-striped table-bordered'>
+      <thead>
+        <th>Sample</th>
+        {% for header in summary['header'] %}
+          <th>{{header}}</th>
+        {% endfor %}
+      </thead>
+      <tbody>
+        {% for sample, values in summary['results'].items() %}
+          <tr>
+            <th>{{sample}}</th>
+            {% for value in values %}
+              <td>{{value}}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if analysis %}
+      <h2>Specific Information</h2>
+      {% for sample, contigs_dict in analysis.items() %}
+        <h3>{{sample}}</h3>
+        {% for contig, results in contigs_dict.items() %}
+          <h4>{{contig}}</h4>
+          {% if 'coverage' in results %}
+            <h5>Sequana Coverage</h5>
+              <table id='{{sample}}_{{contig}}_sequana' class='table table-striped table-bordered'>
+                <tbody>
+                  {% for key, value in results['coverage'].items() %}
+                    <tr>
+                      <th>{{key}}</th>
+                      <td>{{value}}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <img src="data:image/png;base64,{{results['cov_image']}}"/>
+          {% endif %}
+          {% if 'blast' in results %}
+          <h5>Blast</h5>
+          {{results['blast']}}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    {% endif %}
+    <!-- Javascript -->
+    <script src="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css"></script>
+    <script type="text/javascript">
+      $(function () {
+        $('#lora_summary').DataTable();
+        {% if analysis %}
+          {% for sample, contigs in analysis.items() %}
+            {% for contig in contigs.keys() %}
+              $('#{{sample}}_{{contig}}_blast').DataTable();
+              $('#{{sample}}_{{contig}}_sequana').DataTable();
+            {% endfor %}
+          {% endfor %}
+        {% endif %}
+      });
+    </script>
+  </body>
+</html>
