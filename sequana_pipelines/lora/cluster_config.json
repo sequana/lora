@@ -6,6 +6,9 @@
     "index_bam": {
         "ram": "2G"
     },
+    "blast": {
+        "ram": "8G"
+    },
 	"ccs": {
         "ram": "2G"
     },
@@ -19,6 +22,10 @@
         "ram": "1G",
         "time": "normal"  
 	},
+    "hifiasm": {
+        "ram": "4G",
+        "time": "fast"
+    },
     "multiqc": {
         "ram": "2G"
     }
