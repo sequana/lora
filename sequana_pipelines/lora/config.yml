@@ -8,9 +8,9 @@
 # ============================================================================
 
 
-input_directory: '/pasteur/zeus/projets/p02/Biomics/Users/ddesvill/lora_test/data'
-input_readtag: ''
+input_directory: ''
 input_pattern: '*.bam'
+input_hifi: false
 
 
 ##############################################################################
@@ -24,7 +24,7 @@ input_pattern: '*.bam'
 # - options: any options recognised by `ccs` cli
 # - threads: Number of threads to use
 ccs:
-    do: True
+    do: true
     min-rq: 0.7
     min-passes: 0
     max-chunks: 20
@@ -63,10 +63,44 @@ bam_to_fastq:
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 canu:
+    do: true
     genome_size: '3.3m'
-    use_grid: True 
+    use_grid: true 
     options: ''
     threads: 1
+
+
+##############################################################################
+# Long read correction with canu
+#
+# :Parameters:
+#   
+# - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
+# - use_grid: let canu run steps on cluster.
+# - correction_options: any options recognised by `canu -correct` cli
+# - trimming_options: any options recognised by `canu -trim cli (do not add --corrected option)`
+# - threads: Number of threads to use
+canu_correction:
+    genome_size: '3.3m'
+    use_grid: true
+    correction_options: ''
+    trimming_options: ''
+    threads: 1
+
+
+
+##############################################################################
+# Hifiasm v0.15.1
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - options: any options recognised by `canu` cli
+# - threads: Number of threads to use
+hifiasm:
+    do: false
+    options: '-f0 -l0 --n-hap 1'
+    threads: 4
 
 
 ##############################################################################
@@ -78,7 +112,7 @@ canu:
 # - options: any options recognised by `circlator` cli
 # - threads: Number of threads to use
 circlator:
-    do: True
+    do: true
     options: '--split_all_reads'
     threads: 4
 
@@ -104,7 +138,7 @@ minimap2:
 # - do: if unchecked, this rule is ignored
 # - options: any options recognised by `sequana_coverage` cli
 sequana_coverage:
-    do: True
+    do: true
     options: ''
 
 ##############################################################################
@@ -126,13 +160,13 @@ quast:
 # :Parameters:
 #   
 # - do: if unchecked, this rule is ignored
-# - config_file: Busco config file.
-# - augustus: Augustus config directory.
+# - lineage: Specify the name of the BUSCO lineage to be used.
+# - options: any options recognised by `busco` cli.
 # - threads: Number of threads to use.
 busco:
-    do: True
-    config_file: 'path/to/config.ini'
-    augustus: 'path/to/resources/augustus'
+    do: true
+    lineage: 'bacteria_odb10'
+    options: '--offline'
     threads: 4
 
 
@@ -145,7 +179,7 @@ busco:
 # - threads: Number of threads to use.
 # - options: any options recognised by `prokka` cli
 prokka:
-    do: True
+    do: true
     options: ''
     threads: 4
 
@@ -160,7 +194,7 @@ prokka:
 # - options: any options recognised by `blastn` cli (except --outfmt)
 # - threads: Number of threads to use.
 blast:
-    do: True
+    do: true
     db_dir: 'path/to/blast_databases'
     evalue: '1e-10'
     options: ''
