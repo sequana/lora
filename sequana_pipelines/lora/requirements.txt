@@ -7,6 +7,6 @@ circlator
 minimap2
 multiqc
 prokka
-quast
+quast.py
 samtools
 sequana_coverage
