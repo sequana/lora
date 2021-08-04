@@ -1,39 +1,41 @@
 from setuptools import setup
-from setuptools.command.develop import develop
-from setuptools.command.install import install
-import subprocess
+
+
+# handle sequana git link
+with open("requirements.txt") as fh:
+    requirements = [req.rstrip() if not req.startswith("git+") else req.rstrip().split("egg=")[-1] for req in fh]
 
 _MAJOR = 0
-_MINOR = 8
+_MINOR = 1
 _MICRO = 0
-version = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
-release = '%d.%d' % (_MAJOR, _MINOR)
+version = f"{_MAJOR}.{_MINOR}.{_MICRO}"
+release = f"{_MAJOR}.{_MINOR}"
 
 metainfo = {
-    'authors': {"main": ("thomas cokelaer", "thomas.cokelaer@pasteur.fr")},
-    'version': version,
-    'license': 'new BSD',
-    'url': "https://github.com/sequana/",
-    'description': "long read assembly pipeline",
-    'platforms': ['Linux', 'Unix', 'MacOsX', 'Windows'],
-    'keywords': ['pacbio,assembly,snakemake,sequana,canu'],
-    'classifiers': [
-        'Development Status :: 4 - Beta',
+    "authors": {"main": ("thomas cokelaer", "thomas.cokelaer@pasteur.fr")},
+    "version": version,
+    "license": "new BSD",
+    "url": "https://github.com/sequana/",
+    "description": "long read assembly pipeline",
+    "platforms": ["Linux", "Unix", "MacOsX", "Windows"],
+    "keywords": ["pacbio,assembly,snakemake,sequana,canu"],
+    "classifiers": [
+        "Development Status :: 4 - Beta",
         # 'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Education',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'Topic :: Scientific/Engineering :: Information Analysis',
-        'Topic :: Scientific/Engineering :: Mathematics',
-        'Topic :: Scientific/Engineering :: Physics'
-    ]
+        "Intended Audience :: Education",
+        "Intended Audience :: End Users/Desktop",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Topic :: Scientific/Engineering :: Information Analysis",
+        "Topic :: Scientific/Engineering :: Mathematics",
+        "Topic :: Scientific/Engineering :: Physics",
+    ],
 }
 
 NAME = "lora"
@@ -42,37 +44,34 @@ NAME = "lora"
 setup(
     name="sequana_{}".format(NAME),
     version=version,
-    maintainer=metainfo['authors']['main'][0],
-    maintainer_email=metainfo['authors']['main'][1],
-    author=metainfo['authors']['main'][0],
-    author_email=metainfo['authors']['main'][1],
+    maintainer=metainfo["authors"]["main"][0],
+    maintainer_email=metainfo["authors"]["main"][1],
+    author=metainfo["authors"]["main"][0],
+    author_email=metainfo["authors"]["main"][1],
     long_description=open("README.rst").read(),
-    keywords=metainfo['keywords'],
-    description=metainfo['description'],
-    license=metainfo['license'],
-    platforms=metainfo['platforms'],
-    url=metainfo['url'],
-    classifiers=metainfo['classifiers'],
-
+    keywords=metainfo["keywords"],
+    description=metainfo["description"],
+    license=metainfo["license"],
+    platforms=metainfo["platforms"],
+    url=metainfo["url"],
+    classifiers=metainfo["classifiers"],
     # package installation
     packages=[
         "sequana_pipelines.lora",
-        'sequana_pipelines.lora.data'
+        "sequana_pipelines.lora.rules",
+        "sequana_pipelines.lora.src",
     ],
-
-    install_requires=open("requirements.txt").read(),
-
+    install_requires=requirements,
     # This is recursive include of data files
     exclude_package_data={"": ["__pycache__"]},
     package_data={
-        '': ['*.yaml', "*.rules", "*.json", "requirements.txt", "*png"],
-        'sequana_pipelines.lora.data': ['*.*'],
+        "": ["*.yaml", "*.rules", "*.json", "requirements.txt", "*png", "*yml", "*smk"],
     },
-
     zip_safe=False,
-
-    entry_points={'console_scripts': [
-        'sequana_pipelines_lora=sequana_pipelines.lora.main:main',
-        'sequana_lora=sequana_pipelines.lora.main:main'
-    ]}
+    entry_points={
+        "console_scripts": [
+            "sequana_pipelines_lora=sequana_pipelines.lora.main:main",
+            "sequana_lora=sequana_pipelines.lora.main:main",
+        ]
+    },
 )

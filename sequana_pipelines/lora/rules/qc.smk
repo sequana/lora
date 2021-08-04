@@ -1,5 +1,5 @@
 
-from lora.enums import BLAST_KEY
+from sequana_pipelines.lora import BLAST_KEY
 
 
 rule minimap2_and_genomecov:
