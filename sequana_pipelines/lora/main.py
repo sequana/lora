@@ -30,7 +30,7 @@ class Options(argparse.ArgumentParser):
         so = SnakemakeOptions(working_directory=NAME)
         so.add_options(self)
 
-        so = InputOptions()
+        so = InputOptions(input_pattern='*.bam')
         so.add_options(self)
 
         so = GeneralOptions()
@@ -66,7 +66,7 @@ def main(args=None):
     # option parsing including common epilog
     options = Options(NAME, epilog=sequana_epilog).parse_args(args[1:])
 
-    from sequana.pipelines_common import SequanaManager
+    from sequana_pipetools import SequanaManager
 
     # the real stuff is here
     manager = SequanaManager(options, NAME)

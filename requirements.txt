@@ -1,4 +1,3 @@
-sequana>=0.11.0
-sequana_pipetools>=0.5.2
+git+https://github.com/sequana/sequana_pipetools.git@master#egg=sequana_pipetools
 pandas
 jinja2
