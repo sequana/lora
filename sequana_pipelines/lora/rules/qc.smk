@@ -65,7 +65,7 @@ rule busco:
         mode = "genome",                                                                                                     
         lineage = config['busco']['lineage'],                                                                                
         short_summary_filename = "short_summary_{sample}.txt",                                                               
-        extra = config['busco']['options']
+        option = config['busco']['options']
     threads:
         config['busco']['threads']
     wrapper:
@@ -93,7 +93,7 @@ rule blast:
     output:
         "{sample}/blast/{sample}.tsv"
     params:
-        db = config['blast']['db_dir'],
+        db = config['blast']['blastdb'],
         evalue = config['blast']['evalue'],
         outfmt = " ".join(BLAST_KEY),
         options = config['blast']['options']

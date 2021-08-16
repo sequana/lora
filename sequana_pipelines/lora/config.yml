@@ -10,7 +10,8 @@
 
 input_directory: ''
 input_pattern: '*.bam'
-input_hifi: false
+assembler: 'canu'
+is_hifi: false
 
 
 ##############################################################################
@@ -63,7 +64,6 @@ bam_to_fastq:
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 canu:
-    do: true
     genome_size: '3.3m'
     use_grid: true 
     options: ''
@@ -98,7 +98,6 @@ canu_correction:
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 hifiasm:
-    do: false
     options: '-f0 -l0 --n-hap 1'
     threads: 4
 
@@ -165,7 +164,7 @@ quast:
 # - threads: Number of threads to use.
 busco:
     do: true
-    lineage: 'bacteria_odb10'
+    lineage: ''
     options: '--offline'
     threads: 4
 
@@ -195,7 +194,7 @@ prokka:
 # - threads: Number of threads to use.
 blast:
     do: true
-    db_dir: 'path/to/blast_databases'
+    blastdb: ''
     evalue: '1e-10'
     options: ''
     threads: 4

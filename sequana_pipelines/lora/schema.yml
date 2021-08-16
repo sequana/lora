@@ -1,0 +1,214 @@
+type: map
+mapping:
+    "input_directory":
+        type: str
+        required: true
+
+    "input_pattern":
+        type: str
+        required: true
+
+    "assembler":
+        type: str
+        required: true
+        enum: ['canu', 'hifiasm']
+
+    "is_hifi":
+        type: bool
+        required: true
+        nullable: false
+
+    "ccs":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "max-chunks":
+                type: int
+                required: true
+            "min-rq":
+                type: number
+                required: true
+            "min-passes":
+                type: int
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "samtools_merge":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+ 
+    "bam_to_fastq":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "canu":
+        type: map
+        mapping:
+            "genome_size":
+                type: str
+                required: true
+            "use_grid":
+                type: bool
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "canu_correction":
+        type: map
+        mapping:
+            "genome_size":
+                type: str
+                required: true
+            "use_grid":
+                type: bool
+                required: true
+            "correction_options":
+                type: text
+                required: false
+            "trimming_options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "hifiasm":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "circlator":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "minimap2":
+        type: map
+        mapping:
+            "preset":
+                type: str
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "sequana_coverage":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "options":
+                type: text
+                required: false
+
+    "quast":
+        type: map
+        mapping:
+            "preset":
+                type: str
+                enum: ['pacbio', 'nanopore']
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "busco":
+        type: map
+        func: ext_map_optionnal
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "lineage":
+                type: str
+                required: true
+                nullable: false
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "prokka":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+
+    "blast":
+        type: map
+        func: ext_map_optionnal
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "blastdb":
+                type: str
+                required: true
+                nullable: false
+            "evalue":
+                type: str
+                required: true
+            "options":
+                type: str
+                required: false
+            "threads":
+                type: int
+                required: true
+    "onsuccess":
+        type: map
+        mapping:
+            "toclean":
+                type: text
+                required: true

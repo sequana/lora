@@ -20,7 +20,7 @@ rule canu_correction:
         get_fastq
     output:
         reads = "{sample}/corrected_reads/{sample}.correctedReads.fasta.gz",
-        done = "{sample}/canu/canu.done"
+        done = "{sample}/corrected_reads/canu-correct.done"
     params:
         step = '-correct',
         genome_size = config['canu_correction']['genome_size'],
@@ -36,7 +36,8 @@ rule canu_trimming:
     input:
         "{sample}/corrected_reads/{sample}.correctedReads.fasta.gz"
     output:
-        "{sample}/corrected_reads/{sample}.trimmedReads.fasta.gz"
+        reads = "{sample}/corrected_reads/{sample}.trimmedReads.fasta.gz",
+        done = "{sample}/corrected_reads/canu-trim.done"
     params:
         step = '-trim',
         genome_size = config['canu_correction']['genome_size'],

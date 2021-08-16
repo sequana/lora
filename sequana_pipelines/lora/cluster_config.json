@@ -22,6 +22,14 @@
         "ram": "1G",
         "time": "normal"  
 	},
+    "canu_correction": {
+        "ram": "1G",
+        "time": "normal"
+    },
+    "canu_trimming": {
+        "ram": "1G",
+        "time": "normal"
+    },
     "hifiasm": {
         "ram": "4G",
         "time": "fast"
