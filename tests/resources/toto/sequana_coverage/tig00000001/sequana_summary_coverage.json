@@ -1,0 +1,26 @@
+{
+    "caller": "sequana_coverage",
+    "data": {
+        "BOC": 99.9957876497417,
+        "C3": 0.94025,
+        "C4": 0.9742500000000001,
+        "CV": 0.29901032084880924,
+        "DOC": 26.744397329252383,
+        "ROI": 206,
+        "ROI(high)": 65,
+        "ROI(low)": 141,
+        "chrom_name": "tig00000001",
+        "evenness": 0.89415,
+        "fit_mu": 0.9967600564186663,
+        "fit_pi": 0.5232889295298092,
+        "fit_sigma": 0.10127257491580449,
+        "length": 510403
+    },    
+    "date": "Tue Jul  6 18:04:18 2021",
+    "description": "",
+    "name": "sequana_summary_coverage",
+    "params": {},
+    "pipeline_version": null,
+    "sample_name": "toto",
+    "version": "0.11.1"
+}

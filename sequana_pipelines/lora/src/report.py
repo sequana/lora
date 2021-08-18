@@ -33,7 +33,7 @@ def create_report(output_name, samples, lora_dir='.', busco_done=True, blast_don
         analysis = get_sequana_coverage(analysis, samples, lora_dir)
 
     # create html
-    env = Environment(loader=PackageLoader('lora', 'templates'))
+    env = Environment(loader=PackageLoader('sequana_pipelines.lora.src', 'templates'))
     template = env.get_template('lora.html')
     report_output = template.render(summary=summary, analysis=analysis)
     with open(output_name, 'w') as fout:

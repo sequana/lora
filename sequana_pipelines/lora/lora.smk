@@ -1,13 +1,13 @@
 """ LORA pipeline v0.0
 """
 
-from sequana_pipetools import snaketools as sm
+from sequana_pipetools.snaketools import PipelineManager
 
 shell.executable('bash')
 
 configfile: "config.yml"
 
-manager = sm.PipelineManager('lora', config, fastq=False)
+manager = PipelineManager('lora', config, fastq=False, pattern=config['input_pattern'], schema="schema.yml")
 
 
 rule lora:
@@ -22,8 +22,10 @@ include: "rules/qc.smk"
 
 
 onsuccess:
-    # Create LORA summary report
     from sequana_pipelines.lora import create_report
+    from sequana_pipetools.snaketools import OnSuccessCleaner
+
+    # Create LORA summary report
     create_report(
         "lora_report.html",
         manager.samples,
@@ -37,7 +39,6 @@ onsuccess:
     shell("rm -f ./samples/*/*.log")
     shell("chmod -R g+w .")
 
-    from sequana_pipetools.snaketools import OnSuccessCleaner
     sc = OnSuccessCleaner()
     toremove = config["onsuccess"]["toclean"]
     sc.files_to_remove.append(toremove)

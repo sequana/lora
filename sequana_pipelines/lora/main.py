@@ -2,9 +2,10 @@ import sys
 import os
 import argparse
 
-from sequana_pipetools.options import SlurmOptions, SnakemakeOptions, InputOptions, GeneralOptions
+from sequana_pipetools.options import SlurmOptions, SnakemakeOptions, InputOptions, GeneralOptions, before_pipeline
 from sequana_pipetools.misc import Colors
 from sequana_pipetools.info import sequana_epilog, sequana_prolog
+from sequana_pipetools import SequanaManager
 
 col = Colors()
 
@@ -30,11 +31,36 @@ class Options(argparse.ArgumentParser):
         so = SnakemakeOptions(working_directory=NAME)
         so.add_options(self)
 
-        so = InputOptions(input_pattern='*.bam')
+        so = InputOptions(input_pattern="*.bam", add_input_readtag=False)
         so.add_options(self)
 
         so = GeneralOptions()
         so.add_options(self)
+
+        pipeline_group = self.add_argument_group("pipeline_general")
+        pipeline_group.add_argument(
+            "--assembler",
+            dest="assembler",
+            default='canu',
+            choices=['canu', 'hifiasm'],
+            help="An assembler in canu, hifiasm"
+        )
+        pipeline_group.add_argument(
+            "--hifi",
+            dest="is_hifi",
+            action='store_true',
+            help="Run assembler with adapted parameters for hifi data"
+        )
+        pipeline_group.add_argument(
+            "--blastdb",
+            dest="blastdb",
+            help="Path to your blast database"
+        )
+        pipeline_group.add_argument(
+            "--lineage",
+            dest="lineage",
+            help="Lineage or path to lineage file for BUSCO"
+        )
 
         pipeline_group = self.add_argument_group("pipeline")
 
@@ -55,18 +81,14 @@ class Options(argparse.ArgumentParser):
 
 
 def main(args=None):
-
-    if args is None:
+    if not args:
         args = sys.argv
 
     # whatever needs to be called by all pipeline before the options parsing
-    from sequana_pipetools.options import before_pipeline
     before_pipeline(NAME)
 
     # option parsing including common epilog
     options = Options(NAME, epilog=sequana_epilog).parse_args(args[1:])
-
-    from sequana_pipetools import SequanaManager
 
     # the real stuff is here
     manager = SequanaManager(options, NAME)
@@ -80,6 +102,13 @@ def main(args=None):
         # EXAMPLE TOREPLACE WITH YOUR NEEDS
         cfg.input_directory = os.path.abspath(options.input_directory)
         cfg.input_pattern = options.input_pattern
+        cfg.is_hifi = options.is_hifi
+        cfg.assembler = options.assembler
+        if options.blastdb:
+            cfg.blast['blastdb'] = options.blastdb
+        if options.lineage:
+            cfg.busco['lineage'] = options.lineage
+
         manager.exists(cfg.input_directory)
 
     # finalise the command and save it; copy the snakemake. update the config

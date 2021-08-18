@@ -65,7 +65,15 @@ setup(
     # This is recursive include of data files
     exclude_package_data={"": ["__pycache__"]},
     package_data={
-        "": ["*.yaml", "*.rules", "*.json", "requirements.txt", "*png", "*yml", "*smk"],
+        "": [
+            "*.yaml",
+            "*.rules",
+            "*.json",
+            "requirements.txt",
+            "*png",
+            "*yml",
+            "*smk",
+        ],
     },
     zip_safe=False,
     entry_points={
