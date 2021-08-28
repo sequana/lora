@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches-ignore: []
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+      matrix:
+        python: [3.7,3.8]
+
+    steps:
+    - name: checkout git repo
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.X
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+        conda update ruamel_yaml
+
+    - name: Install dependencies
+      run: |
+        pip install coveralls pytest-cov pytest pytest-xdist
+
+    - name: install package itself
+      run: |
+         pip install .
+
+    - name: testing
+      run: |
+        pytest --cov-report term --cov=sequana_pipelines.lora
+      env:
+        SEQUANA_WRAPPERS: https://github.com/sequana/sequana-wrappers
+
+    - name: coveralls
+      run: |
+        echo $COVERALLS_REPO_TOKEN
+        coveralls --service=github
+      env:
+          GITHUB_TOKEN: ${{ github.token }}

@@ -6,6 +6,7 @@ ccs
 circlator
 minimap2
 multiqc
+pbindex
 prokka
 quast.py
 samtools
