@@ -1,13 +1,33 @@
-""" LORA pipeline v0.0
+""" LORA pipeline v1.0
 """
+import csv
+import os
 
-from sequana_pipetools.snaketools import PipelineManager
+from sequana_pipetools.snaketools import PipelineManagerDirectory, FileFactory
+
+from sequana_pipelines.lora import exceptions
 
 shell.executable('bash')
 
 configfile: "config.yml"
 
-manager = PipelineManager('lora', config, fastq=False, pattern=config['input_pattern'], schema="schema.yml")
+
+manager = PipelineManagerDirectory('lora', config, schema="schema.yml")
+csv_filename = config.get('input_csv')
+input_directory = config.get('input_directory')
+input_pattern = config.get('input_pattern', '*.bam')
+if csv_filename:
+    # fill samples raw data using input csv
+    with open(csv_filename) as csv_file:
+        csv_reader = csv.reader(csv_file, skipinitialspace=True)
+        manager.samples = {sample: files for sample, *files in csv_reader}
+elif input_directory and os.path.isdir(input_directory):
+    # use input directory and pattern
+    ff = FileFactory(os.path.join(input_directory, input_pattern))
+    manager.samples = {sample: [file] for tag, file in zip(ff.filenames, ff.realpaths)}
+else:
+    raise exceptions.LoraException("Please add a valid input_csv or input_directory")
+
 
 
 rule lora:

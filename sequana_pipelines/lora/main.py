@@ -20,7 +20,7 @@ class Options(argparse.ArgumentParser):
             prog=prog,
             description="",
             epilog=epilog,
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
 
         # add a new group of options to the parser
@@ -39,28 +39,23 @@ class Options(argparse.ArgumentParser):
 
         pipeline_group = self.add_argument_group("pipeline_general")
         pipeline_group.add_argument(
+            "--input-csv",
+            dest="input_csv",
+            help="Simple CSV file with the samples names and files. LORA will generate ccs and merge your files."
+            " If you do not want to do ccs, you can put only one file for each samples.",
+        )
+        pipeline_group.add_argument(
             "--assembler",
             dest="assembler",
-            default='canu',
-            choices=['canu', 'hifiasm'],
-            help="An assembler in canu, hifiasm"
+            default="canu",
+            choices=["canu", "hifiasm"],
+            help="An assembler in canu, hifiasm",
         )
         pipeline_group.add_argument(
-            "--hifi",
-            dest="is_hifi",
-            action='store_true',
-            help="Run assembler with adapted parameters for hifi data"
+            "--hifi", dest="is_hifi", action="store_true", help="Run assembler with adapted parameters for hifi data"
         )
-        pipeline_group.add_argument(
-            "--blastdb",
-            dest="blastdb",
-            help="Path to your blast database"
-        )
-        pipeline_group.add_argument(
-            "--lineage",
-            dest="lineage",
-            help="Lineage or path to lineage file for BUSCO"
-        )
+        pipeline_group.add_argument("--blastdb", dest="blastdb", help="Path to your blast database")
+        pipeline_group.add_argument("--lineage", dest="lineage", help="Lineage or path to lineage file for BUSCO")
 
         pipeline_group = self.add_argument_group("pipeline")
 
@@ -70,8 +65,10 @@ class Options(argparse.ArgumentParser):
         args_list = list(*args)
         if "--from-project" in args_list:
             if len(args_list) > 2:
-                msg = "WARNING [sequana]: With --from-project option, " + \
-                      "pipeline and data-related options will be ignored."
+                msg = (
+                    "WARNING [sequana]: With --from-project option, "
+                    + "pipeline and data-related options will be ignored."
+                )
                 print(col.error(msg))
             for action in self._actions:
                 if action.required is True:
@@ -99,21 +96,17 @@ def main(args=None):
     if options.from_project is None:
         # fill the config file with input parameters
         cfg = manager.config.config
-        # EXAMPLE TOREPLACE WITH YOUR NEEDS
-        cfg.input_directory = os.path.abspath(options.input_directory)
-        cfg.input_pattern = options.input_pattern
+        cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
         cfg.is_hifi = options.is_hifi
         cfg.assembler = options.assembler
         if options.blastdb:
-            cfg.blast['blastdb'] = options.blastdb
+            cfg.blast["blastdb"] = options.blastdb
         if options.lineage:
-            cfg.busco['lineage'] = options.lineage
-
-        manager.exists(cfg.input_directory)
+            cfg.busco["lineage"] = options.lineage
 
     # finalise the command and save it; copy the snakemake. update the config
     # file and save it.
-    manager.teardown()
+    manager.teardown(check_input_files=False)
 
 
 if __name__ == "__main__":

@@ -6,10 +6,9 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # ============================================================================
-
-
 input_directory: ''
 input_pattern: '*.bam'
+input_csv: ''
 assembler: 'canu'
 is_hifi: false
 

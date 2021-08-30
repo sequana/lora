@@ -7,7 +7,7 @@
         "ram": "2G"
     },
     "blast": {
-        "ram": "8G"
+        "ram": "12G"
     },
 	"ccs": {
         "ram": "2G"
@@ -33,6 +33,9 @@
     "hifiasm": {
         "ram": "4G",
         "time": "fast"
+    },
+    "sequana_coverage": {
+        "ram": "8G"
     },
     "multiqc": {
         "ram": "2G"
