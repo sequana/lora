@@ -8,6 +8,10 @@ mapping:
         type: str
         required: true
 
+    "input_csv":
+        type: str
+        required: true
+
     "assembler":
         type: str
         required: true

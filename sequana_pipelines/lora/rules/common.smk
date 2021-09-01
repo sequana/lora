@@ -1,3 +1,6 @@
+from sequana_pipelines.lora import exceptions
+
+
 assembler_output = {
     "canu": "{sample}/canu/{sample}.contigs.fasta",
     "hifiasm": "{sample}/hifiasm/{sample}.contigs.fasta",
@@ -18,16 +21,30 @@ def requested_output(manager):
     return output_list
 
 
+def get_raw_data(wildcards):
+    """Get raw data."""
+    return manager.samples[wildcards.sample]
+
+
+def aggregate_flowcell(wildcards):
+    checkpoint_output = checkpoints.index_bam.get(**wildcards).output[0]
+    return expand(
+        "{sample}/ccs/{sample}_{flowcell}.ccs.bam",
+        sample=wildcards.sample,
+        flowcell=glob_wildcards(os.path.join(checkpoint_output, "{sample}_{flowcell}.bam")).flowcell,
+    )
+
+
 def get_bam(wildcards):
     """Use bam from ccs generation or raw bam."""
     if config["ccs"]["do"]:
         return f"{wildcards.sample}/ccs/{wildcards.sample}.ccs.bam"
-    return manager.samples[wildcards.sample]
+    return manager.samples[wildcards.sample][0]
 
 
 def get_fastq(wildcards):
     """Convert bam to fastq format."""
-    filename = manager.samples[wildcards.sample]
+    filename = manager.samples[wildcards.sample][0]
     if filename.endswith(".bam"):
         return f"{wildcards.sample}/bam_to_fastq/{wildcards.sample}.fastq"
     return filename
