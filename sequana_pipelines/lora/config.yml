@@ -9,8 +9,7 @@
 input_directory: ''
 input_pattern: '*.bam'
 input_csv: ''
-assembler: 'canu'
-is_hifi: false
+assembler: 'flye'
 
 
 ##############################################################################
@@ -27,7 +26,7 @@ ccs:
     do: true
     min-rq: 0.7
     min-passes: 0
-    max-chunks: 20
+    max-chunks: 10
     options: ''
     threads: 4
 
@@ -70,16 +69,18 @@ canu:
 
 
 ##############################################################################
-# Long read correction with canu
+# Long read correction with canu.
 #
 # :Parameters:
 #   
+# - do: if unchecked this rule is ignored.
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
 # - use_grid: let canu run steps on cluster.
 # - correction_options: any options recognised by `canu -correct` cli
 # - trimming_options: any options recognised by `canu -trim cli (do not add --corrected option)`
 # - threads: Number of threads to use
 canu_correction:
+    do: false
     genome_size: '3.3m'
     use_grid: true
     correction_options: ''
@@ -87,17 +88,29 @@ canu_correction:
     threads: 1
 
 
-
 ##############################################################################
 # Hifiasm v0.15.1
 #
 # :Parameters:
 #   
-# - do: if unchecked, this rule is ignored
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 hifiasm:
     options: '-f0 -l0 --n-hap 1'
+    threads: 4
+
+
+##############################################################################
+# Flye
+#
+# :Parameters:
+#  
+# - preset: Any preset in this list: ['pacbio-raw', 'pacbio-corr', 'pacbio-hifi', 'nano-raw', 'nano-corr', 'nano-hq']
+# - options: any options recognised by `canu` cli
+# - threads: Number of threads to use
+flye:
+    preset: 'pacbio-raw'
+    options: ''
     threads: 4
 
 
@@ -110,7 +123,7 @@ hifiasm:
 # - options: any options recognised by `circlator` cli
 # - threads: Number of threads to use
 circlator:
-    do: true
+    do: false
     options: '--split_all_reads'
     threads: 4
 

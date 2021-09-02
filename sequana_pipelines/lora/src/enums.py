@@ -12,6 +12,7 @@ QUAST_KEY = [
     "# contigs",
     "Largest contig",
     "Total length",
-    "Mapped (%)"
+    "Mapped (%)",
+    "Avg. coverage depth",
 ]
 SET_QUAST_KEY = set(QUAST_KEY)

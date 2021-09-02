@@ -48,11 +48,20 @@ class Options(argparse.ArgumentParser):
             "--assembler",
             dest="assembler",
             default="canu",
-            choices=["canu", "hifiasm"],
-            help="An assembler in canu, hifiasm",
+            choices=["canu", "hifiasm", "flye"],
+            help="An assembler in canu, hifiasm, flye",
         )
         pipeline_group.add_argument(
-            "--hifi", dest="is_hifi", action="store_true", help="Run assembler with adapted parameters for hifi data"
+            "--do-correction",
+            dest="do_correction",
+            action="store_true",
+            help="Run canu correction before hifiasm or flye.",
+        )
+        pipeline_group.add_argument(
+            "--do-circlator",
+            dest="do_circlator",
+            action="store_true",
+            help="Run circlator after assembler."
         )
         pipeline_group.add_argument("--blastdb", dest="blastdb", help="Path to your blast database")
         pipeline_group.add_argument("--lineage", dest="lineage", help="Lineage or path to lineage file for BUSCO")
@@ -96,8 +105,11 @@ def main(args=None):
     if options.from_project is None:
         # fill the config file with input parameters
         cfg = manager.config.config
+        cfg.input_directory = os.path.abspath(options.input_directory)
+        cfg.input_pattern = options.input_pattern
         cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
-        cfg.is_hifi = options.is_hifi
+        cfg.canu_correction['do'] = options.do_correction
+        cfg.circlator['do'] = options.do_circlator
         cfg.assembler = options.assembler
         if options.blastdb:
             cfg.blast["blastdb"] = options.blastdb

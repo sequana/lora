@@ -1,5 +1,3 @@
-
-
 rule canu:
     input:
         get_fastq
@@ -62,7 +60,7 @@ rule fasta_to_fastq:
 
 rule hifiasm:
     input:
-        get_hifi_fastq
+        get_corrected_fastq
     output:
         contig = "{sample}/hifiasm/{sample}.contigs.fasta"
     params:
@@ -76,6 +74,26 @@ rule hifiasm:
         hifiasm -t{threads} {params} -o $prefix {input}\
             && awk '/^S/{{print ">"$2;print $3}}' ${{prefix}}.bp.p_ctg.gfa > {output}
         """
+
+rule flye:
+    input:
+        get_corrected_fastq
+    output:
+        contig = "{sample}/flye/{sample}.contigs.fasta"
+    params:
+        preset = config['flye']['preset'],
+        options = config['flye']['options']
+    threads:
+        config['flye']['threads']
+    run:
+        from os import path
+
+        outdir = path.dirname(output['contig'])
+        contigs = path.join(outdir, 'assembly.fasta')
+        shell(
+            "flye {params.options} --{params.preset} {input} --out-dir {outdir} --threads {threads}"
+            " && mv {contigs} {output}"
+        )
 
 
 rule circlator:
