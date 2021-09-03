@@ -10,7 +10,7 @@
         "ram": "12G"
     },
 	"ccs": {
-        "ram": "2G"
+        "ram": "4G"
     },
 	"samtools_merge": {
 		"ram" : "8G"
@@ -33,6 +33,10 @@
     "hifiasm": {
         "ram": "4G",
         "time": "fast"
+    },
+    "flye": {
+        "ram": "16G",
+        "time": "normal"
     },
     "sequana_coverage": {
         "ram": "8G"

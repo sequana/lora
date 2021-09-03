@@ -15,12 +15,7 @@ mapping:
     "assembler":
         type: str
         required: true
-        enum: ['canu', 'hifiasm']
-
-    "is_hifi":
-        type: bool
-        required: true
-        nullable: false
+        enum: ['canu', 'hifiasm', 'flye']
 
     "ccs":
         type: map
@@ -83,6 +78,9 @@ mapping:
     "canu_correction":
         type: map
         mapping:
+            "do":
+                type: bool
+                required: true
             "genome_size":
                 type: str
                 required: true
@@ -102,6 +100,20 @@ mapping:
     "hifiasm":
         type: map
         mapping:
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+    
+    "flye":
+        type: map
+        mapping:
+            "preset":
+                type: str
+                required: true
+                enum: ['pacbio-raw', 'pacbio-corr', 'pacbio-hifi', 'nano-raw', 'nano-corr', 'nano-hq']
             "options":
                 type: text
                 required: false

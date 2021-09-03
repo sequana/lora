@@ -4,6 +4,7 @@ from sequana_pipelines.lora import exceptions
 assembler_output = {
     "canu": "{sample}/canu/{sample}.contigs.fasta",
     "hifiasm": "{sample}/hifiasm/{sample}.contigs.fasta",
+    "flye": "{sample}/flye/{sample}.contigs.fasta"
 }
 
 
@@ -50,11 +51,11 @@ def get_fastq(wildcards):
     return filename
 
 
-def get_hifi_fastq(wildcards):
-    """Use hifi data or corrected reads for hifiasm that needs high quality reads."""
-    if config["is_hifi"]:
-        return get_fastq(wildcards)
-    return f"{wildcards.sample}/corrected_reads/{wildcards.sample}.fastq"
+def get_corrected_fastq(wildcards):
+    """Use corrected fastq or not"""
+    if config["canu_correction"]["do"]:
+        return f"{wildcards.sample}/corrected_reads/{wildcards.sample}.fastq"
+    return get_fastq(wildcards)
 
 
 def get_assembler_contigs(wildcards):
