@@ -24,7 +24,7 @@ if csv_filename:
 elif input_directory and os.path.isdir(input_directory):
     # use input directory and pattern
     ff = FileFactory(os.path.join(input_directory, input_pattern))
-    manager.samples = {sample: [file] for tag, file in zip(ff.filenames, ff.realpaths)}
+    manager.samples = {sample: [file] for sample, file in zip(ff.filenames, ff.realpaths)}
 else:
     raise exceptions.LoraException("Please add a valid input_csv or input_directory")
 
