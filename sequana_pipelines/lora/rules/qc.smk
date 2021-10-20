@@ -62,10 +62,10 @@ rule busco:
     log:
         "{sample}/logs/{sample}_busco.out"
     params:
-        mode = "genome",                                                                                                     
-        lineage = config['busco']['lineage'],                                                                                
-        short_summary_filename = "short_summary_{sample}.txt",                                                               
-        option = config['busco']['options']
+        mode = "genome",
+        lineage = config['busco']['lineage'],
+        short_summary_filename = "short_summary_{sample}.txt",
+        options = config['busco']['options']
     threads:
         config['busco']['threads']
     wrapper:

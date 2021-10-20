@@ -1,10 +1,20 @@
-""" LORA pipeline v1.0
-"""
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016-2021 - Sequana Dev Team (https://sequana.readthedocs.io)
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  Website:       https://github.com/sequana/sequana
+#  Website:       https://github.com/sequana/lora
+#  Documentation: http://sequana.readthedocs.io
+#  Documentation: https://github.com/sequana/lora/README.rst
+##############################################################################
+""" LORA (LOng Read Assembly) pipeline"""
 import csv
 import os
 
-from sequana_pipetools.snaketools import PipelineManagerDirectory, FileFactory
-
+from sequana_pipetools.snaketools import PipelineManagerDirectory, FileFactory, modules
 from sequana_pipelines.lora import exceptions
 
 shell.executable('bash')
@@ -23,7 +33,7 @@ if csv_filename:
         manager.samples = {sample: files for sample, *files in csv_reader}
 elif input_directory and os.path.isdir(input_directory):
     # use input directory and pattern
-    ff = FileFactory(os.path.join(input_directory, input_pattern))
+    ff = sm.FileFactory(os.path.join(input_directory, input_pattern))
     manager.samples = {sample: [file] for sample, file in zip(ff.filenames, ff.realpaths)}
 else:
     raise exceptions.LoraException("Please add a valid input_csv or input_directory")
@@ -32,6 +42,7 @@ else:
 
 rule lora:
     input:
+        ".sequana/rulegraph.svg",
         "multiqc/multiqc_report.html"
 
 
@@ -39,33 +50,32 @@ include: "rules/common.smk"
 include: "rules/ccs.smk"
 include: "rules/assembler.smk"
 include: "rules/qc.smk"
+include: modules['rulegraph']
 
 
 onsuccess:
     from sequana_pipelines.lora import create_report
-    from sequana_pipetools.snaketools import OnSuccessCleaner
+    from sequana import logger
+
+    loggersetLEvel("INFO")
+    manager.teardown()
 
     # Create LORA summary report
     create_report(
-        "lora_report.html",
+        "summary.html",
         manager.samples,
         busco_done=config['busco']['do'],
         blast_done=config['blast']['do'],
         sequana_done=config['sequana_coverage']['do']
     )
 
-    print("Please open the report lora_report.html or multiqc/multiqc_report.html.")
+    print("Please open the report summary.html or multiqc/multiqc_report.html.")
     shell("rm -f ./samples/*/*.done")
     shell("rm -f ./samples/*/*.log")
     shell("chmod -R g+w .")
-
-    sc = OnSuccessCleaner()
-    toremove = config["onsuccess"]["toclean"]
-    sc.files_to_remove.append(toremove)
-    sc.add_makefile()
-    print("Once done, please clean up the directory using\n'make clean'")
+    shell("rm -rf rulegraph")
 
 onerror:
     from sequana_pipetools.errors import PipeError
-    p = PipeError("LORA")
+    p = PipeError("lora")
     p.status()
