@@ -13,9 +13,15 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        python: [3.7,3.8]
+        python: [3.7, 3.8, 3.9]
+      fail-fast: false
 
     steps:
+
+    - name: install graphviz
+      run: |
+        sudo apt-get install -y graphviz
+
     - name: checkout git repo
       uses: actions/checkout@v2
 

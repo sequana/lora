@@ -137,7 +137,7 @@ circlator:
 # - options: any options recognised by `minimap2` cli
 # - threads: Number of threads to use
 minimap2:
-    preset: 'asm20'
+    preset: 'map-pb'
     options: ''
     threads: 4
 
