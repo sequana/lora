@@ -20,6 +20,8 @@ def requested_output(manager):
         output_list += [expand("{sample}/prokka/{sample}.gbk", sample=manager.samples)]
     if config["blast"]["do"]:
         output_list += [expand("{sample}/blast/{sample}.tsv", sample=manager.samples)]
+    if config["circlator"]["do"]:
+        output_list += [expand("{sample}/circlator/{sample}.contigs.fasta", sample=manager.samples)]
     return output_list
 
 
