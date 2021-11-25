@@ -1,3 +1,4 @@
+"""Parallelized Pacbio CCS"""
 CCS_MAX_CHUNKS = config['ccs']['max-chunks']
 
 

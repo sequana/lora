@@ -33,12 +33,13 @@ if csv_filename:
         manager.samples = {sample: files for sample, *files in csv_reader}
 elif input_directory and os.path.isdir(input_directory):
     # use input directory and pattern
-    ff = sm.FileFactory(os.path.join(input_directory, input_pattern))
+    ff = FileFactory(os.path.join(input_directory, input_pattern))
     manager.samples = {sample: [file] for sample, file in zip(ff.filenames, ff.realpaths)}
 else:
     raise exceptions.LoraException("Please add a valid input_csv or input_directory")
 
 
+localrules: lora, rulegraph
 
 rule lora:
     input:
@@ -50,14 +51,13 @@ include: "rules/common.smk"
 include: "rules/ccs.smk"
 include: "rules/assembler.smk"
 include: "rules/qc.smk"
-include: modules['rulegraph']
-
+include: "rules/utils.smk"
 
 onsuccess:
     from sequana_pipelines.lora import create_report
     from sequana import logger
 
-    loggersetLEvel("INFO")
+    logger.setLevel("INFO")
     manager.teardown()
 
     # Create LORA summary report

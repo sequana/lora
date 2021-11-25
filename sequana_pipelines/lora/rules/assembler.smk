@@ -1,3 +1,5 @@
+"""Assembler rules"""
+
 rule canu:
     input:
         get_fastq

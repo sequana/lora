@@ -60,6 +60,7 @@ setup(
         "sequana_pipelines.lora",
         "sequana_pipelines.lora.rules",
         "sequana_pipelines.lora.src",
+        "sequana_pipelines.lora.src.templates"
     ],
     install_requires=requirements,
     # This is recursive include of data files
@@ -67,12 +68,14 @@ setup(
     package_data={
         "": [
             "*.yaml",
-            "*.rules",
             "*.json",
             "requirements.txt",
             "*png",
             "*yml",
             "*smk",
+            "*html",
+            "*js",
+            "*css"
         ],
     },
     zip_safe=False,

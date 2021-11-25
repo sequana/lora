@@ -1,4 +1,4 @@
-
+"""Rules to assess the quality of the assembly"""
 from sequana_pipelines.lora import BLAST_KEY
 
 
