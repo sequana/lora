@@ -111,6 +111,6 @@ rule circlator:
     shell:
         """
         outdir={wildcards.sample}/circlator/
-        circlator all {params.options} --threads {threads} --data_type pacbio-corrected {input.contig} {input.fastq}\
+        circlator all {params.options} --threads {threads} --force --data_type pacbio-corrected {input.contig} {input.fastq}\
             ${{outdir}} && mv ${{outdir}}/06.fixstart.fasta {output}
         """
