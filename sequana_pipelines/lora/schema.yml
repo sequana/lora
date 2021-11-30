@@ -65,6 +65,10 @@ mapping:
             "genome_size":
                 type: str
                 required: true
+            "preset":
+                type: str
+                required: true
+                enum: ['pacbio', 'pacbio-hifi', 'nanopore']
             "use_grid":
                 type: bool
                 required: true
@@ -84,6 +88,10 @@ mapping:
             "genome_size":
                 type: str
                 required: true
+            "preset":
+                type: str
+                required: true
+                enum: ['pacbio', 'pacbio-hifi', 'nanopore']
             "use_grid":
                 type: bool
                 required: true

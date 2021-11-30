@@ -10,4 +10,5 @@ pbindex
 prokka
 quast.py
 samtools
+seqtk
 sequana_coverage

@@ -58,11 +58,13 @@ bam_to_fastq:
 # :Parameters:
 #   
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
+# - preset: Any preset in this list: ['pacbio', 'pacbio-hifi', 'nanopore']
 # - use_grid: let canu run steps on cluster.
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 canu:
     genome_size: '3.3m'
+    preset: 'pacbio'
     use_grid: true 
     options: ''
     threads: 1
@@ -74,6 +76,7 @@ canu:
 # :Parameters:
 #   
 # - do: if unchecked this rule is ignored.
+# - preset: Any preset in this list: ['pacbio', 'pacbio-hifi', 'nanopore']
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
 # - use_grid: let canu run steps on cluster.
 # - correction_options: any options recognised by `canu -correct` cli
@@ -82,6 +85,7 @@ canu:
 canu_correction:
     do: false
     genome_size: '3.3m'
+    preset: 'pacbio'
     use_grid: true
     correction_options: ''
     trimming_options: ''
