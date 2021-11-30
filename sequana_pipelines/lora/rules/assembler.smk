@@ -7,6 +7,7 @@ rule canu:
         contig = "{sample}/canu/{sample}.contigs.fasta",
         done = "{sample}/canu/canu.done"
     params:
+        preset = config['canu']['preset'],
         genome_size = config['canu']['genome_size'],
         use_grid = config['canu']['use_grid'],
         options = config['canu']['options']
@@ -23,6 +24,7 @@ rule canu_correction:
         done = "{sample}/corrected_reads/canu-correct.done"
     params:
         step = '-correct',
+        preset = config['canu_correction']['preset'],
         genome_size = config['canu_correction']['genome_size'],
         use_grid = config['canu_correction']['use_grid'],
         options = config['canu_correction']['correction_options']
@@ -40,6 +42,7 @@ rule canu_trimming:
         done = "{sample}/corrected_reads/canu-trim.done"
     params:
         step = '-trim',
+        preset = config['canu_correction']['preset'],
         genome_size = config['canu_correction']['genome_size'],
         use_grid = config['canu_correction']['use_grid'],
         options = "-corrected " + config['canu_correction']['trimming_options'],
