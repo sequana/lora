@@ -20,5 +20,5 @@ def test_standalone_script(tmpdir):
 
 
 def test_version():
-    cmd = ["sequana_pipelines_lora", "--version"]
+    cmd = ["sequana_lora", "--version"]
     subprocess.call(cmd)

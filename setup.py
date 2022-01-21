@@ -81,7 +81,6 @@ setup(
     zip_safe=False,
     entry_points={
         "console_scripts": [
-            "sequana_pipelines_lora=sequana_pipelines.lora.main:main",
             "sequana_lora=sequana_pipelines.lora.main:main",
         ]
     },

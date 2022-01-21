@@ -56,7 +56,7 @@ bam_to_fastq:
 # Canu v2.1
 #
 # :Parameters:
-#   
+#
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
 # - preset: Any preset in this list: ['pacbio', 'pacbio-hifi', 'nanopore']
 # - use_grid: let canu run steps on cluster.
@@ -73,8 +73,11 @@ canu:
 ##############################################################################
 # Long read correction with canu.
 #
+# The canu correction step is used by hifiasm and flye. So if you use
+# canu, this section is not used at all.
+#
 # :Parameters:
-#   
+#
 # - do: if unchecked this rule is ignored.
 # - preset: Any preset in this list: ['pacbio', 'pacbio-hifi', 'nanopore']
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
