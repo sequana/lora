@@ -1,11 +1,28 @@
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2021-2022 - Sequana Dev Team (https://sequana.readthedocs.io)
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  Website:       https://github.com/sequana/sequana
+#  Documentation: http://sequana.readthedocs.io
+#  Contributors:  https://github.com/sequana/sequana/graphs/contributors
+##############################################################################
 import sys
 import os
 import argparse
+import pathlib
 
 from sequana_pipetools.options import SlurmOptions, SnakemakeOptions, InputOptions, GeneralOptions, before_pipeline
 from sequana_pipetools.misc import Colors
 from sequana_pipetools.info import sequana_epilog, sequana_prolog
-from sequana_pipetools import SequanaManager
+from sequana_pipetools import SequanaManager, SequanaConfig
+
+from sequana_pipelines.lora import main as _main
+
+parent = pathlib.Path(_main.__file__).parent
 
 col = Colors()
 
@@ -54,9 +71,10 @@ class Options(argparse.ArgumentParser):
         pipeline_group.add_argument(
             "--mode",
             dest="mode",
-            default="bacteria",
-            choices=["eukaryotes", "bacteria"],
-            help="If bacteria, blast, circlator, busco, prokka, sequana_coverage are ON, else these options are OFF",
+            default="default",
+            choices=["default", "eukaryotes", "bacteria"],
+            help="""If bacteria, blast, circlator, busco, prokka, sequana_coverage are ON. 
+If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.""",
         )
         pipeline_group.add_argument(
             "--do-correction",
@@ -70,8 +88,13 @@ class Options(argparse.ArgumentParser):
             action="store_true",
             help="Run circlator after assembler."
         )
-        pipeline_group.add_argument("--blastdb", dest="blastdb", help="Path to your blast database")
-        pipeline_group.add_argument("--lineage", dest="lineage", 
+        pipeline_group.add_argument(
+            "--blastdb", 
+            dest="blastdb", 
+            help="Path to your blast database")
+        pipeline_group.add_argument(
+            "--lineage", 
+            dest="lineage", 
             help="""Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.""")
 
         pipeline_group = self.add_argument_group("ccs")
@@ -115,31 +138,28 @@ def main(args=None):
     manager.setup()
 
     if options.from_project is None:
+
+        if options.mode == "bacteria": # default (nothing to do)
+            manager.config = SequanaConfig(str(parent / "config_bacteria.yml"))
+        elif options.mode == "eukaryotes": # default (nothing to do)
+            manager.config = SequanaConfig(str(parent / "config_euka.yml"))
+        else:
+            pass
+
         # fill the config file with input parameters
         cfg = manager.config.config
         cfg.input_directory = os.path.abspath(options.input_directory)
         cfg.input_pattern = options.input_pattern
         cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
 
-        if options.mode == "bacteria":
-            cfg.circlator['do'] = True
-            cfg.blast['do'] = True
-            cfg.busco['do'] = True
-            cfg.prokka['do'] = True
-            cfg.sequana_coverage['do'] = True
-        elif options.mode == "eukaryotes":
-            cfg.circlator['do'] = False
-            cfg.blast['do'] = False
-            cfg.busco['do'] = True
-            cfg.busco['options'] += " --metaeuk "
-            cfg.prokka['do'] = False
-            cfg.sequana_coverage['do'] = True
-        else:
+
+
+        if options.do_circlator:
             cfg.circlator['do'] = options.do_circlator
-            if options.blastdb:
-                cfg.blast["blastdb"] = options.blastdb
-            if options.lineage:
-                cfg.busco["lineage"] = options.lineage
+        if options.blastdb:
+            cfg.blast["blastdb"] = options.blastdb
+        if options.lineage:
+            cfg.busco["lineage"] = options.lineage
             
 
 

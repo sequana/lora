@@ -182,9 +182,9 @@ quast:
 # - options: any options recognised by `busco` cli.
 # - threads: Number of threads to use.
 busco:
-    do: false
+    do: true
     lineage: ''
-    options: '--offline'
+    options: '--offline --metaeuk'
     threads: 4
 
 

@@ -130,7 +130,7 @@ flye:
 # - options: any options recognised by `circlator` cli
 # - threads: Number of threads to use
 circlator:
-    do: false
+    do: true
     options: '--split_all_reads'
     threads: 4
 
@@ -156,7 +156,7 @@ minimap2:
 # - do: if unchecked, this rule is ignored
 # - options: any options recognised by `sequana_coverage` cli
 sequana_coverage:
-    do: false
+    do: true
     options: ''
 
 ##############################################################################
@@ -182,9 +182,9 @@ quast:
 # - options: any options recognised by `busco` cli.
 # - threads: Number of threads to use.
 busco:
-    do: false
-    lineage: ''
-    options: '--offline'
+    do: true
+    lineage: 'busco/v5/lineages/bacteria_odb10'
+    options: '--offline '
     threads: 4
 
 
@@ -197,7 +197,7 @@ busco:
 # - threads: Number of threads to use.
 # - options: any options recognised by `prokka` cli
 prokka:
-    do: false
+    do: true
     options: ''
     threads: 4
 
@@ -212,10 +212,10 @@ prokka:
 # - options: any options recognised by `blastn` cli (except --outfmt)
 # - threads: Number of threads to use.
 blast:
-    do: false
-    blastdb: '  -max_target_seqs 5 '
+    do: true
+    blastdb: '  '
     evalue: '1e-10'
-    options: ''
+    options: ' -max_target_seqs 5'
     threads: 4
 
 
