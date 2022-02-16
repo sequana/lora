@@ -83,6 +83,18 @@ If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks O
             help="Run canu correction before hifiasm or flye.",
         )
         pipeline_group.add_argument(
+            "--nanopore",
+            dest="nanopore",
+            action="store_true",
+            help="Tell LORA that the input data is made of nanopore reads",
+        )
+        pipeline_group.add_argument(
+            "--pacbio",
+            dest="pacbio",
+            action="store_true",
+            help="Tell LORA that the input data is made of pacbio reads",
+        )
+        pipeline_group.add_argument(
             "--do-circlator",
             dest="do_circlator",
             action="store_true",
@@ -131,6 +143,12 @@ def main(args=None):
     # option parsing including common epilog
     options = Options(NAME, epilog=sequana_epilog).parse_args(args[1:])
 
+
+    if not options.nanopore and not options.pacbio:
+        from sequana_pipetools import logger
+        logger.error("You must use one of --nanopore pr --pacbio")
+        sys.exit(1)
+
     # the real stuff is here
     manager = SequanaManager(options, NAME)
 
@@ -139,6 +157,7 @@ def main(args=None):
 
     if options.from_project is None:
 
+        # load default config file for bacteria or eukaryotes or the default
         if options.mode == "bacteria": # default (nothing to do)
             manager.config = SequanaConfig(str(parent / "config_bacteria.yml"))
         elif options.mode == "eukaryotes": # default (nothing to do)
@@ -146,21 +165,31 @@ def main(args=None):
         else:
             pass
 
+
         # fill the config file with input parameters
         cfg = manager.config.config
         cfg.input_directory = os.path.abspath(options.input_directory)
         cfg.input_pattern = options.input_pattern
         cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
 
+        # fill preset for pacbio or nanopore
+        # default config file is already configured for pacbio; so only nanopore needs to be
+        # handled
+        if options.nanopore:
+            cfg.canu.preset = 'nanopore'
+            cfg.canu_correction.preset = 'nanopore'
+            cfg.flye.preset = 'nano-raw'
+            cfg.minimap2.preset = 'map-ont'
 
 
+        # The user may overwrite the default
         if options.do_circlator:
             cfg.circlator['do'] = options.do_circlator
         if options.blastdb:
             cfg.blast["blastdb"] = options.blastdb
         if options.lineage:
             cfg.busco["lineage"] = options.lineage
-            
+
 
 
         cfg.canu_correction['do'] = options.do_correction
