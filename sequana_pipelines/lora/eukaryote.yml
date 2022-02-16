@@ -1,0 +1,16 @@
+circlator:
+    do: false
+
+sequana_coverage:
+    do: false
+
+busco:
+    do: true
+    lineage: ''
+
+
+prokka:
+    do: false
+
+blast:
+    do: true

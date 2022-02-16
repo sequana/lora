@@ -213,9 +213,9 @@ prokka:
 # - threads: Number of threads to use.
 blast:
     do: false
-    blastdb: '  -max_target_seqs 5 '
+    blastdb: ''
     evalue: '1e-10'
-    options: ''
+    options: ' -max_target_seqs 5'
     threads: 4
 
 
