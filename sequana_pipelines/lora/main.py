@@ -19,6 +19,7 @@ from sequana_pipetools.options import SlurmOptions, SnakemakeOptions, InputOptio
 from sequana_pipetools.misc import Colors
 from sequana_pipetools.info import sequana_epilog, sequana_prolog
 from sequana_pipetools import SequanaManager, SequanaConfig
+from sequana_pipetools import logger
 
 from sequana_pipelines.lora import main as _main
 
@@ -145,8 +146,7 @@ def main(args=None):
 
 
     if not options.nanopore and not options.pacbio:
-        from sequana_pipetools import logger
-        logger.error("You must use one of --nanopore pr --pacbio")
+        logger.error("You must use one of --nanopore or --pacbio options")
         sys.exit(1)
 
     # the real stuff is here
@@ -176,10 +176,9 @@ def main(args=None):
         # default config file is already configured for pacbio; so only nanopore needs to be
         # handled
         if options.nanopore:
-            cfg.canu.preset = 'nanopore'
-            cfg.canu_correction.preset = 'nanopore'
-            cfg.flye.preset = 'nano-raw'
-            cfg.minimap2.preset = 'map-ont'
+            nano = SequanaConfig(str(parent / "nanopore.yml"))
+            cfg.update(nano.config)
+
 
 
         # The user may overwrite the default

@@ -1,0 +1,12 @@
+canu:
+  preset: nanopore
+
+canu_correction:
+  preset: nanopore
+
+flye:
+  preset: nano-raw
+
+minimap2:
+  preset: map-ont
+
