@@ -2,10 +2,23 @@
 from sequana_pipelines.lora import BLAST_KEY
 
 
+rule seqkit_sort:
+    input:
+        get_final_contigs
+    output:
+        "{sample}/sorted_contigs/{sample}.fasta"
+    threads:
+        config["seqkit_sort"]["threads"]
+    shell:
+        """
+        seqkit sort --threads {threads} --by-length --reverse {input} -o {output}
+        """
+
+
 rule minimap2_and_genomecov:
     input:
         fastq = get_fastq,
-        contigs = get_final_contigs
+        contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         bam = "{sample}/minimap2/{sample}.bam",
         bed = "{sample}/minimap2/{sample}.bed"
@@ -39,7 +52,7 @@ rule sequana_coverage:
 rule quast:
     input:
         fastq = get_fastq,
-        contigs = get_final_contigs
+        contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         "{sample}/quast/quast.done"
     params:
@@ -56,7 +69,7 @@ rule quast:
 
 rule busco:
     input:
-        contigs = get_final_contigs
+        contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         directory("{sample}/busco")
     log:
@@ -74,7 +87,7 @@ rule busco:
 
 rule prokka:
     input:
-        contigs = get_final_contigs
+        contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         "{sample}/prokka/{sample}.gbk"
     params:
@@ -87,9 +100,22 @@ rule prokka:
         """
 
 
+rule seqkit_head:
+    input:
+        "{sample}/sorted_contigs/{sample}.fasta"
+    output:
+        "{sample}/subset_contigs/{sample}.subset.fasta"
+    params:
+        n_first = config["seqkit_head"]["n_first"]
+    shell:
+        """
+        seqkit head -n {params.n_first} -o {output} {input}
+        """
+
+
 rule blast:
     input:
-        contigs = get_final_contigs
+        contigs = "{sample}/subset_contigs/{sample}.subset.fasta"
     output:
         "{sample}/blast/{sample}.tsv"
     params:
@@ -102,8 +128,8 @@ rule blast:
     shell:
         """
         export BLASTDB={params.db}
-        blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads} {params.options}\
-            -outfmt "6 {params.outfmt}"
+        blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads} \
+            {params.options} -outfmt "6 {params.outfmt}"
         """
 
 

@@ -136,6 +136,15 @@ circlator:
 
 
 ##############################################################################
+# SeqKit Sort
+#
+# :Parameters:
+#   
+# - threads: Number of threads to use
+seqkit_sort:
+    threads: 4
+
+##############################################################################
 # Minimap2
 #
 # :Parameters:
@@ -200,6 +209,15 @@ prokka:
     do: false
     options: ''
     threads: 4
+
+##############################################################################
+# SeqKit Head
+#
+# :Parameters:
+#   
+# - n_first: Keep only n first contigs
+seqkit_head:
+    n_first: 100
 
 ##############################################################################
 # Blast
