@@ -23,6 +23,7 @@ configfile: "config.yml"
 
 
 manager = PipelineManagerDirectory('lora', config, schema="schema.yml")
+
 csv_filename = config.get('input_csv')
 input_directory = config.get('input_directory')
 input_pattern = config.get('input_pattern', '*.bam')

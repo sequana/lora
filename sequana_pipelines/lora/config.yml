@@ -56,7 +56,7 @@ bam_to_fastq:
 # Canu v2.1
 #
 # :Parameters:
-#   
+#
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
 # - preset: Any preset in this list: ['pacbio', 'pacbio-hifi', 'nanopore']
 # - use_grid: let canu run steps on cluster.
@@ -73,8 +73,11 @@ canu:
 ##############################################################################
 # Long read correction with canu.
 #
+# The canu correction step is used by hifiasm and flye. So if you use
+# canu, this section is not used at all.
+#
 # :Parameters:
-#   
+#
 # - do: if unchecked this rule is ignored.
 # - preset: Any preset in this list: ['pacbio', 'pacbio-hifi', 'nanopore']
 # - genome_size: An estimate of the size of the genome. Common suffices are allowed, for example, 3.7m or 2.8g.
@@ -153,7 +156,7 @@ minimap2:
 # - do: if unchecked, this rule is ignored
 # - options: any options recognised by `sequana_coverage` cli
 sequana_coverage:
-    do: true
+    do: false
     options: ''
 
 ##############################################################################
@@ -179,7 +182,7 @@ quast:
 # - options: any options recognised by `busco` cli.
 # - threads: Number of threads to use.
 busco:
-    do: true
+    do: false
     lineage: ''
     options: '--offline'
     threads: 4
@@ -194,7 +197,7 @@ busco:
 # - threads: Number of threads to use.
 # - options: any options recognised by `prokka` cli
 prokka:
-    do: true
+    do: false
     options: ''
     threads: 4
 
@@ -209,10 +212,10 @@ prokka:
 # - options: any options recognised by `blastn` cli (except --outfmt)
 # - threads: Number of threads to use.
 blast:
-    do: true
+    do: false
     blastdb: ''
     evalue: '1e-10'
-    options: ''
+    options: ' -max_target_seqs 5'
     threads: 4
 
 

@@ -114,5 +114,5 @@ rule multiqc:
         "multiqc/multiqc_report.html"
     shell:
         """
-        multiqc -f . --outdir multiqc
+        multiqc -f . --outdir multiqc -m busco -m quast
         """
