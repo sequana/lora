@@ -141,6 +141,13 @@ mapping:
             "threads":
                 type: int
                 required: true
+    
+    "seqkit_sort":
+        type: map
+        mapping:
+            "threads":
+                type: int
+                required: true
 
     "minimap2":
         type: map
@@ -207,6 +214,13 @@ mapping:
                 type: text
                 required: false
             "threads":
+                type: int
+                required: true
+    
+    "seqkit_head":
+        type: map
+        mapping:
+            "n_first":
                 type: int
                 required: true
 

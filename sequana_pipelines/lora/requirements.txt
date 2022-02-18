@@ -11,4 +11,5 @@ prokka
 quast.py
 samtools
 seqtk
+seqkit
 sequana_coverage
