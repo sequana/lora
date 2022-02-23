@@ -55,20 +55,14 @@ include: "rules/qc.smk"
 include: "rules/utils.smk"
 
 onsuccess:
-    from sequana_pipelines.lora import create_report
+    from sequana_pipelines.lora import create_reports
     from sequana import logger
 
     logger.setLevel("INFO")
     manager.teardown()
 
-    # Create LORA summary report
-    create_report(
-        "summary.html",
-        manager.samples,
-        busco_done=config['busco']['do'],
-        blast_done=config['blast']['do'],
-        sequana_done=config['sequana_coverage']['do']
-    )
+    # Create LORA report and summary
+    create_reports("summary.html", "lora.html", manager.samples, config)
 
     print("Please open the report summary.html or multiqc/multiqc_report.html.")
     shell("rm -f ./samples/*/*.done")

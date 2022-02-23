@@ -13,12 +13,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
   </head>
   <body>
+    <section class="hero is-link">
+      <div class="hero-body">
+        <div class="container has-text-centered"></div>
+        <p class="title">
+          LORA Report
+        </p>
+        <p class="subtitle">
+          Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
+        </p>
+      </div>
+    </section>
     <section class="section">
       <div class="content">
-        <h1>LORA summary report</h1>
-        <p>
-          Short report to summarize de novo assembly quality with long reads. 
-        </p>
         <h2>General Information</h2>
         <div class="table-container">
           <table id="lora_summary" class="table is-striped is-hoverable">
@@ -98,4 +105,12 @@
       {% include "lora.js" %}
     </script>
   </body>
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        <strong>LORA</strong> by <a href="https://sequana.readthedocs.io/en/master/">Sequana Team</a>. The source code is licensed
+        <a href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
+      </p>
+    </div>
+  </footer>
 </html>
