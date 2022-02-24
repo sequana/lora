@@ -13,7 +13,6 @@
 import sys
 import os
 import argparse
-import pathlib
 
 from sequana_pipetools.options import SlurmOptions, SnakemakeOptions, InputOptions, GeneralOptions, before_pipeline
 from sequana_pipetools.misc import Colors
@@ -21,9 +20,7 @@ from sequana_pipetools.info import sequana_epilog, sequana_prolog
 from sequana_pipetools import SequanaManager, SequanaConfig
 from sequana_pipetools import logger
 
-from sequana_pipelines.lora.main import __file__
-
-parent = pathlib.Path(__file__).parent
+from .src import utils
 
 
 col = Colors()
@@ -75,8 +72,8 @@ class Options(argparse.ArgumentParser):
             dest="mode",
             default="default",
             choices=["default", "eukaryotes", "bacteria"],
-            help="""If bacteria, blast, circlator, busco, prokka, sequana_coverage are ON. 
-If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.""",
+            help="If bacteria, blast, circlator, busco, prokka, sequana_coverage are ON."
+            " If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
         )
         pipeline_group.add_argument(
             "--do-correction",
@@ -103,7 +100,7 @@ If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks O
         pipeline_group.add_argument(
             "--lineage",
             dest="lineage",
-            help="""Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.""",
+            help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.",
         )
 
         pipeline_group = self.add_argument_group("ccs")
@@ -111,7 +108,7 @@ If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks O
             "--ccs-min-passes",
             default=3,
             type=int,
-            help="""mini number of passes required to build the CCS. Set to 3 for HIFI quality""",
+            help="minimum number of passes required to build the CCS. Set to 3 for HIFI quality",
         )
         pipeline_group.add_argument(
             "--ccs-min-rq",
@@ -167,16 +164,17 @@ def main(args=None):
         # fill preset for pacbio or nanopore
         # default config file is already configured for pacbio; so only nanopore needs to be
         # handled
+        preset_dir = utils.LORA_PATH / "presets"
         if options.nanopore:
-            nano = SequanaConfig(str(parent / "nanopore.yml"))
+            nano = SequanaConfig(str(preset_dir / "nanopore.yml"))
             cfg.update(nano.config)
 
         # load default optionse for bacteria or eukaryotes or the default
         if options.mode == "bacteria":  # default (nothing to do)
-            mode_cfg = SequanaConfig(str(parent / "bacteria.yml"))
+            mode_cfg = SequanaConfig(str(preset_dir / "bacteria.yml"))
             cfg.update(mode_cfg.config)
         elif options.mode == "eukaryotes":  # default (nothing to do)
-            mode_cfg = SequanaConfig(str(parent / "eukaryote.yml"))
+            mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
             cfg.update(mode_cfg.config)
 
         # The user may overwrite the default

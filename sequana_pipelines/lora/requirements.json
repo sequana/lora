@@ -1,0 +1,29 @@
+{
+    "assembler": {
+        "canu": "canu --version",
+        "flye": "flye --version",
+        "hifiasm": "hifiasm --version"
+    },
+    "optional": {
+        "ccs": {
+            "ccs": "ccs --version",
+            "pbindex": "pbindex --version"
+        },
+        "blast": "blastn -version",
+        "busco": "busco --version",
+        "canu_correction": "canu --version",
+        "circlator": "circlator version",
+        "prokka": "prokka --version",
+        "sequana_coverage": {
+            "minimap2": "minimap2 --version",
+            "sequana_coverage":"sequana --version"
+        }
+    },
+    "utils": {
+        "multiqc": "multiqc --version",
+        "quast": "quast.py --version",
+        "samtools": "samtools --version",
+        "seqkit": "seqkit version",
+        "seqtk": "seqtk"
+    }
+}

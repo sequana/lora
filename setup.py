@@ -58,6 +58,7 @@ setup(
     # package installation
     packages=[
         "sequana_pipelines.lora",
+        "sequana_pipelines.lora.presets",
         "sequana_pipelines.lora.rules",
         "sequana_pipelines.lora.src",
         "sequana_pipelines.lora.src.templates"

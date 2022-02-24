@@ -2,41 +2,79 @@ import base64
 import glob
 import json
 import os
-from contextlib import ExitStack
 from collections import defaultdict
+from contextlib import ExitStack
+from pathlib import Path
 
-from pandas import read_csv
 from jinja2 import Environment, PackageLoader
+from pandas import read_csv
+
+from sequana_pipelines.lora import version
 
 from .enums import BLAST_KEY, BUSCO_KEY, QUAST_KEY, SET_QUAST_KEY
+from .utils import get_tools_versions
 
 
-def create_report(output_name, samples, lora_dir=".", busco_done=True, blast_done=True, sequana_done=True):
-    """Create lora summary report.
-    :params list samples: List of sample names.
-    :params str lora_dir: Directory where Lora pipeline was executed.
+def create_reports(summary_name, lora_name, samples, config, lora_dir="."):
+    """Create LORA summary report and the main LORA report.
+    :param str summary_name: LORA summary report name.
+    :param str lora_name: LORA report name.
+    :param list samples: List of sample names.
+    :param dict config: Config used by the pipeline.
+    :param str lora_dir: Directory where Lora pipeline was executed.
     """
     # get quast information
     summary = {"header": QUAST_KEY.copy()}
     summary["results"] = get_quast_information(samples, lora_dir)
 
     # get busco information
-    if busco_done:
+    if config["busco"]["do"]:
         summary["header"] += BUSCO_KEY
         summary["results"] = get_busco_information(summary["results"], lora_dir)
 
     # get blast and sequana information per contigs
     analysis = defaultdict(lambda: defaultdict(dict))
-    if blast_done:
+    if config["blast"]["do"]:
         analysis = get_blast_result(analysis, samples, lora_dir)
-    if sequana_done:
+    if config["sequana_coverage"]["do"]:
         analysis = get_sequana_coverage(analysis, samples, lora_dir)
 
-    # create html
+    # create summary report
+    create_summary(summary_name, lora_name, summary["results"], config, lora_dir)
+
+    # create lora report
     env = Environment(loader=PackageLoader("sequana_pipelines.lora.src", "templates"))
     template = env.get_template("lora.html")
-    report_output = template.render(summary=summary, analysis=analysis)
-    with open(output_name, "w") as fout:
+    report_output = template.render(
+        summary=summary,
+        analysis=analysis,
+        version=version
+    )
+    with open(lora_name, "w") as fout:
+        print(report_output, file=fout)
+
+
+def create_summary(summary_name, lora_name, quast_info, config, lora_dir):
+    """Create the summary lora report.
+    :param str summary_name: LORA summary report name.
+    :param str lora_name: LORA report name.
+    :param dict quast_info: Dict with quast informations by samples.
+    :param dict config: Config used by the pipeline.
+    :param str lora_dir: Directory where LORA pipeline was executed.
+    """
+    lora_dir = Path(lora_dir)
+    env = Environment(loader=PackageLoader("sequana_pipelines.lora.src", "templates"))
+    template = env.get_template("summary.html")
+    report_output = template.render(
+        lora_dir=lora_dir,
+        lora_report=lora_name,
+        coverage_done=config["sequana_coverage"]["do"],
+        samples=((sample, quast_result[0]) for sample, quast_result in quast_info.items()),
+        version=version,
+        rulegraph=(lora_dir / ".sequana" / "rulegraph.svg").read_text(),
+        dependencies=get_tools_versions(config),
+    )
+    with open(summary_name, "w") as fout:
         print(report_output, file=fout)
 
 
@@ -63,7 +101,7 @@ def get_busco_information(summary, lora_dir):
     with ExitStack() as stack:
         files = [(sample, stack.enter_context(open(busco_report.format(sample)))) for sample in summary.keys()]
         for sample, filin in files:
-            iter_busco = (next(iter(line.strip().split())) for line in filin if any(key in line for key in BUSCO_KEY))
+            iter_busco = (line.strip().split()[0] for line in filin if any(key in line for key in BUSCO_KEY))
             busco_subresult = [result for result in _iter_value_to_float(iter_busco)]
             summary[sample] += busco_subresult
     return summary
