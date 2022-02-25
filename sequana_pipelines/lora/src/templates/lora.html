@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- CCS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       {% include "lora.css" %}
     </style>
@@ -12,105 +12,105 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
   </head>
-  <body>
-    <section class="hero is-link">
-      <div class="hero-body">
-        <div class="container has-text-centered"></div>
-        <p class="title">
-          LORA Report
-        </p>
-        <p class="subtitle">
-          Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
-        </p>
+  <body class="h-full flex flex-col font-sans text-base font-normal">
+    <div class="p-12 bg-sky-600 text-white flex-initial">
+      <p class="text-3xl font-semibold">
+        LORA Report
+      </p>
+      <p class="text-xl font-light">
+        Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
+      </p>
+    </div>
+    <div class="p-12 text-base font-light leading-8 text-slate-700 flex-auto">
+      <h1 class="text-3xl font-semibold mb-4">General Information</h1>
+      <div class="overflow-x-auto w-full">
+        <table id="lora_summary" class="w-full border-collapse table-auto mb-3">
+          <thead class="font-medium border-b-2 border-gray-300">
+            <th class="text-left py-1 px-3">Sample</th>
+            {% for header in summary['header'] %}
+            <th class="text-right py-1 px-3">{{header}}</th>
+            {% endfor %}
+          </thead>
+          <tbody>
+            {% for sample, values in summary['results'].items() %}
+            <tr 
+              id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}
+              class="even:bg-slate-50 border-t border-gray-300"
+            >
+              <td class="text-left font-medium py-1 px-3">{{sample}}</td>
+              {% for value in values %}
+              <td class="text-right py-1 px-3">{{value}}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </div>
+      </table>
       </div>
-    </section>
-    <section class="section">
-      <div class="content">
-        <h2>General Information</h2>
-        <div class="table-container">
-          <table id="lora_summary" class="table is-striped is-hoverable">
-            <thead>
-              <th>Sample</th>
-              {% for header in summary['header'] %}
-              <th class="has-text-right">{{header}}</th>
-              {% endfor %}
-            </thead>
-            <tbody>
-              {% for sample, values in summary['results'].items() %}
-              <tr id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}>
-                <td><strong>{{sample}}</strong></td>
-                {% for value in values %}
-                <td class="has-text-right roboto-mono">{{value}}</td>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </div>
-        </table>
-        {% if analysis %}
-          {% for sample, contigs_dict in analysis.items() %}
-            <div id="{{sample}}" class="analysis">
-              <h3>{{sample}}</h3>
-              {% for contig, results in contigs_dict.items() %}
-                <h4>{{contig}}</h4>
-                {% if 'coverage' in results %}
-                  <h5>Sequana Coverage</h5>
-                  <div class="columns is-vcentered">
-                    <div class="column">
-                      <table id="{{sample}}_{{contig}}_sequana" class="table is-striped is-hoverable">
-                        <tbody>
-                          {% for key, value in results['coverage'].items() %}
-                          <tr>
-                            <td><strong>{{key}}</strong></td>
-                            <td>{{value}}</td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div class='column has-text-centered'>
-                      <img src="data:image/png;base64,{{results['cov_image']}}" />
-                    </div>
-                  </div>
-                {% endif %}
-                {% if 'blast' in results %}
-                  <h5>Blast</h5>
-                  <div class="table-container">
-                    <table id="{{sample}}_{{contig}}_blast" class="table is-striped is-hoverable">
-                      <thead>
-                          {% for title in results['blast'][0].keys() %}
-                            <th class={{ "has-text-left" if loop.first else "has-text-right" }}>{{title}}</th>
-                          {% endfor %}
-                      </thead>
-                      <tbody>
-                        {% for blast in results['blast'] %}
-                        <tr>
-                          {% for value in blast.values() %}
-                          <td class={{ "has-text-left" if loop.first else "has-text-right" }}>{{value}}</td>
-                          {% endfor %}
-                        </tr>
+      {% if analysis %}
+        {% for sample, contigs_dict in analysis.items() %}
+          <div id="{{sample}}" class="hidden">
+            <h1 class="text-2xl font-semibold mb-4">{{sample}}</h1>
+            {% for contig, results in contigs_dict.items() %}
+              <h2 class="font-medium mb-2 text-xl">{{contig}}</h2>
+              {% if 'coverage' in results %}
+                <div class="flex items-center justify-around mb-4">
+                  <table id="{{sample}}_{{contig}}_sequana" class="table-auto w-1/6 text-left">
+                    <tbody>
+                      {% for key, value in results['coverage'].items() %}
+                      <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
+                        <th class="px-2 py-2">{{key}}</th>
+                        <td class="px-2 py-2 text-right">{{value}}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  <img src="data:image/png;base64,{{results['cov_image']}}" />
+                </div>
+              {% endif %}
+              {% if 'blast' in results %}
+                <div class="overflow-x-auto w-full">
+                  <table 
+                    id="{{sample}}_{{contig}}_blast"
+                    class="table-auto w-full border-collapse mb-3"
+                  >
+                    <thead class="font-medium border-b-2 border-gray-300">
+                        {% for title in results['blast'][0].keys() %}
+                          <th class="
+                            {{ 'text-left' if loop.first else 'text-right' }}
+                            py-2 px-2
+                          ">{{title}}</th>
                         {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                {% endif %} 
-              {% endfor %}
-            </div>
-          {% endfor %}
-        {% endif %}
-      </div>
-    </section>
+                    </thead>
+                    <tbody>
+                      {% for blast in results['blast'] %}
+                      <tr class="{{ '' if loop.first else 'border-b border-gray-300' }}">
+                        {% for value in blast.values() %}
+                        <td class="
+                          {{ 'text-left' if loop.first else 'text-right' }}
+                          py-2 px-2
+                        ">{{value}}</td>
+                        {% endfor %}
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% endif %} 
+            {% endfor %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50">
+        <p>
+          <strong>LORA</strong> by <a class="text-indigo-500 active:text-indigo-600"href="https://sequana.readthedocs.io/en/master/">Sequana Team</a>. The source code is licensed
+          <a class="text-indigo-500 active:text-indigo-600" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
+        </p>
+    </footer>
     <!-- Javascript -->
     <script type="text/javascript">
       {% include "lora.js" %}
     </script>
   </body>
-  <footer class="footer">
-    <div class="content has-text-centered">
-      <p>
-        <strong>LORA</strong> by <a href="https://sequana.readthedocs.io/en/master/">Sequana Team</a>. The source code is licensed
-        <a href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
-      </p>
-    </div>
-  </footer>
 </html>

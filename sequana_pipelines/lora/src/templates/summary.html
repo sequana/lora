@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- CCS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
     <style>
       {% include "summary.css" %}
@@ -13,87 +13,86 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
   </head>
-  <body>
-    <section class="hero is-link">
-      <div class="hero-body">
-        <div class="container has-text-centered"></div>
-        <p class="title">
-          LORA Summary
-        </p>
-        <p class="subtitle">
-          Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
-        </p>
+  <body class="h-full flex flex-col font-sans text-base font-normal">
+    <div class="p-12 bg-sky-600 text-white flex-initial">
+      <p class="text-3xl font-semibold">
+        LORA Summary
+      </p>
+      <p class="text-xl font-light">
+        Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
+      </p>
+    </div>
+    <div class="
+      p-12
+      text-xl font-light leading-8
+      bg-white text-slate-700
+      flex-auto
+    ">
+      <h1 class="text-3xl font-semibold mb-4">Global reporting</h1>
+      <ul class="my-4 ml-8 list-disc list-outside">
+        <li>
+          <p><a class="text-indigo-500 active:text-indigo-600" href="{{lora_report}}">LORA Report</a>: Resume coverage and blast results for all samples</p>
+        </li>
+        <li>
+          <p><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/multiqc/multiqc_report.html">MultiQC Reports</a>: Resume all tools results</p>
+        </li>
+      </ul>
+        <h1 class="text-3xl font-semibold mb-4">Tools reporting</h1>
+        <table class="table-auto border-collapse w-full text-left">
+          <thead class="border-b-2 border-gray-300 font-medium">
+            <tr class="font-semibold">
+              <th class="px-3 py-2">Sample</th>
+              <th class="px-3 py-2">Contigs count</th>
+              <th class="px-3 py-2" colspan={{"3" if coverage_done else "2"}}>Links</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sample, count in samples %}
+            <tr class="border-t border-gray-300">
+              <th class="px-3 py-2">{{sample}}</th>
+              <td class="px-3 py-2">{{count}}</td>
+              <td class="px-3 py-2"><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/{{sample}}/quast/report.html">Quast</a></td>
+              <td class="px-3 py-2"><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/{{sample}}/quast/icarus.html">Icarus</a></td>
+              {% if coverage_done %}
+                <td class="px-3 py-2"><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/{{sample}}/sequana_coverage/multiqc_report.html">Coverage</a></td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      <div id="rulegraph-section" class="flex flex-row mb-4" onclick="hideDiv(this, 'rulegraph')">
+        <h1 class="text-3xl font-semibold">Pipeline</h1>
+        <span class="material-icons text-3xl">expand_more</span>
       </div>
-    </section>
-    <section class="section has-background-white-bis">
-      <div class="content is-normal">
-        <h2>Global reporting</h2>
-        <ul>
-          <li>
-            <p><a href="{{lora_report}}">LORA Report</a>: Resume coverage and blast results for all samples</p>
-          </li>
-          <li>
-            <p><a href="{{lora_dir}}/multiqc/multiqc_report.html">MultiQC Reports</a>: Resume all tools results</p>
-          </li>
-        </ul>
-        <h2>Tools reporting</h2>
-          <table class="table has-background-white-bis">
-            <thead>
-              <tr>
-                <th>Sample</th>
-                <th>Contigs count</th>
-                <th colspan={{"3" if coverage_done else "2"}}>Links</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for sample, count in samples %}
-              <tr>
-                <th>{{sample}}</th>
-                <td>{{count}}</td>
-                <td><a href="{{lora_dir}}/{{sample}}/quast/report.html">Quast</a></td>
-                <td><a href="{{lora_dir}}/{{sample}}/quast/icarus.html">Icarus</a></td>
-                {% if coverage_done %}
-                  <td><a href="{{lora_dir}}/{{sample}}/sequana_coverage/multiqc_report.html">Coverage</a></td>
-                {% endif %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        <div id="rulegraph-section" class="expand-title" onclick="hideDiv(this, 'rulegraph')">
-          <h2>Pipeline</h2>
-          <span class="material-icons is-size-2">expand_more</span>
-        </div>
-        <div id="rulegraph" class="hidden-section">
-          {{rulegraph}}
-        </div>
-        <div id="dependencies-section" class="expand-title" onclick="hideDiv(this, 'dependencies')">
-          <h2>Dependencies</h2>
-          <span class="material-icons is-size-2">expand_more</span>
-        </div>
-        <div id="dependencies" class="content is-normal hidden-section">
-          <table class="table has-background-white-bis">
-            <tbody>
-              {% for tool, version in dependencies %}
-              <tr>
-                <th>{{tool}}</th>
-                <td>{{version}}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-    </section>
+      <div id="rulegraph" class="hidden-section flex justify-center">
+        {{rulegraph}}
+      </div>
+      <div id="dependencies-section" class="flex flex-row mb-4" onclick="hideDiv(this, 'dependencies')">
+        <h1 class="text-3xl font-semibold">Dependencies</h2>
+        <span class="material-icons text-3xl">expand_more</span>
+      </div>
+      <div id="dependencies" class="hidden-section text-base">
+        <table class="table-auto border-collapse w-1/5 text-left">
+          <tbody>
+            {% for tool, version in dependencies %}
+            <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
+              <th class="px-2 py-2">{{tool}}</th>
+              <td class="px-2 py-2">{{version}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50">
+      <p>
+        <strong>LORA</strong> by <a class="text-indigo-500 active:text-indigo-600" href="https://sequana.readthedocs.io/en/master/">Sequana Team</a>. The source code is licensed
+        <a class="text-indigo-500 active:text-indigo-600" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
+      </p>
+  </footer>
     <!-- Javascript -->
     <script type="text/javascript">
       {% include "summary.js" %}
     </script>
   </body>
-  <footer class="footer">
-    <div class="content has-text-centered">
-      <p>
-        <strong>LORA</strong> by <a href="https://sequana.readthedocs.io/en/master/">Sequana Team</a>. The source code is licensed
-        <a href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
-      </p>
-    </div>
-  </footer>
 </html>
