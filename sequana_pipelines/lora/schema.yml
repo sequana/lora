@@ -16,6 +16,18 @@ mapping:
         type: str
         required: true
         enum: ['canu', 'hifiasm', 'flye']
+    
+    "polishing":
+        type: map
+        func: ext_map_optionnal
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "tool":
+                type: str
+                required: true
+                enum: ['homopolish', 'medaka', 'polypolish']
 
     "ccs":
         type: map

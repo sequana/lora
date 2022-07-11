@@ -8,6 +8,11 @@ assembler_output = {
     "flye": "{sample}/flye/{sample}.contigs.fasta"
 }
 
+polishing_output = {
+    "medaka": "{sample}/medaka/{sample}.polish.fasta",
+    "polypolish": "{sample}/polypolish/{sample}.polish.fasta"
+}
+
 
 def requested_output(manager):
     """Resolve all needed output knowing the user config."""
@@ -66,8 +71,15 @@ def get_assembler_contigs(wildcards):
     return assembler_output[config["assembler"]].format(sample=wildcards.sample)
 
 
+def get_polished_contigs(wildcard):
+    """Get contigs with implemented polisher."""
+    if config["polishing"]["do"]:
+        return polishing_output[config["polishing"]["tool"]].format(sample=wildcards.sample)
+    return get_assembler_contigs(wildcards)
+
+
 def get_final_contigs(wildcards):
     """Get contigs did with assembler or circlator"""
     if config["circlator"]["do"]:
         return f"{wildcards.sample}/circlator/{wildcards.sample}.contigs.fasta"
-    return get_assembler_contigs(wildcards)
+    return get_polished_contigs(wildcards)

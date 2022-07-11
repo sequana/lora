@@ -103,7 +103,7 @@ rule flye:
 
 rule circlator:
     input:
-        contig = get_assembler_contigs,
+        contig = get_polished_contigs,
         fastq = get_fastq
     output:
         "{sample}/circlator/{sample}.contigs.fasta"

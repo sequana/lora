@@ -1,3 +1,7 @@
+polishing:
+  do: true
+  tool: polypolish
+
 canu:
   preset: nanopore
 
@@ -10,3 +14,5 @@ flye:
 minimap2:
   preset: map-ont
 
+quast:
+  preset: nanopore

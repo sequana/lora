@@ -51,6 +51,7 @@ rule lora:
 include: "rules/common.smk"
 include: "rules/ccs.smk"
 include: "rules/assembler.smk"
+include: "rules/polish.smk"
 include: "rules/qc.smk"
 include: "rules/utils.smk"
 

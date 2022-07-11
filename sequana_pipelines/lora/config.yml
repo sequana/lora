@@ -11,6 +11,10 @@ input_pattern: '*.bam'
 input_csv: ''
 assembler: 'flye'
 
+polishing:
+    do: false
+    tool: ''
+
 
 ##############################################################################
 # CCS
