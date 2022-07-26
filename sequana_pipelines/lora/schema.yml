@@ -28,6 +28,24 @@ mapping:
                 type: str
                 required: true
                 enum: ['homopolish', 'medaka', 'polypolish']
+            "input_directory":
+                type: str
+                required: true
+            "input_pattern":
+                type: str
+                required: true
+            "input_readtag":
+                type: str
+                required: true
+
+    "polypolish":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+                    
+
 
     "ccs":
         type: map

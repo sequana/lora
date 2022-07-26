@@ -14,7 +14,12 @@ assembler: 'flye'
 polishing:
     do: false
     tool: ''
+    input_directory:
+    input_pattern:
+    input_readtag:
 
+polypolish:
+    options
 
 ##############################################################################
 # CCS
