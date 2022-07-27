@@ -29,7 +29,6 @@ def requested_output(manager):
         output_list += [expand("{sample}/circlator/{sample}.contigs.fasta", sample=manager.samples)]
     if config["polishing"]["do"]:
         output_list += [expand(polishing_output[config["polishing"]["tool"]], sample=manager.samples)]
-    #output_list +=[expand("{sample}/preprocess_for_polypolish/{sample}.filter.1.sam", sample=manager.samples)]
     return output_list
 
 
