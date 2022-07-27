@@ -27,12 +27,38 @@ def requested_output(manager):
         output_list += [expand("{sample}/blast/{sample}.tsv", sample=manager.samples)]
     if config["circlator"]["do"]:
         output_list += [expand("{sample}/circlator/{sample}.contigs.fasta", sample=manager.samples)]
+    if config["polishing"]["do"]:
+        output_list += [expand(polishing_output[config["polishing"]["tool"]], sample=manager.samples)]
     return output_list
 
 
 def get_raw_data(wildcards):
     """Get raw data."""
     return manager.samples[wildcards.sample]
+
+
+# utility function to get dictionary of sample names and their input Illumina files
+def _get_illumina_data():
+    from sequana_pipetools.snaketools import FastQFactory
+    input_pattern = config["polishing"]["input_pattern"]
+    input_readtag = config["polishing"]["input_readtag"]
+    input_directory = config["polishing"]["input_directory"]
+    ff = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
+    if ff.paired is False:
+        logger.error("Your Illumina data must be paired.")
+        sys.exit(1)
+    samples = {
+    tag: [ff.get_file1(tag), ff.get_file2(tag)] for tag in ff.tags
+    }
+    return samples
+illumina_data = _get_illumina_data()
+
+def get_illumina_data(wildcards):
+    """Get raw illumina data."""
+    if wildcards.sample not in illumina_data:
+        logger.error(f"The sample name {wildcards.sample} is discordant (not found in the nanopore sample names)")
+        sys.exit(1)
+    return illumina_data[wildcards.sample]
 
 
 def aggregate_flowcell(wildcards):
@@ -71,15 +97,21 @@ def get_assembler_contigs(wildcards):
     return assembler_output[config["assembler"]].format(sample=wildcards.sample)
 
 
-def get_polished_contigs(wildcard):
+def get_contigs_before_polishing(wildcards):
     """Get contigs with implemented polisher."""
-    if config["polishing"]["do"]:
-        return polishing_output[config["polishing"]["tool"]].format(sample=wildcards.sample)
+    if config["circlator"]["do"]:
+        return f"{wildcards.sample}/circlator/{wildcards.sample}.contigs.fasta"
     return get_assembler_contigs(wildcards)
 
 
+def get_indexing_contigs_before_polishing(wildcards):
+    """Get indexing of the contigs before polishing."""
+    contig_filename = get_contigs_before_polishing(wildcards)
+    return f"{contig_filename}.bai"
+
+
 def get_final_contigs(wildcards):
-    """Get contigs did with assembler or circlator"""
-    if config["circlator"]["do"]:
-        return f"{wildcards.sample}/circlator/{wildcards.sample}.contigs.fasta"
-    return get_polished_contigs(wildcards)
+    """Get contigs after ith assembler or circlator"""
+    if config["polishing"]["do"]:
+        return polishing_output[config["polishing"]["tool"]].format(sample=wildcards.sample)
+    return get_contigs_before_polishing(wildcards)
