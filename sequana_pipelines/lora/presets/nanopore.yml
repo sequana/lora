@@ -1,6 +1,4 @@
-polishing:
-  do: true
-  tool: polypolish
+assembler: flye
 
 canu:
   preset: nanopore

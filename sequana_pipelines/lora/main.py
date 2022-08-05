@@ -40,7 +40,7 @@ class Options(argparse.ArgumentParser):
         )
 
         # add a new group of options to the parser
-        so = SlurmOptions()
+        so = SlurmOptions(profile="local")
         so.add_options(self)
 
         # add a snakemake group of options to the parser
@@ -63,7 +63,6 @@ class Options(argparse.ArgumentParser):
         pipeline_group.add_argument(
             "--assembler",
             dest="assembler",
-            default="canu",
             choices=["canu", "hifiasm", "flye"],
             help="An assembler in canu, hifiasm, flye",
         )
@@ -139,7 +138,7 @@ def main(args=None):
 
     # whatever needs to be called by all pipeline before the options parsing
     before_pipeline(NAME)
-
+    
     # option parsing including common epilog
     options = Options(NAME, epilog=sequana_epilog).parse_args(args[1:])
 
@@ -147,6 +146,10 @@ def main(args=None):
         logger.error("You must use one of --nanopore or --pacbio options")
         sys.exit(1)
 
+    # use profile slurm if user set a slurm queue
+    if options.slurm_queue != "common":
+        options.profile = "slurm"
+    
     # the real stuff is here
     manager = SequanaManager(options, NAME)
 
@@ -186,7 +189,9 @@ def main(args=None):
             cfg.busco["lineage"] = options.lineage
 
         cfg.canu_correction["do"] = options.do_correction
-        cfg.assembler = options.assembler
+        # override preset only if user set an assembler
+        if options.assembler:
+            cfg.assembler = options.assembler
 
         cfg.ccs["min-rq"] = options.ccs_min_rq
         cfg.ccs["min-passes"] = options.ccs_min_passes

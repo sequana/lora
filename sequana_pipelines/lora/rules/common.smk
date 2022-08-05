@@ -27,8 +27,8 @@ def requested_output(manager):
         output_list += [expand("{sample}/blast/{sample}.tsv", sample=manager.samples)]
     if config["circlator"]["do"]:
         output_list += [expand("{sample}/circlator/{sample}.contigs.fasta", sample=manager.samples)]
-    if config["polishing"]["do"]:
-        output_list += [expand(polishing_output[config["polishing"]["tool"]], sample=manager.samples)]
+    if config["polypolish"]["do"]:
+        output_list += [expand("{sample}/polypolish/{sample}.polish.fasta", sample=manager.samples)]
     return output_list
 
 
@@ -39,18 +39,20 @@ def get_raw_data(wildcards):
 
 # utility function to get dictionary of sample names and their input Illumina files
 def _get_illumina_data():
-    from sequana_pipetools.snaketools import FastQFactory
-    input_pattern = config["polishing"]["input_pattern"]
-    input_readtag = config["polishing"]["input_readtag"]
-    input_directory = config["polishing"]["input_directory"]
-    ff = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
-    if ff.paired is False:
-        logger.error("Your Illumina data must be paired.")
-        sys.exit(1)
-    samples = {
-    tag: [ff.get_file1(tag), ff.get_file2(tag)] for tag in ff.tags
-    }
-    return samples
+    if config["polypolish"]["do"]:
+        from sequana_pipetools.snaketools import FastQFactory
+        input_pattern = config["polypolish"]["input_pattern"]
+        input_readtag = config["polypolish"]["input_readtag"]
+        input_directory = config["polypolish"]["input_directory"]
+        ff = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
+        if ff.paired is False:
+            logger.error("Your Illumina data must be paired.")
+            sys.exit(1)
+        samples = {
+        tag: [ff.get_file1(tag), ff.get_file2(tag)] for tag in ff.tags
+        }
+        return samples
+    return {}
 illumina_data = _get_illumina_data()
 
 def get_illumina_data(wildcards):
@@ -97,21 +99,22 @@ def get_assembler_contigs(wildcards):
     return assembler_output[config["assembler"]].format(sample=wildcards.sample)
 
 
-def get_contigs_before_polishing(wildcards):
-    """Get contigs with implemented polisher."""
-    if config["circlator"]["do"]:
-        return f"{wildcards.sample}/circlator/{wildcards.sample}.contigs.fasta"
+def get_medaka_consensus_contigs(wildcards):
+    """Get contigs polished with medaka."""
+    if config["medaka_consensus"]["do"]:
+        return f"{wildcards.sample}/medaka_consensus/{wildcards.sample}.polish.fasta"
     return get_assembler_contigs(wildcards)
 
 
-def get_indexing_contigs_before_polishing(wildcards):
-    """Get indexing of the contigs before polishing."""
-    contig_filename = get_contigs_before_polishing(wildcards)
-    return f"{contig_filename}.bai"
+def get_circlator_contigs(wildcards):
+    """Get circularize contig or raw contig."""
+    if config["circlator"]["do"]:
+        return f"{wildcards.sample}/circlator/{wildcards.sample}.circle.fasta"
+    return get_medaka_consensus_contigs(wildcards)
 
 
 def get_final_contigs(wildcards):
     """Get contigs after ith assembler or circlator"""
-    if config["polishing"]["do"]:
-        return polishing_output[config["polishing"]["tool"]].format(sample=wildcards.sample)
-    return get_contigs_before_polishing(wildcards)
+    if config["polypolish"]["do"]:
+        return f"{wildcards.sample}/polypolish/{wildcards.sample}.polish.fasta"
+    return get_circlator_contigs(wildcards)

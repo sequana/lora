@@ -16,36 +16,6 @@ mapping:
         type: str
         required: true
         enum: ['canu', 'hifiasm', 'flye']
-    
-    "polishing":
-        type: map
-        func: ext_map_optionnal
-        mapping:
-            "do":
-                type: bool
-                required: true
-            "tool":
-                type: str
-                required: true
-                enum: ['homopolish', 'medaka', 'polypolish']
-            "input_directory":
-                type: str
-                required: true
-            "input_pattern":
-                type: str
-                required: true
-            "input_readtag":
-                type: str
-                required: true
-
-    "polypolish":
-        type: map
-        mapping:
-            "options":
-                type: text
-                required: false
-                    
-
 
     "ccs":
         type: map
@@ -68,6 +38,9 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
 
     "samtools_merge":
         type: map
@@ -78,6 +51,9 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
  
     "bam_to_fastq":
         type: map
@@ -87,6 +63,9 @@ mapping:
                 required: false
             "threads":
                 type: int
+                required: true
+            "resources":
+                type: any
                 required: true
 
     "canu":
@@ -107,6 +86,9 @@ mapping:
                 required: false
             "threads":
                 type: int
+                required: true
+            "resources":
+                type: any
                 required: true
 
     "canu_correction":
@@ -134,6 +116,9 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
 
     "hifiasm":
         type: map
@@ -143,6 +128,9 @@ mapping:
                 required: false
             "threads":
                 type: int
+                required: true
+            "resources":
+                type: any
                 required: true
     
     "flye":
@@ -158,6 +146,34 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
+
+    "medaka_consensus":
+        type: map
+        func: ext_map_optionnal
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "model":
+                type: str
+                required: true
+                nullable: false
+            "image":
+                type: str
+                required: true
+                nullable: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
 
     "circlator":
         type: map
@@ -171,12 +187,48 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
+
+    "polypolish":
+        type: map
+        func: ext_map_optionnal
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "input_directory":
+                type: str
+                required: true
+            "input_pattern":
+                type: str
+                required: true
+            "input_readtag":
+                type: str
+                required: true
+            "options":
+                type: text
+                required: false
+            "resources":
+                type: any
+                required: true
+
+    "polypolish_bwa":
+        type: map
+        mapping:
+            "resources":
+                type: any
+                required: true
     
     "seqkit_sort":
         type: map
         mapping:
             "threads":
                 type: int
+                required: true
+            "resources":
+                type: any
                 required: true
 
     "minimap2":
@@ -191,6 +243,9 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
 
     "sequana_coverage":
         type: map
@@ -201,6 +256,9 @@ mapping:
             "options":
                 type: text
                 required: false
+            "resources":
+                type: any
+                required: true
 
     "quast":
         type: map
@@ -214,6 +272,9 @@ mapping:
                 required: false
             "threads":
                 type: int
+                required: true
+            "resources":
+                type: any
                 required: true
 
     "busco":
@@ -233,6 +294,9 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
 
     "prokka":
         type: map
@@ -245,6 +309,9 @@ mapping:
                 required: false
             "threads":
                 type: int
+                required: true
+            "resources":
+                type: any
                 required: true
     
     "seqkit_head":
@@ -274,6 +341,10 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "resources":
+                type: any
+                required: true
+
     "onsuccess":
         type: map
         mapping:
