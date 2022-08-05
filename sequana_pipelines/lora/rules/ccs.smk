@@ -43,6 +43,8 @@ rule ccs:
         options = config['ccs']['options']
     threads:
         config['ccs']['threads']
+    resources:
+        **config["ccs"]["resources"],
     shell:
         """
         ccs {input.bam} {output.bam} --chunk {wildcards.chunk}/{params.max_chunks} --min-rq {params.min_rq}\
@@ -87,6 +89,8 @@ rule bam_to_fastq:
         config['bam_to_fastq']['options']
     threads:
         config['bam_to_fastq']['threads']
+    resources:
+        **config["canu"]["resources"],
     shell:
         """
         samtools bam2fq -@ $(({threads} - 1)) {params} {input} > {output.fastq}

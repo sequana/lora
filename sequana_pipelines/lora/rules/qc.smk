@@ -9,6 +9,8 @@ rule seqkit_sort:
         "{sample}/sorted_contigs/{sample}.fasta"
     threads:
         config["seqkit_sort"]["threads"]
+    resources:
+        **config["seqkit_sort"]["resources"],
     shell:
         """
         seqkit sort --threads {threads} --by-length --reverse {input} -o {output}
@@ -27,6 +29,8 @@ rule minimap2_and_genomecov:
         options = config['minimap2']['options']
     threads:
         config['minimap2']['threads']
+    resources:
+        **config["minimap2"]["resources"],
     shell:
         """
         minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq}\
@@ -43,6 +47,8 @@ rule sequana_coverage:
         html = "{sample}/sequana_coverage/multiqc_report.html"
     params:
         config['sequana_coverage']['options']
+    resources:
+        **config["sequana_coverage"]["resources"],
     shell:
         """
         sequana_coverage {params} -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
@@ -60,6 +66,8 @@ rule quast:
         options = config['quast']['options']
     threads:
         config['quast']['threads']
+    resources:
+        **config["quast"]["resources"],
     shell:
         """
         quast.py {params.options} -t {threads} {input.contigs} --{params.preset} {input.fastq} -o {wildcards.sample}/quast\
@@ -81,6 +89,8 @@ rule busco:
         options = config['busco']['options']
     threads:
         config['busco']['threads']
+    resources:
+        **config["busco"]["resources"],
     wrapper:
         "main/wrappers/busco"
 
@@ -94,6 +104,8 @@ rule prokka:
         config['prokka']['options']
     threads:
         config['prokka']['threads']
+    resources:
+        **config["prokka"]["resources"],
     shell:
         """
         prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs}
@@ -125,6 +137,8 @@ rule blast:
         options = config['blast']['options']
     threads:
         config['blast']['threads']
+    resources:
+        **config["blast"]["resources"],
     shell:
         """
         export BLASTDB={params.db}

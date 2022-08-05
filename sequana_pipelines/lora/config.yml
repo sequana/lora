@@ -11,7 +11,6 @@ input_pattern: '*.bam'
 input_csv: ''
 assembler: 'flye'
 
-
 ##############################################################################
 # CCS
 #
@@ -22,6 +21,7 @@ assembler: 'flye'
 # - max-chunks: Determine maximum number of chunks.
 # - options: any options recognised by `ccs` cli
 # - threads: Number of threads to use
+# - resources: computing resources needed to run the job on a cluster
 ccs:
     do: true
     min-rq: 0.7
@@ -29,6 +29,8 @@ ccs:
     max-chunks: 10
     options: ''
     threads: 4
+    resources:
+        mem: 4G
 
 
 ##############################################################################
@@ -39,6 +41,8 @@ ccs:
 samtools_merge:
     options: ''
     threads: 4
+    resources:
+        mem: 4G
 
 
 ##############################################################################
@@ -50,6 +54,8 @@ samtools_merge:
 bam_to_fastq:
     options: ''
     threads: 4
+    resources:
+        mem: 4G
 
 
 ##############################################################################
@@ -68,7 +74,8 @@ canu:
     use_grid: true 
     options: ''
     threads: 1
-
+    resources:
+        mem: 1G
 
 ##############################################################################
 # Long read correction with canu.
@@ -93,7 +100,8 @@ canu_correction:
     correction_options: ''
     trimming_options: ''
     threads: 1
-
+    resources:
+        mem: 1G
 
 ##############################################################################
 # Hifiasm v0.15.1
@@ -105,6 +113,8 @@ canu_correction:
 hifiasm:
     options: '-f0 -l0 --n-hap 1'
     threads: 4
+    resources:
+        mem: 4G
 
 
 ##############################################################################
@@ -113,12 +123,38 @@ hifiasm:
 # :Parameters:
 #  
 # - preset: Any preset in this list: ['pacbio-raw', 'pacbio-corr', 'pacbio-hifi', 'nano-raw', 'nano-corr', 'nano-hq']
-# - options: any options recognised by `canu` cli
+# - options: any options recognised by `flye` cli
 # - threads: Number of threads to use
 flye:
     preset: 'pacbio-raw'
     options: ''
     threads: 4
+    resources:
+        mem: 16G
+
+##############################################################################
+# Medaka consensus
+#
+# Medaka dependencies mess up the environment used to run LORA.
+# We advice you to use an apptainer or the docker of medaka.
+#
+# :Parameters:
+#  
+# - do: if unchecked, this rule is ignored
+# - model: models that can be found by running `medaka tools list_models`
+# - options: any options recognised by `medaka_consensus` cli
+# - threads: Number of threads to use
+medaka_consensus:
+    do: true
+    model: "r941_min_fast_g303"
+    options:
+    image: "medaka_1.6.1.img"
+    threads: 4
+    resources:
+        mem: 16G
+        partition: gpu
+        qos: fast
+        gres: gpu:1,gmem:24G
 
 
 ##############################################################################
@@ -133,7 +169,35 @@ circlator:
     do: false
     options: '--split_all_reads'
     threads: 4
+    resources:
+        mem: 8G
 
+
+##############################################################################
+# Polypolish
+#   Paired-end illumina data are mandatory and illumina prefix name must be the same than
+#   your long reads files.
+#
+# :Parameters:
+#   
+# - do: if unchecked, this rule is ignored
+# - input_directory: path where your illumina data are
+# - input_pattern: pattern to retrieve your data
+# - input_readtag: explicit readtag to retrieve paired-end
+# - options: any options recognised by `polypolish` cli
+# - threads: Number of threads to use
+polypolish:
+    do: false
+    input_directory:
+    input_pattern: "*.fastq.gz"
+    input_readtag: "_R[12]"
+    options:
+    resources:
+        mem: 4G
+
+polypolish_bwa:
+    resources:
+        mem: 8G
 
 ##############################################################################
 # SeqKit Sort
@@ -143,6 +207,8 @@ circlator:
 # - threads: Number of threads to use
 seqkit_sort:
     threads: 4
+    resources:
+        mem: 4G
 
 ##############################################################################
 # Minimap2
@@ -156,6 +222,8 @@ minimap2:
     preset: 'map-pb'
     options: ''
     threads: 4
+    resources:
+        mem: 4G
 
 ##############################################################################
 # Sequana coverage
@@ -167,6 +235,8 @@ minimap2:
 sequana_coverage:
     do: false
     options: ''
+    resources:
+        mem: 8G
 
 ##############################################################################
 # Quast
@@ -180,6 +250,8 @@ quast:
     preset: 'pacbio'
     options: ''
     threads: 4
+    resources:
+        mem: 4G
 
 ##############################################################################
 # Busco
@@ -195,6 +267,8 @@ busco:
     lineage: ''
     options: '--offline'
     threads: 4
+    resources:
+        mem: 4G
 
 
 ##############################################################################
@@ -209,6 +283,8 @@ prokka:
     do: false
     options: ''
     threads: 4
+    resources:
+        mem: 4G
 
 ##############################################################################
 # SeqKit Head
@@ -235,6 +311,8 @@ blast:
     evalue: '1e-10'
     options: ' -max_target_seqs 5'
     threads: 4
+    resources:
+        mem: 12G
 
 
 ##############################################################################
