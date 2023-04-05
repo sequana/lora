@@ -15,6 +15,8 @@ rule canu:
     threads: config["canu"]["threads"]
     resources:
         **config["canu"]["resources"],
+    container:
+        config['apptainers']['canu']
     wrapper:
         "main/wrappers/canu"
 
@@ -34,6 +36,8 @@ rule canu_correction:
     threads: config["canu_correction"]["threads"]
     resources:
         **config["canu_correction"]["resources"],
+    container:
+        config['apptainers']['canu']
     wrapper:
         "main/wrappers/canu"
 
@@ -53,6 +57,8 @@ rule canu_trimming:
     threads: config["canu_correction"]["threads"]
     resources:
         **config["canu_correction"]["resources"],
+    container:
+        config['apptainers']['canu']
     wrapper:
         "main/wrappers/canu"
 
@@ -62,6 +68,8 @@ rule fasta_to_fastq:
         "{sample}/corrected_reads/{sample}.trimmedReads.fasta.gz",
     output:
         "{sample}/corrected_reads/{sample}.fastq",
+    container:
+        config['apptainers']['seqtk']
     shell:
         """
         seqtk seq -F '#' {input} > {output}
@@ -78,6 +86,8 @@ rule hifiasm:
     threads: config["hifiasm"]["threads"]
     resources:
         **config["hifiasm"]["resources"],
+    container:
+        config['apptainers']['hifiasm']
     shell:
         """
         mkdir -p {wildcards.sample}/hifiasm
@@ -95,6 +105,8 @@ rule flye:
     params:
         preset=config["flye"]["preset"],
         options=config["flye"]["options"],
+    container:
+        config['apptainers']['flye']
     threads: config["flye"]["threads"]
     resources:
         **config["flye"]["resources"],

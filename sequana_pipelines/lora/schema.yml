@@ -17,6 +17,9 @@ mapping:
         required: true
         enum: ['canu', 'hifiasm', 'flye']
 
+    "apptainers":
+        type: any
+
     "ccs":
         type: map
         mapping:
@@ -77,6 +80,9 @@ mapping:
             "preset":
                 type: str
                 required: true
+                # canu 1.6 used pacbio-raw pacbio-corrected nanaopore-raw and nanopore-corrected
+                # canu 1.9 added pacbio-hifi
+                # canu 2.1 uses only -pacbio -nanopore and -pacbio-hifi
                 enum: ['pacbio', 'pacbio-hifi', 'nanopore']
             "use_grid":
                 type: bool
@@ -190,6 +196,10 @@ mapping:
             "resources":
                 type: any
                 required: true
+            "data_type":
+                type: any
+                required: true
+                enum: ['pacbio-corrected', 'pacbio-raw']
 
     "polypolish":
         type: map
@@ -344,6 +354,7 @@ mapping:
             "resources":
                 type: any
                 required: true
+
 
     "onsuccess":
         type: map

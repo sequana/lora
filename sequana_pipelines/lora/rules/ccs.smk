@@ -59,6 +59,8 @@ rule ccs_merge:
         "{sample}/ccs/{sample}_{flowcell}.ccs.bam"
     params:
         config['samtools_merge']['options']
+    container:
+        config['apptainers']['samtools']
     threads:
         config['samtools_merge']['threads']
     shell:
@@ -72,6 +74,8 @@ rule flowcell_merge:
         aggregate_flowcell
     output:
         "{sample}/ccs/{sample}.ccs.bam"
+    container:
+        config['apptainers']['samtools']
     threads:
         config['samtools_merge']['threads']
     shell:
@@ -89,6 +93,8 @@ rule bam_to_fastq:
         config['bam_to_fastq']['options']
     threads:
         config['bam_to_fastq']['threads']
+    container:
+        config['apptainers']['samtools']
     resources:
         **config["canu"]["resources"],
     shell:
