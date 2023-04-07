@@ -6,7 +6,7 @@ with open("requirements.txt") as fh:
     requirements = [req.rstrip() if not req.startswith("git+") else req.rstrip().split("egg=")[-1] for req in fh]
 
 _MAJOR = 0
-_MINOR = 1
+_MINOR = 2
 _MICRO = 0
 version = f"{_MAJOR}.{_MINOR}.{_MICRO}"
 release = f"{_MAJOR}.{_MINOR}"

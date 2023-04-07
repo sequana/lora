@@ -13,7 +13,7 @@ rule medaka_consensus:
     threads:
         config["medaka_consensus"]["threads"]
     container:
-        config["medaka_consensus"]["image"]
+        config["apptainers"]["medaka"]
     resources:
         **config["medaka_consensus"]["resources"]
     wrapper:
@@ -21,21 +21,26 @@ rule medaka_consensus:
 
 
 rule circlator:
+    # if circlator requires data_type pacbio-corrected, uses ouput of canu 
+    # otherwise, uses input fastq
     input:
         contig = get_medaka_consensus_contigs,
-        fastq = get_fastq
+        fastq = get_corrected_fastq
     output:
         "{sample}/circlator/{sample}.circle.fasta"
     params:
         options = config['circlator']['options']
+        data_type=config['circlator']['data_type']
     threads:
         config['circlator']['threads']
     resources:
         **config["circlator"]["resources"],
+    container:
+        config['apptainers']['circlator']
     shell:
         """
         outdir={wildcards.sample}/circlator/
-        circlator all {params.options} --threads {threads} --force --data_type pacbio-corrected {input.contig} {input.fastq}\
+        circlator all {params.options} --threads {threads} --force --data_type {params.data_type} {input.contig} {input.fastq}\
             ${{outdir}} && mv ${{outdir}}/06.fixstart.fasta {output}
         """
 
@@ -45,6 +50,8 @@ rule indexing_for_polypolish:
         contigs=get_circlator_contigs
     output:
         index="{sample}/logs/{sample}_indexing_polishing.done"
+    container:
+        config['apptainers']['bwa']
     shell:
         """
         bwa index {input.contigs} && touch {output.index}
@@ -60,6 +67,8 @@ rule mapping_R1_for_polypolish:
         aln="{sample}/preprocess_for_polypolish/{sample}.1.sam",
     resources:
         **config["polypolish_bwa"]["resources"],
+    container:
+        config['apptainers']['bwa']
     shell:
         """
         bwa mem -a {input.contigs} {input.illumina[0]} > {output.aln}
@@ -75,6 +84,8 @@ rule mapping_R2_for_polypolish:
         aln="{sample}/preprocess_for_polypolish/{sample}.2.sam"
     resources:
         **config["polypolish_bwa"]["resources"],
+    container:
+        config['apptainers']['bwa']
     shell:
         """
         bwa mem -a {input.contigs} {input.illumina[1]} > {output.aln}
@@ -89,6 +100,8 @@ rule preprocess_for_polypolish:
     output:
         filter1="{sample}/preprocess_for_polypolish/{sample}.filter.1.sam",
         filter2="{sample}/preprocess_for_polypolish/{sample}.filter.2.sam"
+    container:
+        config['apptainers']['polypolish']
     shell:
         """
         polypolish_insert_filter.py \
@@ -110,6 +123,8 @@ rule polypolish:
         options=config['polypolish'].get('options', "")
     log:
         "{sample}/logs/{sample}_polypolish.log"
+    container:
+        config['apptainers']['polypolish']
     resources:
         **config["polypolish"]["resources"],
     wrapper:

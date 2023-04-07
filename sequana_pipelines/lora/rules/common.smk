@@ -26,7 +26,7 @@ def requested_output(manager):
     if config["blast"]["do"]:
         output_list += [expand("{sample}/blast/{sample}.tsv", sample=manager.samples)]
     if config["circlator"]["do"]:
-        output_list += [expand("{sample}/circlator/{sample}.contigs.fasta", sample=manager.samples)]
+        output_list += [expand("{sample}/circlator/{sample}.circle.fasta", sample=manager.samples)]
     if config["polypolish"]["do"]:
         output_list += [expand("{sample}/polypolish/{sample}.polish.fasta", sample=manager.samples)]
     return output_list

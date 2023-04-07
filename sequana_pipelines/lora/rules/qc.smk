@@ -11,29 +11,33 @@ rule seqkit_sort:
         config["seqkit_sort"]["threads"]
     resources:
         **config["seqkit_sort"]["resources"],
+    container:
+        config['apptainers']['seqkit']
     shell:
         """
         seqkit sort --threads {threads} --by-length --reverse {input} -o {output}
         """
 
-
+￼
 rule minimap2_and_genomecov:
-    input:
-        fastq = get_fastq,
-        contigs = "{sample}/sorted_contigs/{sample}.fasta"
+￼   input:
+￼       fastq = get_fastq,
+￼       contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         bam = "{sample}/minimap2/{sample}.bam",
         bed = "{sample}/minimap2/{sample}.bed"
     params:
         preset = config['minimap2']['preset'],
-        options = config['minimap2']['options']
+        options = config['minimap2']['options']	￼
     threads:
         config['minimap2']['threads']
+    container:
+        config['apptainers']['minimap2']
     resources:
         **config["minimap2"]["resources"],
     shell:
         """
-        minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq}\
+        minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq} \
             | samtools sort -@ $(({threads} - 1)) -o {output.bam}\
             && samtools index {output.bam}\
             && samtools depth -aa {output.bam} > {output.bed}
@@ -49,6 +53,8 @@ rule sequana_coverage:
         config['sequana_coverage']['options']
     resources:
         **config["sequana_coverage"]["resources"],
+    container:
+        config['apptainers']['sequana']
     shell:
         """
         sequana_coverage {params} -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
@@ -66,6 +72,8 @@ rule quast:
         options = config['quast']['options']
     threads:
         config['quast']['threads']
+    container:
+        config['apptainers']['denovo_tools']
     resources:
         **config["quast"]["resources"],
     shell:
@@ -89,6 +97,8 @@ rule busco:
         options = config['busco']['options']
     threads:
         config['busco']['threads']
+    container:
+        config['apptainers']['denovo_tools']
     resources:
         **config["busco"]["resources"],
     wrapper:
@@ -104,6 +114,8 @@ rule prokka:
         config['prokka']['options']
     threads:
         config['prokka']['threads']
+    container:
+        config['apptainers']['denovo_tools']
     resources:
         **config["prokka"]["resources"],
     shell:
@@ -119,6 +131,8 @@ rule seqkit_head:
         "{sample}/subset_contigs/{sample}.subset.fasta"
     params:
         n_first = config["seqkit_head"]["n_first"]
+    container:
+        config['apptainers']['seqkit']
     shell:
         """
         seqkit head -n {params.n_first} -o {output} {input}
@@ -137,6 +151,8 @@ rule blast:
         options = config['blast']['options']
     threads:
         config['blast']['threads']
+    container:
+        config['apptainers']['denovo_tools']
     resources:
         **config["blast"]["resources"],
     shell:
