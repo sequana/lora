@@ -7,14 +7,21 @@ checkpoint index_bam:
         get_raw_data
     output:
         directory("{sample}/pbindex")
-    run:
-        for i, file in enumerate(input):
-            shell(
-                "mkdir -p {output}"
-                " && ln -sfn {file} {output}/{wildcards.sample}_{i}.bam"
-                " && pbindex {output}/{wildcards.sample}_{i}.bam"
-            )
-
+    container:
+        config['apptainers']['pbindex']
+    shell:
+        """
+        COUNTER=0
+        IFS=" " read -r -a array <<< {input}
+        for filename in "${{array}}"
+        do
+            echo $filename
+            mkdir -p {output}
+            ln -sfn ${{filename}} {output}/{wildcards.sample}_${{COUNTER}}.bam \
+                            && pbindex            {output}/{wildcards.sample}_${{COUNTER}}.bam
+        COUNTER=COUNTER+1
+        done
+        """
 
 # intermediate files are needed to parallelize ccs computation ( ͡° ͜ʖ ͡°)
 rule setup_ccs_chunk:
@@ -43,6 +50,8 @@ rule ccs:
         options = config['ccs']['options']
     threads:
         config['ccs']['threads']
+    container:
+        config['apptainers']['ccs']
     resources:
         **config["ccs"]["resources"],
     shell:
