@@ -110,12 +110,10 @@ rule flye:
     threads: config["flye"]["threads"]
     resources:
         **config["flye"]["resources"],
-    run:
-        from os import path
+    shell:
+        """
+        outdir="$(dirname "{output.contig}")"
 
-        outdir = path.dirname(output["contig"])
-        contigs = path.join(outdir, "assembly.fasta")
-        shell(
-            "flye {params.options} --{params.preset} {input} --out-dir {outdir} --threads {threads}"
-            " && mv {contigs} {output}"
-        )
+        flye {params.options} --{params.preset} {input} --out-dir ${{outdir}} --threads {threads} \
+            && mv ${{outdir}}/assembly.fasta {output}
+        """

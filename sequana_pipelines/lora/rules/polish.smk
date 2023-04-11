@@ -29,7 +29,7 @@ rule circlator:
     output:
         "{sample}/circlator/{sample}.circle.fasta"
     params:
-        options = config['circlator']['options']
+        options = config['circlator']['options'],
         data_type=config['circlator']['data_type']
     threads:
         config['circlator']['threads']
