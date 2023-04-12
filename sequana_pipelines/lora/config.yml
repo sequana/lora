@@ -17,16 +17,17 @@ apptainers:
     busco: https://zenodo.org/record/7794877/files/busco_5.4.6.img
     canu: https://zenodo.org/record/7808153/files/canu_2.1.1.img
     ccs: https://zenodo.org/record/7817325/files/ccs_6.4.0.img
-    circlator: https://zenodo.org/record/7734820/files/circlator_1.5.5.img
+    circlator: https://zenodo.org/record/7821905/files/circlator_1.5.5.img
     denovo_tools: https://zenodo.org/record/7335176/files/denovo_tools_0.0.2.img
+    graphviz: https://zenodo.org/record/5767507/files/graphviz_2.43.0.img 
     flye: https://zenodo.org/record/7733985/files/flye_2.9.1.img
     hifiasm: https://zenodo.org/record/7737424/files/hifiasm_0.19.1.img
     medaka: ''
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
-    minimap2: https://zenodo.org/record/5799482/files/minimap2_2.23.0.img
+    minimap2: https://zenodo.org/record/7822910/files/samtools_1.17_minimap2_2.24.0.img 
     polypolish: https://zenodo.org/record/7704079/files/polypolish_0.5.0.img
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
-    seqkit: https://zenodo.org/record/6313001/files/seqkit_2.1.0.img
+    seqkit:  https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
     sequana: https://zenodo.org/record/7734816/files/sequana_0.14.6.img
 ##############################################################################
@@ -163,7 +164,7 @@ flye:
 # - options: any options recognised by `medaka_consensus` cli
 # - threads: Number of threads to use
 medaka_consensus:
-    do: true
+    do: false
     model: "r941_min_fast_g303"
     options:
     image: "medaka_1.6.1.img"
