@@ -112,7 +112,7 @@ class Options(argparse.ArgumentParser):
         pipeline_group.add_argument(
             "--ccs-min-rq",
             default=0.7,
-            type=int,
+            type=float,
             help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality",
         )
 
