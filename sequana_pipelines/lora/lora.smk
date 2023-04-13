@@ -53,7 +53,18 @@ include: "rules/ccs.smk"
 include: "rules/assembler.smk"
 include: "rules/polish.smk"
 include: "rules/qc.smk"
-include: "rules/utils.smk"
+
+rule rulegraph:
+    input:
+        workflow.snakefile
+    output:
+        svg = ".sequana/rulegraph.svg",
+    params:
+        configname = "config.yml",
+        required_local_files = ["schema.yml", "rules"]
+    wrapper:
+        "main/wrappers/rulegraph"
+
 
 onsuccess:
     from sequana_pipelines.lora import create_reports

@@ -18,17 +18,16 @@ rule seqkit_sort:
         seqkit sort --threads {threads} --by-length --reverse {input} -o {output}
         """
 
-￼
 rule minimap2_and_genomecov:
-￼   input:
-￼       fastq = get_fastq,
-￼       contigs = "{sample}/sorted_contigs/{sample}.fasta"
+    input:
+        fastq = get_fastq,
+        contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         bam = "{sample}/minimap2/{sample}.bam",
         bed = "{sample}/minimap2/{sample}.bed"
     params:
         preset = config['minimap2']['preset'],
-        options = config['minimap2']['options']	￼
+        options = config['minimap2']['options']
     threads:
         config['minimap2']['threads']
     container:
@@ -170,5 +169,5 @@ rule multiqc:
         "multiqc/multiqc_report.html"
     shell:
         """
-        multiqc -f . --outdir multiqc -m busco -m quast
+        multiqc -f . --outdir multiqc -m busco -m quast -m sequana_coverage -m prokka
         """
