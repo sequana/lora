@@ -1,5 +1,5 @@
 # ============================================================================
-# Config file for Quality Control
+# Config file for LORA
 # ==========================================[ Sections for the users ]========
 #
 # One of input_directory, input_pattern and input_samples must be provided
@@ -13,6 +13,7 @@ assembler: 'flye'
 
 # apptainers links
 apptainers:
+    blast: https://zenodo.org/record/7848524/files/blast_2.12.0.img
     bwa: https://zenodo.org/record/7736677/files/bwa_0.7.17.img
     busco: https://zenodo.org/record/7794877/files/busco_5.4.6.img
     canu: https://zenodo.org/record/7808153/files/canu_2.1.1.img
@@ -22,7 +23,7 @@ apptainers:
     graphviz: https://zenodo.org/record/5767507/files/graphviz_2.43.0.img 
     flye: https://zenodo.org/record/7733985/files/flye_2.9.1.img
     hifiasm: https://zenodo.org/record/7737424/files/hifiasm_0.19.1.img
-    medaka: ''
+    medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
     minimap2: https://zenodo.org/record/7822910/files/samtools_1.17_minimap2_2.24.0.img 
     polypolish: https://zenodo.org/record/7704079/files/polypolish_0.5.0.img
@@ -30,6 +31,7 @@ apptainers:
     seqkit:  https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
     sequana: https://zenodo.org/record/7734816/files/sequana_0.14.6.img
+
 ##############################################################################
 # CCS
 #
@@ -167,7 +169,6 @@ medaka_consensus:
     do: false
     model: "r941_min_fast_g303"
     options:
-    image: "medaka_1.6.1.img"
     threads: 4
     resources:
         mem: 16G
