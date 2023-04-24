@@ -72,7 +72,7 @@ rule quast:
     threads:
         config['quast']['threads']
     container:
-        config['apptainers']['denovo_tools']
+        config['apptainers']['quast']
     resources:
         **config["quast"]["resources"],
     shell:
@@ -97,7 +97,7 @@ rule busco:
     threads:
         config['busco']['threads']
     container:
-        config['apptainers']['denovo_tools']
+        config['apptainers']['busco']
     resources:
         **config["busco"]["resources"],
     wrapper:
@@ -114,7 +114,7 @@ rule prokka:
     threads:
         config['prokka']['threads']
     container:
-        config['apptainers']['denovo_tools']
+        config['apptainers']['prokka']
     resources:
         **config["prokka"]["resources"],
     shell:
@@ -151,7 +151,7 @@ rule blast:
     threads:
         config['blast']['threads']
     container:
-        config['apptainers']['denovo_tools']
+        config['apptainers']['blast']
     resources:
         **config["blast"]["resources"],
     shell:
