@@ -1,3 +1,0 @@
-sequana_pipetools
-pandas
-jinja2
