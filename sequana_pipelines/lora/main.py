@@ -57,8 +57,8 @@ class Options(argparse.ArgumentParser):
         pipeline_group.add_argument(
             "--input-csv",
             dest="input_csv",
-            help="Simple CSV file with the samples names and files. LORA will generate ccs and merge your files."
-            " If you do not want to do ccs, you can put only one file for each samples.",
+            help="Simple CSV file with the samples names and files. LORA will generate CCS and merge your files."
+            " If you do not want to do CCS, you can put only one file for each samples.",
         )
         pipeline_group.add_argument(
             "--assembler",
@@ -84,7 +84,7 @@ class Options(argparse.ArgumentParser):
             "--nanopore",
             dest="nanopore",
             action="store_true",
-            help="Tell LORA that the input data is made of nanopore reads",
+            help="Tell LORA that the input data is made of nanopore reads. CCS steps is OFF",
         )
         pipeline_group.add_argument(
             "--pacbio",
@@ -138,7 +138,7 @@ def main(args=None):
 
     # whatever needs to be called by all pipeline before the options parsing
     before_pipeline(NAME)
-    
+
     # option parsing including common epilog
     options = Options(NAME, epilog=sequana_epilog).parse_args(args[1:])
 
@@ -149,7 +149,7 @@ def main(args=None):
     # use profile slurm if user set a slurm queue
     if options.slurm_queue != "common":
         options.profile = "slurm"
-    
+
     # the real stuff is here
     manager = SequanaManager(options, NAME)
 
@@ -164,10 +164,9 @@ def main(args=None):
         cfg.input_pattern = options.input_pattern
         cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
 
-        # fill preset for pacbio or nanopore
-        # default config file is already configured for pacbio; so only nanopore needs to be
-        # handled
         preset_dir = utils.LORA_PATH / "presets"
+
+        # Default parameters are for pacbio. There is no pacbio presets
         if options.nanopore:
             nano = SequanaConfig(str(preset_dir / "nanopore.yml"))
             cfg.update(nano.config)

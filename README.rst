@@ -1,22 +1,22 @@
 This is is the **lora** pipeline from the `Sequana <https://sequana.readthedocs.org>`_ project
 
 :Overview: Run assembler (Canu, flye, hifiasm) on a set of long read files
-:Input: A set of BAM files from Pacbio sequencers, or FastQ files.
+:Input: A set of BAM files from Pacbio sequencers, or FastQ files for Nanopore sequencers.
 :Output: HTML reports with assemblies for each sample.
-:Status: draft
+:Status: prod
 :Citation: Cokelaer et al, (2017), ‘Sequana’: a Set of Snakemake NGS pipelines, Journal of Open Source Software, 2(16), 352, JOSS DOI doi:10.21105/joss.00352
 
 
 Installation
 ~~~~~~~~~~~~
 
-You must install Sequana first::
-
-    pip install sequana --upgrade
-
-Then, just install this package::
+Install Lora with pip command::
 
     pip install sequana_lora
+
+To update your installed version, type::
+
+    pip install sequana_lora --upgrade
 
 
 Usage
@@ -39,6 +39,32 @@ retrieve the pipeline itself and its configuration files and then execute the pi
     snakemake -s lora.rules -c config.yaml --cores 4 --stats stats.txt
 
 Or use `sequanix <https://sequana.readthedocs.io/en/master/sequanix.html>`_ interface.
+
+Example 1 Pacbio subreads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    sequana_lora --input-directory . --pacbio
+    cd lora
+
+**Do you need to build CCS ?**
+
+Look at the config file and the CCS section. Check that the parameters are as expected.
+If you wish to build so-called HiFi reads, set the min-passes to 10 and min-rq to 0.99.
+
+**do you have a blast DB**
+
+You may also edit the config file to set blast to true (you must handle the blast databases yourself)
+
+**Do you need an annotation from your contigs?** 
+
+Set prokka to True (for bacterial annotation)
+
+**Want to check the core genome?** 
+
+You may set busco to true to detect the core genome (you must provide a path to a valid lineage).
+
 
 Requirements
 ~~~~~~~~~~~~
@@ -89,7 +115,8 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
-0.2.0     add apptainers
+0.2.0     * add apptainers in most rules
+          * remove utils.smk to move rulegraph inside main pipeline
 0.1.0     **First release.**
 ========= ====================================================================
 
