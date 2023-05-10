@@ -27,12 +27,12 @@
         <table id="lora_summary" class="w-full border-collapse table-auto mb-3">
           <thead class="font-medium border-b-2 border-gray-300">
             <th class="text-left py-1 px-3">Sample</th>
-            {% for header in summary['header'] %}
+            {% for header in summary_header %}
             <th class="text-right py-1 px-3">{{header}}</th>
             {% endfor %}
           </thead>
           <tbody>
-            {% for sample, values in summary['results'].items() %}
+            {% for sample, values in summary_results.items() %}
             <tr 
               id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}
               class="even:bg-slate-50 border-t border-gray-300"

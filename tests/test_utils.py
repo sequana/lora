@@ -1,5 +1,6 @@
-import pytest
 import sys
+
+import pytest
 from pytest_mock import MockerFixture
 
 from sequana_pipelines.lora.src.utils import get_tools_versions, run_tools_versions, run_version
@@ -7,13 +8,13 @@ from sequana_pipelines.lora.src.utils import get_tools_versions, run_tools_versi
 
 @pytest.mark.asyncio
 async def test_run_version():
-    tool, version = await run_version("python", "python --version")
+    _, version = await run_version("python", "python --version", False, {})
     assert version == f"{sys.version.split()[0]}"
 
 
 @pytest.mark.asyncio
 async def test_run_version_tool_not_found():
-    tool, version = await run_version("( ͡° ͜ʖ ͡°)", "lora_is_pretty_good --version")
+    _, version = await run_version("( ͡° ͜ʖ ͡°)", "lora_is_pretty_good --version", False, {})
     assert version == "Tool not found"
 
 
@@ -32,16 +33,24 @@ async def test_run_version_not_found(mocker: MockerFixture):
         return MockProcess()
 
     mocker.patch("sequana_pipelines.lora.src.utils.asyncio.create_subprocess_shell", mock_create_subprocess_shell)
-    tool, version = await run_version("( ͡° ͜ʖ ͡°)", "lora_is_pretty_good --version")
+    _, version = await run_version("( ͡° ͜ʖ ͡°)", "lora_is_pretty_good --version", False, {})
     assert version == "No version found"
 
 
 @pytest.mark.asyncio
 async def test_run_tools_versions():
     used_tools = {"( ͡° ͜ʖ ͡°)": "lora_is_pretty_good --version", "python": "python --version"}
-    results = await run_tools_versions(used_tools)
+    results = await run_tools_versions(used_tools, {})
     assert results[0][1] == "Tool not found"
     assert results[1][1] == f"{sys.version.split()[0]}"
+
+
+@pytest.mark.asyncio
+async def test_run_get_apptainer_version(mocker: MockerFixture):
+    mocker.patch("sequana_pipelines.lora.src.utils.shutil.which", return_value="ola")
+    used_tools = {"( ͡° ͜ʖ ͡°)": "lora_is_pretty_good --version"}
+    results = await run_tools_versions(used_tools, {"( ͡° ͜ʖ ͡°)": "/path/to/lenny_418.0.img"})
+    assert results[0][1] == "418.0"
 
 
 def test_get_tools_versions(mocker: MockerFixture):
@@ -57,7 +66,7 @@ def test_get_tools_versions(mocker: MockerFixture):
         "sequana_coverage": {"do": True},
     }
 
-    async def mock_run_version(tool, cmd):
+    async def mock_run_version(tool, cmd, has_apptainer, apptainers):
         return tool, "1337"
 
     mocker.patch("sequana_pipelines.lora.src.utils.run_version", mock_run_version)
@@ -72,7 +81,7 @@ def test_get_tools_versions(mocker: MockerFixture):
         "samtools",
         "quast",
         "seqtk",
-        "multiqc"
+        "multiqc",
     }
     for tool, _ in results:
         assert tool in expected_keys

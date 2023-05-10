@@ -1,9 +1,10 @@
 import asyncio
 import json
+import shutil
 from pathlib import Path
+from typing import Dict, Tuple
 
 from sequana_pipelines import lora
-
 
 LORA_PATH = Path(lora.__file__).parent
 
@@ -35,7 +36,11 @@ VERSION_PARSER = {
     },
     1: {
         "seqtk": seqtk_version_parser,
-    }
+    },
+}
+APPTAINER_CORRESPONDANCE = {
+    "canu_correction": "canu",
+    "sequana_coverage": "sequana",
 }
 
 
@@ -48,9 +53,11 @@ def get_tools_versions(config):
     used_tools = {
         assembler: tools["assembler"][assembler],
         **tools["utils"],
-        **{tool: cmd for tool, cmd in _iter_optional_tools(tools["optional"], config)},
+        **dict(_iter_optional_tools(tools["optional"], config)),
     }
-    return asyncio.run(run_tools_versions(used_tools))
+    # just to avoid issue with deprecated lora
+    apptainers = config.get("apptainers", {})
+    return asyncio.run(run_tools_versions(used_tools, apptainers))
 
 
 def _iter_optional_tools(tools, config):
@@ -64,12 +71,25 @@ def _iter_optional_tools(tools, config):
                 yield tool, subtools
 
 
-async def run_version(tool, cmd):
+def get_apptainer_version(tool: str, apptainers: Dict[str, str]) -> str:
+    try:
+        apptainer = apptainers[tool]
+    except KeyError:
+        # some rule name differ from apptainer name
+        apptainer = apptainers.get(APPTAINER_CORRESPONDANCE.get(tool, ""), "No version found")
+    # sequana container finish with "_version.img"
+    return apptainer.split("_")[-1].strip(".img")
+
+
+async def run_version(tool: str, cmd: str, has_apptainer: bool, apptainers: Dict[str, str]) -> Tuple[str, str]:
     proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     stdout, stderr = await proc.communicate()
 
     # Code error 127: command not found
-    if proc.returncode == 127:
+    if proc.returncode is None or proc.returncode == 127:
+        # user may use apptainer
+        if has_apptainer:
+           return tool, get_apptainer_version(tool, apptainers)
         return tool, "Tool not found"
 
     # Some software return error code 1 with version information
@@ -85,6 +105,10 @@ async def run_version(tool, cmd):
         return tool, "No version found"
 
 
-async def run_tools_versions(used_tools):
-    result = await asyncio.gather(*[run_version(tool, cmd) for tool, cmd in used_tools.items()])
+async def run_tools_versions(used_tools: Dict["str", "str"], apptainers: Dict["str", "str"]):
+    # check if user has apptainer/singularity
+    has_apptainer = (shutil.which("apptainer") or shutil.which("singularity")) is not None
+    result = await asyncio.gather(
+        *[run_version(tool, cmd, has_apptainer, apptainers) for tool, cmd in used_tools.items()]
+    )
     return result

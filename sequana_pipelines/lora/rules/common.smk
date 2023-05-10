@@ -1,5 +1,5 @@
 """Functions that define the pipeline path"""
-from sequana_pipelines.lora import exceptions
+from sequana_pipelines.lora.src import exceptions
 
 
 assembler_output = {

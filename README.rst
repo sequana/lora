@@ -12,11 +12,11 @@ Installation
 
 Install Lora with pip command::
 
-    pip install sequana_lora
+    pip install sequana-lora
 
 To update your installed version, type::
 
-    pip install sequana_lora --upgrade
+    pip install sequana-lora --upgrade
 
 
 Usage
@@ -36,7 +36,7 @@ to execute the pipeline::
 This launch a snakemake pipeline. If you are familiar with snakemake, you can 
 retrieve the pipeline itself and its configuration files and then execute the pipeline yourself with specific parameters::
 
-    snakemake -s lora.rules -c config.yaml --cores 4 --stats stats.txt
+    snakemake -s lora.smk --cores 4 --stats stats.txt
 
 Or use `sequanix <https://sequana.readthedocs.io/en/master/sequanix.html>`_ interface.
 
@@ -79,8 +79,10 @@ This pipelines requires the following executable(s):
 - bwa
 - ccs
 - circlator
+- medaka
 - minimap2
 - pbindex
+- polypolish
 - prokka
 - samtools
 - sequana

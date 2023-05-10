@@ -15,18 +15,19 @@ import csv
 import os
 
 from sequana_pipetools.snaketools import PipelineManagerDirectory, FileFactory, modules
-from sequana_pipelines.lora import exceptions
+from sequana_pipelines.lora.src import exceptions
 
-shell.executable('bash')
+shell.executable("bash")
+
 
 configfile: "config.yml"
 
 
-manager = PipelineManagerDirectory('lora', config, schema="schema.yml")
+manager = PipelineManagerDirectory("lora", config, schema="schema.yml")
 
-csv_filename = config.get('input_csv')
-input_directory = config.get('input_directory')
-input_pattern = config.get('input_pattern', '*.bam')
+csv_filename = config.get("input_csv")
+input_directory = config.get("input_directory")
+input_pattern = config.get("input_pattern", "*.bam")
 if csv_filename:
     # fill samples raw data using input csv
     with open(csv_filename) as csv_file:
@@ -35,17 +36,23 @@ if csv_filename:
 elif input_directory and os.path.isdir(input_directory):
     # use input directory and pattern
     ff = FileFactory(os.path.join(input_directory, input_pattern))
-    manager.samples = {sample: [file] for sample, file in zip(ff.filenames, ff.realpaths)}
+    manager.samples = {
+        sample: [file] for sample, file in zip(ff.filenames, ff.realpaths)
+    }
 else:
     raise exceptions.LoraException("Please add a valid input_csv or input_directory")
 
 
-localrules: lora, rulegraph
+localrules:
+    lora,
+    rulegraph,
+    create_svg
+
 
 rule lora:
     input:
         ".sequana/rulegraph.svg",
-        "multiqc/multiqc_report.html"
+        "multiqc/multiqc_report.html",
 
 
 include: "rules/common.smk"
@@ -54,20 +61,34 @@ include: "rules/assembler.smk"
 include: "rules/polish.smk"
 include: "rules/qc.smk"
 
+
 rule rulegraph:
     input:
-        workflow.snakefile
+        workflow.snakefile,
     output:
-        svg = ".sequana/rulegraph.svg",
+        dot=temp("rulegraph/rg.ann.dot"),
     params:
-        configname = "config.yml",
-        required_local_files = ["schema.yml", "rules"]
+        configname="config.yml",
+        required_local_files=["schema.yml", "rules"],
     wrapper:
         "main/wrappers/rulegraph"
 
 
+rule create_svg:
+    input:
+        "rulegraph/rg.ann.dot",
+    output:
+        ".sequana/rulegraph.svg",
+    container:
+        config["apptainers"]["graphviz"]
+    shell:
+        """
+        dot -Tsvg {input}  -o {output}
+        """
+
+
 onsuccess:
-    from sequana_pipelines.lora import create_reports
+    from sequana_pipelines.lora.src.report import create_reports
     from sequana import logger
 
     logger.setLevel("INFO")
@@ -82,7 +103,9 @@ onsuccess:
     shell("chmod -R g+w .")
     shell("rm -rf rulegraph")
 
+
 onerror:
     from sequana_pipetools.errors import PipeError
+
     p = PipeError("lora")
     p.status()

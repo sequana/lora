@@ -1,5 +1,5 @@
 """Rules to assess the quality of the assembly"""
-from sequana_pipelines.lora import BLAST_KEY
+from sequana_pipelines.lora.src.enums import BLAST_KEY
 
 
 rule seqkit_sort:
