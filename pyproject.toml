@@ -3,7 +3,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "lora"
+name = "sequana-lora"
 version = "0.1.0"
 description = "Run assembler (Canu, Flye, Hifiasm) on a set of long read files"
 authors = ["Sequana Team"]
@@ -32,20 +32,37 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-sequana-pipetools = "^0.11.1"
+sequana-pipetools = "^0.12.1"
 pandas = "^2.0.0"
 Jinja2 = "^3.1.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.scripts]
+sequana_lora = "sequana_pipelines.lora.main:main"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.264"
 pytest = "^7.0.1"
-flake8 = "^4.0.1"
-black = "^22.1.0"
+black = "^23.3.0"
 ipython = "^8.0.1"
 pytest-mock = "^3.7.0"
 pytest-asyncio = "^0.18.1"
+snakefmt = "^0.8.4"
 
-[tool.poetry.scripts]
-sequana_lora = "sequana_pipelines.lora.main:main"
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+line-length = 120
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
