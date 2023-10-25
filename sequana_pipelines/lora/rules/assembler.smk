@@ -18,7 +18,7 @@ rule canu:
     container:
         config['apptainers']['canu']
     wrapper:
-        "main/wrappers/canu"
+        f"{manager.wrappers}/wrappers/canu"
 
 
 rule canu_correction:
@@ -39,7 +39,7 @@ rule canu_correction:
     container:
         config['apptainers']['canu']
     wrapper:
-        "main/wrappers/canu"
+        f"{manager.wrappers}/wrappers/canu"
 
 
 rule canu_trimming:
@@ -60,7 +60,7 @@ rule canu_trimming:
     container:
         config['apptainers']['canu']
     wrapper:
-        "main/wrappers/canu"
+        f"{manager.wrappers}/wrappers/canu"
 
 
 rule fasta_to_fastq:

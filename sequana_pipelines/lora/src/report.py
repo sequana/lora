@@ -40,6 +40,8 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
         fill_blast_result(analysis, samples, lora_dir)
     if config["sequana_coverage"]["do"]:
         fill_sequana_coverage(analysis, samples, lora_dir)
+    if config["checkm"]["do"]:
+        fill_checkm_result(analysis, samples, lora_dir)
 
     # create summary report
     create_summary(summary_name, lora_name, summary_results, config, lora_dir)
@@ -150,6 +152,41 @@ def fill_sequana_coverage(
             image_name = os.path.join(os.path.dirname(json_file.name), "coverage.png")
             with open(image_name, "rb") as f:
                 analysis_dict[sample][contig]["cov_image"] = base64.b64encode(f.read()).decode("utf-8")
+
+
+def fill_checkm_result(
+    analysis_dict: DefaultDict[str, DefaultDict[str, Dict]], samples: List[str], lora_dir: Path
+) -> None:
+    """Get checkm information."""
+    checkm_report = f"{lora_dir}/{{}}/checkm/results.txt"
+    checkm_image = f"{lora_dir}/{{}}/checkm/{{}}.marker_pos_plot.png"
+    
+    with ExitStack() as stack:
+        # open all report file
+        files = [(sample, stack.enter_context(open(checkm_report.format(sample)))) for sample in samples]
+        # get lines of interest from all samples
+
+        def _filter(line, sample):
+            # the file from checkm is not CSV or tabulated. one pattern is at least 2 spaces between
+            # items. we also get rid of last \n
+            items = [x.strip() for x in line.split("  ") if len(x.strip())]
+            if items[0] == sample:
+                return items
+            # return None otherwise on purpose
+
+        for sample, filin in zip(samples, files):
+            values = [value for value in (_filter(line, sample) for line in filin[1].readlines() if _filter(line, sample))]
+            values = values[0]
+            analysis_dict[sample]["checkm"] = {
+                "Completeness": values[11],
+                "Contamination": values[12],
+                "Heterogenity": values[13]
+            }
+
+            # add base64 image
+            image_name = checkm_image.format(sample, sample)
+            with open(image_name, "rb") as f:
+                analysis_dict[sample]["checkm_image"] = base64.b64encode(f.read()).decode("utf-8")
 
 
 def _iter_value_to_float(values) -> Iterator[Union[int, str]]:

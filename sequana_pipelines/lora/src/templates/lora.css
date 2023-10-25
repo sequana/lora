@@ -1,3 +1,7 @@
 .is-selected {
   background-color: rgb(186 230 253) !important;
 }
+
+.checkm {
+    max-width: 60%
+}

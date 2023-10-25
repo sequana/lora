@@ -14,6 +14,7 @@ def config():
         "ccs": {"do": False},
         "blast": {"do": True},
         "busco": {"do": True},
+        "checkm": {"do": False},
         "canu_correction": {"do": False},
         "circlator": {"do": False},
         "prokka": {"do": False},

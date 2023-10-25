@@ -226,6 +226,28 @@ mapping:
             "resources":
                 type: any
                 required: true
+
+    "checkm":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+            "taxon_rank":
+                type: str
+                required: true
+                enum: ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+            "taxon_name":
+                type: str
+                required: true
+                
+
     
     "seqkit_sort":
         type: map

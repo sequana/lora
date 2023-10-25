@@ -101,7 +101,7 @@ rule busco:
     resources:
         **config["busco"]["resources"],
     wrapper:
-        "main/wrappers/busco"
+        f"{manager.wrappers}/wrappers/busco"
 
 
 rule prokka:
@@ -171,3 +171,45 @@ rule multiqc:
         """
         multiqc -f . --outdir multiqc -m busco -m quast -m sequana_coverage -m prokka
         """
+
+
+rule checkm_marker:
+    output: 
+        marker="marker"
+    threads: 
+         1
+    #container:
+    #    config['apptainers']['checkm']
+    params:
+        taxon_rank=config["checkm"]["taxon_rank"],
+        taxon_name=config["checkm"]["taxon_name"]
+    resources:
+        **config["checkm"]["resources"],
+    shell:
+        """
+        checkm taxon_set {params.taxon_rank} {params.taxon_name} {output.marker}
+        """
+
+rule checkm:
+    input:
+        fasta="{sample}/sorted_contigs/{sample}.fasta",
+        marker=rules.checkm_marker.output.marker
+    output:
+        results="{sample}/checkm/results.txt",
+        png="{sample}/checkm/{sample}.marker_pos_plot.png"
+    params:
+        taxon_rank=config["checkm"]["taxon_rank"],
+        taxon_name=config["checkm"]["taxon_name"]
+    threads:
+        config['checkm']['threads']
+    #container:
+    #    config['apptainers']['checkm']
+    resources:
+        **config["checkm"]["resources"],
+    shell:
+        """
+        checkm analyze {input.marker} {wildcards.sample}/sorted_contigs/ {wildcards.sample}/checkm -x fasta -t {threads}
+        checkm qa marker {wildcards.sample}/checkm/ -f {output.results}
+        checkm marker_plot {wildcards.sample}/checkm/ {wildcards.sample}/sorted_contigs {wildcards.sample}/checkm/ -x fasta
+        """
+

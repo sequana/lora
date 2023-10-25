@@ -36,7 +36,7 @@ to execute the pipeline::
 This launch a snakemake pipeline. If you are familiar with snakemake, you can 
 retrieve the pipeline itself and its configuration files and then execute the pipeline yourself with specific parameters::
 
-    snakemake -s lora.smk --cores 4 --stats stats.txt
+    snakemake -s lora.rules --cores 4 --stats stats.txt
 
 Or use `sequanix <https://sequana.readthedocs.io/en/master/sequanix.html>`_ interface.
 
@@ -79,6 +79,7 @@ This pipelines requires the following executable(s):
 - bwa
 - ccs
 - circlator
+- checkm
 - medaka
 - minimap2
 - pbindex
@@ -119,6 +120,9 @@ Version   Description
 ========= ====================================================================
 0.2.0     * add apptainers in most rules
           * remove utils.smk to move rulegraph inside main pipeline
+          * rename lora.smk into lora.rules for consistency with other 
+            pipelines
+          * add checkm in the pipeline and HTML report
 0.1.0     **First release.**
 ========= ====================================================================
 

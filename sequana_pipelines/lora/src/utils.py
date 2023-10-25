@@ -24,11 +24,15 @@ def seqtk_version_parser(stderr: str):
 def ccs_version_parser(stdout: str):
     return stdout.split("\n", 1)[0].split()[1]
 
+def checkm_version_parser(stdout: str):
+    return stdout.split("\n", 1)[1].split()[2]
+
 
 # dict to select the good parser with the first key indicate the error code
 VERSION_PARSER = {
     0: {
         "ccs": ccs_version_parser,
+        "checkm": checkm_version_parser,
         "circlator": strip_version_parser,
         "flye": strip_version_parser,
         "hifiasm": strip_version_parser,

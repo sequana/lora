@@ -17,7 +17,7 @@ rule medaka_consensus:
     resources:
         **config["medaka_consensus"]["resources"]
     wrapper:
-        "main/wrappers/medaka/consensus"
+        f"{manager.wrappers}/wrappers/medaka/consensus"
 
 
 rule circlator:
@@ -128,4 +128,4 @@ rule polypolish:
     resources:
         **config["polypolish"]["resources"],
     wrapper:
-        "main/wrappers/polypolish"
+        f"{manager.wrappers}/wrappers/polypolish"

@@ -51,6 +51,23 @@
         {% for sample, contigs_dict in analysis.items() %}
           <div id="{{sample}}" class="hidden">
             <h1 class="text-2xl font-semibold mb-4">{{sample}}</h1>
+
+              {% if 'checkm' in analysis[sample] %}
+              <div class="flex items-center justify-around mb-4">
+                <table id="{{sample}}_checkm" class="table-auto w-1/6 text-left">
+                  <tbody>
+                    {% for key, value in analysis[sample]['checkm'].items() %}
+                    <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
+                      <th class="px-2 py-2">{{key}}</th>
+                      <td class="px-2 py-2 text-right">{{value}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                <img class="checkm" src="data:image/png;base64,{{analysis[sample]['checkm_image']}}" />
+              </div>
+              {% endif %}
+
             {% for contig, results in contigs_dict.items() %}
               <h2 class="font-medium mb-2 text-xl">{{contig}}</h2>
               {% if 'coverage' in results %}
@@ -68,6 +85,8 @@
                   <img src="data:image/png;base64,{{results['cov_image']}}" />
                 </div>
               {% endif %}
+
+
               {% if 'blast' in results %}
                 <div class="overflow-x-auto w-full">
                   <table 
