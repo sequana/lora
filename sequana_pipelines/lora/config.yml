@@ -6,6 +6,8 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # ============================================================================
+sequana_wrappers: "v0.15.1"
+
 input_directory: ''
 input_pattern: '*.bam'
 input_csv: ''
@@ -19,19 +21,20 @@ apptainers:
     canu: https://zenodo.org/record/7866415/files/canu_2.1.1.img
     ccs: https://zenodo.org/record/7817325/files/ccs_6.4.0.img
     circlator: https://zenodo.org/record/7821905/files/circlator_1.5.5.img
-    graphviz: https://zenodo.org/record/5767507/files/graphviz_2.43.0.img 
+    graphviz: https://zenodo.org/record/7928262/files/graphviz_7.0.5.img
     flye: https://zenodo.org/record/7733985/files/flye_2.9.1.img
     hifiasm: https://zenodo.org/record/7737424/files/hifiasm_0.19.1.img
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
-    minimap2: https://zenodo.org/record/7822910/files/samtools_1.17_minimap2_2.24.0.img 
+    minimap2: https://zenodo.org/record/7822910/files/samtools_1.17_minimap2_2.24.0.img
     polypolish: https://zenodo.org/record/7704079/files/polypolish_0.5.0.img
     prokka: https://zenodo.org/record/7848754/files/prokka_1.14.6.img
     quast: https://zenodo.org/record/7848771/files/quast_5.2.0.img
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
-    seqkit:  https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
+    seqkit: https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
     sequana: https://zenodo.org/record/7863732/files/sequana_0.15.0.img
+    checkm: https://zenodo.org/record/10040946/files/checkm_1.2.2.img
 
 ##############################################################################
 # CCS
@@ -337,6 +340,21 @@ blast:
     resources:
         mem: 12G
 
+
+##############################################################################
+# Blast
+#
+# :Parameters:
+# 
+# - taxon_rank: one of genus, species, etc
+# - taxon_name: type 'checkm taxon_list'
+checkm:
+    do: true
+    taxon_rank: genus
+    taxon_name: Mycobacterium
+    threads: 4
+    resources:
+        mem: 4G
 
 ##############################################################################
 #

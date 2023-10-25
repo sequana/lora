@@ -29,6 +29,9 @@ def requested_output(manager):
         output_list += [expand("{sample}/circlator/{sample}.circle.fasta", sample=manager.samples)]
     if config["polypolish"]["do"]:
         output_list += [expand("{sample}/polypolish/{sample}.polish.fasta", sample=manager.samples)]
+    if config["checkm"]["do"]:
+        output_list += [expand("{sample}/checkm/{sample}.marker_pos_plot.png", sample=manager.samples)]
+
     return output_list
 
 

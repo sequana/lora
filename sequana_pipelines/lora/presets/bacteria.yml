@@ -14,3 +14,6 @@ prokka:
 
 blast:
     do: true
+
+checkm:
+    do: true

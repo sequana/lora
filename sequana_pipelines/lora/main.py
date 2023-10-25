@@ -71,7 +71,7 @@ class Options(argparse.ArgumentParser):
             dest="mode",
             default="default",
             choices=["default", "eukaryotes", "bacteria"],
-            help="If bacteria, blast, circlator, busco, prokka, sequana_coverage are ON."
+            help="If bacteria, blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
             " If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
         )
         pipeline_group.add_argument(
@@ -100,6 +100,18 @@ class Options(argparse.ArgumentParser):
             "--lineage",
             dest="lineage",
             help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.",
+        )
+
+        pipeline_group.add_argument(
+            "--checkm-rank",
+            default="genus",
+            help="For bacteria, checkm can be used. Usually at the genus level. can be set to 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species'. "
+        )
+
+        pipeline_group.add_argument(
+            "--checkm-name",
+            default=None,
+            help="checkm taxon name. Type checkm taxon_list for a complete list. You can also check the LORA wiki page here: https://github.com/sequana/lora/wiki/checkm"
         )
 
         pipeline_group = self.add_argument_group("ccs")
@@ -178,6 +190,12 @@ def main(args=None):
         elif options.mode == "eukaryotes":  # default (nothing to do)
             mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
             cfg.update(mode_cfg.config)
+
+        #checkm
+        if options.checkm_name and options.checkm_rank:
+            cfg.checkm["do"] = True
+            cfg.checkm["taxon_rank"] = options.checkm_rank
+            cfg.checkm["taxon_name"] = options.checkm_name
 
         # The user may overwrite the default
         if options.do_circlator:
