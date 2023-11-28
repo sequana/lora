@@ -32,9 +32,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-sequana-pipetools = "^0.14.1"
+sequana-pipetools = "^0.16.1"
 pandas = "^2.0.0"
 Jinja2 = "^3.1.2"
+click-completion = "^0.5.2"
 
 [tool.poetry.scripts]
 sequana_lora = "sequana_pipelines.lora.main:main"

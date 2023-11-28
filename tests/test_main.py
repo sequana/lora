@@ -1,27 +1,37 @@
 import subprocess
 import sys
 
-import sequana_pipelines.lora.main as m
+import sequana_pipelines.lora.main as main
 
 from . import test_dir
 
+from click.testing import CliRunner
 
 def test_standalone_subprocess(tmpdir):
+
+
+
     input_dir = test_dir / "resources"
-    cmd = ["test", "--input-directory", str(input_dir), "--working-directory", str(tmpdir), "--force"]
+    cmd = ["test", "--input-directory", str(input_dir), "--working-directory", str(tmpdir), 
+            "--force", "--assembler", "flye"]
     subprocess.call(cmd)
 
 
 def test_standalone_script(tmpdir):
     input_dir = test_dir / "resources"
-    sys.argv = ["test", "--input-directory", str(input_dir), "--working-directory", str(tmpdir), "--force", "--pacbio"]
-    m.main()
+    runner = CliRunner()
+
+    results = runner.invoke(main.main, ["--input-directory", str(input_dir), "--working-directory", 
+        str(tmpdir), "--force", "--pacbio", "--assembler", "flye"])
+
+    assert results.exit_code == 0
 
 
 def test_standalone_script_nanopore(tmpdir):
     input_dir = test_dir / "resources"
-    sys.argv = [
-        "test",
+    runner = CliRunner()
+
+    args = [
         "--input-directory",
         str(input_dir),
         "--working-directory",
@@ -30,10 +40,17 @@ def test_standalone_script_nanopore(tmpdir):
         "--nanopore",
         "--mode",
         "eukaryotes",
+        "--assembler",
+        "flye"
     ]
-    m.main()
+    results = runner.invoke(main.main, args)
+    assert results.exit_code == 0
 
 
 def test_version():
     cmd = ["sequana_lora", "--version"]
+    subprocess.call(cmd)
+
+def test_help():
+    cmd = ["sequana_lora", "--help"]
     subprocess.call(cmd)

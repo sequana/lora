@@ -53,7 +53,7 @@ rule sequana_coverage:
     resources:
         **config["sequana_coverage"]["resources"],
     container:
-        config['apptainers']['sequana']
+        config['apptainers']['sequana_coverage']
     shell:
         """
         sequana_coverage {params} -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
@@ -161,16 +161,24 @@ rule blast:
             {params.options} -outfmt "6 {params.outfmt}"
         """
 
-
 rule multiqc:
     input:
         requested_output(manager)
     output:
-        "multiqc/multiqc_report.html"
-    shell:
-        """
-        multiqc -f . --outdir multiqc -m busco -m quast -m sequana_coverage -m prokka
-        """
+       "multiqc/multiqc_report.html"
+    params:
+        options=config["multiqc"]["options"],
+        input_directory=config['multiqc']['input_directory'],
+        config_file=config['multiqc']['config_file'],
+        modules=config['multiqc']['modules']
+    log:
+        "multiqc/multiqc.log"
+    resources:
+        **config["multiqc"]["resources"]
+    container:
+        config["apptainers"]["multiqc"]
+    wrapper:
+       f"{manager.wrappers}/wrappers/multiqc"
 
 
 rule checkm_marker:
@@ -178,8 +186,8 @@ rule checkm_marker:
         marker="marker"
     threads: 
          1
-    #container:
-    #    config['apptainers']['checkm']
+    container:
+        config['apptainers']['checkm']
     params:
         taxon_rank=config["checkm"]["taxon_rank"],
         taxon_name=config["checkm"]["taxon_name"]
@@ -202,8 +210,8 @@ rule checkm:
         taxon_name=config["checkm"]["taxon_name"]
     threads:
         config['checkm']['threads']
-    #container:
-    #    config['apptainers']['checkm']
+    container:
+        config['apptainers']['checkm']
     resources:
         **config["checkm"]["resources"],
     shell:

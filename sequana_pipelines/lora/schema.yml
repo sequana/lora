@@ -15,10 +15,13 @@ mapping:
     "assembler":
         type: str
         required: true
-        enum: ['canu', 'hifiasm', 'flye']
+        enum: ['canu', 'hifiasm', 'flye', 'unicycler']
 
     "apptainers":
         type: any
+
+    "sequana_wrappers":
+        type: str
 
     "ccs":
         type: map
@@ -138,7 +141,7 @@ mapping:
             "resources":
                 type: any
                 required: true
-    
+
     "flye":
         type: map
         mapping:
@@ -155,6 +158,24 @@ mapping:
             "resources":
                 type: any
                 required: true
+
+    "multiqc":
+        type: map
+        mapping:
+            "options":
+                type: str
+            "modules":
+                type: str
+            "config_file":
+                type: str
+            "input_directory":
+                type: str
+            "resources":
+                 type: map
+                 mapping:
+                     "mem":
+                        type: str
+
 
     "medaka_consensus":
         type: map
@@ -246,9 +267,24 @@ mapping:
             "taxon_name":
                 type: str
                 required: true
-                
 
-    
+    "unicycler":
+        type: map
+        mapping:
+            "mode":
+                type: text
+                required: false
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+
+
     "seqkit_sort":
         type: map
         mapping:
