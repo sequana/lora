@@ -12,147 +12,120 @@
 ##############################################################################
 import sys
 import os
-import argparse
 
-from sequana_pipetools.options import SlurmOptions, SnakemakeOptions, InputOptions, GeneralOptions, before_pipeline
-from sequana_pipetools.misc import Colors
-from sequana_pipetools.info import sequana_epilog, sequana_prolog
-from sequana_pipetools import SequanaManager, SequanaConfig
-from sequana_pipetools import logger
+import rich_click as click
+import click_completion
 
-from .src import utils
-
-
-col = Colors()
+click_completion.init()
 
 NAME = "lora"
 
 
-class Options(argparse.ArgumentParser):
-    def __init__(self, prog=NAME, epilog=None):
-        usage = col.purple(sequana_prolog.format(**{"name": NAME}))
-        super(Options, self).__init__(
-            usage=usage,
-            prog=prog,
-            description="",
-            epilog=epilog,
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        )
+from sequana_pipetools.options import (
+    ClickSlurmOptions, ClickSnakemakeOptions, ClickInputOptions, ClickGeneralOptions, before_pipeline,
+include_options_from, init_click)
+from sequana_pipetools import SequanaManager, SequanaConfig
+from sequana_pipetools import logger
 
-        # add a new group of options to the parser
-        so = SlurmOptions(profile="local")
-        so.add_options(self)
+import rich_click as click
 
-        # add a snakemake group of options to the parser
-        so = SnakemakeOptions(working_directory=NAME)
-        so.add_options(self)
+from .src import utils
 
-        so = InputOptions(input_pattern="*.bam", add_input_readtag=False)
-        so.add_options(self)
 
-        so = GeneralOptions()
-        so.add_options(self)
+NAME = "lora"
 
-        pipeline_group = self.add_argument_group("pipeline_general")
-        pipeline_group.add_argument(
-            "--input-csv",
-            dest="input_csv",
+help = init_click(NAME, groups={
+    "Pipeline Specific": [
+    "--assembler",
+    "--blastdb",
+    "--bacteria",
+    "--do-circlator",
+    "--do-correction",
+    "--mode",
+    "--nanopore",
+    "--pacbio",
+    "--pacbio-input-csv",
+    "--pacbio-ccs-min-passes",
+    "--pacbio-ccs-min-rq"
+    ],
+    "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"]
+    }
+)
+
+
+
+@click.command(context_settings=help)
+@include_options_from(ClickSnakemakeOptions, working_directory=NAME)
+@include_options_from(ClickSlurmOptions, profile="local")
+@include_options_from(ClickInputOptions, add_input_readtag=False, input_pattern="*fastq.gz")
+@include_options_from(ClickGeneralOptions)
+@click.option("--pacbio-input-csv", "input_csv",
             help="Simple CSV file with the samples names and files. LORA will generate CCS and merge your files."
             " If you do not want to do CCS, you can put only one file for each samples.",
         )
-        pipeline_group.add_argument(
-            "--assembler",
-            dest="assembler",
-            choices=["canu", "hifiasm", "flye"],
+@click.option("--assembler", "assembler",
+            type=click.Choice(["canu", "hifiasm", "flye", "unicycler"]),
+            required=True,
             help="An assembler in canu, hifiasm, flye",
         )
-        pipeline_group.add_argument(
-            "--mode",
-            dest="mode",
+@click.option("--mode", "mode",
             default="default",
-            choices=["default", "eukaryotes", "bacteria"],
+            type=click.Choice(["default", "eukaryotes", "bacteria"]),
+            show_default=True,
             help="If bacteria, blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
             " If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
         )
-        pipeline_group.add_argument(
-            "--do-correction",
-            dest="do_correction",
-            action="store_true",
+@click.option("--do-correction", "do_correction",
+            is_flag=True,
             help="Run canu correction before hifiasm or flye.",
         )
-        pipeline_group.add_argument(
-            "--nanopore",
-            dest="nanopore",
-            action="store_true",
-            help="Tell LORA that the input data is made of nanopore reads. CCS steps is OFF",
+@click.option("--nanopore", "nanopore", is_flag=True,
+            default=False,
+            help="Tells LORA that the input data is made of nanopore reads. CCS steps is OFF",
         )
-        pipeline_group.add_argument(
-            "--pacbio",
-            dest="pacbio",
-            action="store_true",
-            help="Tell LORA that the input data is made of pacbio reads",
+@click.option("--pacbio", "pacbio", is_flag="store_true",
+            help="Tells LORA that the input data is made of pacbio reads",
         )
-        pipeline_group.add_argument(
-            "--do-circlator", dest="do_circlator", action="store_true", help="Run circlator after assembler."
-        )
-        pipeline_group.add_argument("--blastdb", dest="blastdb", help="Path to your blast database")
-        pipeline_group.add_argument(
-            "--lineage",
-            dest="lineage",
+@click.option("--do-circlator", "do_circlator", is_flag="store_true", 
+    help="Run circlator after assembler." )
+@click.option("--blastdb", "blastdb", help="Path to your blast database")
+@click.option("--busco-lineage",  "lineage",
             help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.",
         )
-
-        pipeline_group.add_argument(
-            "--checkm-rank",
+@click.option("--checkm-rank",
             default="genus",
+            show_default=True,
             help="For bacteria, checkm can be used. Usually at the genus level. can be set to 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species'. "
         )
-
-        pipeline_group.add_argument(
-            "--checkm-name",
+@click.option("--checkm-name",
             default=None,
             help="checkm taxon name. Type checkm taxon_list for a complete list. You can also check the LORA wiki page here: https://github.com/sequana/lora/wiki/checkm"
         )
-
-        pipeline_group = self.add_argument_group("ccs")
-        pipeline_group.add_argument(
-            "--ccs-min-passes",
+@click.option("--pacbio-ccs-min-passes",
             default=3,
-            type=int,
+            show_default=True,
+            type=click.INT,
             help="minimum number of passes required to build the CCS. Set to 3 for HIFI quality",
         )
-        pipeline_group.add_argument(
-            "--ccs-min-rq",
+@click.option("--pacbio-ccs-min-rq",
             default=0.7,
-            type=float,
-            help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality",
-        )
+            show_default=True,
+            type=click.FLOAT,
+            help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality")
 
-    def parse_args(self, *args):
-        args_list = list(*args)
-        if "--from-project" in args_list:
-            if len(args_list) > 2:
-                msg = (
-                    "WARNING [sequana]: With --from-project option, "
-                    + "pipeline and data-related options will be ignored."
-                )
-                print(col.error(msg))
-            for action in self._actions:
-                if action.required is True:
-                    action.required = False
-        options = super(Options, self).parse_args(*args)
-        return options
+def main(**options):
+    """
 
 
-def main(args=None):
-    if not args:
-        args = sys.argv
+    """
+    # the real stuff is here
+    manager = SequanaManager(options, NAME)
+    options = manager.options
 
-    # whatever needs to be called by all pipeline before the options parsing
-    before_pipeline(NAME)
+    # creates the working directory
+    manager.setup()
 
-    # option parsing including common epilog
-    options = Options(NAME, epilog=sequana_epilog).parse_args(args[1:])
+    cfg = manager.config.config
 
     if not options.nanopore and not options.pacbio:
         logger.error("You must use one of --nanopore or --pacbio options")
@@ -162,56 +135,49 @@ def main(args=None):
     if options.slurm_queue != "common":
         options.profile = "slurm"
 
-    # the real stuff is here
-    manager = SequanaManager(options, NAME)
 
-    # create the beginning of the command and the working directory
-    manager.setup()
+    # fill the config file with input parameters
+    cfg = manager.config.config
+    cfg.input_directory = os.path.abspath(options.input_directory)
+    cfg.input_pattern = options.input_pattern
+    cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
 
-    if options.from_project is None:
+    preset_dir = utils.LORA_PATH / "presets"
 
-        # fill the config file with input parameters
-        cfg = manager.config.config
-        cfg.input_directory = os.path.abspath(options.input_directory)
-        cfg.input_pattern = options.input_pattern
-        cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
+    # Default parameters are for pacbio. There is no pacbio presets
+    if options.nanopore:
+        nano = SequanaConfig(str(preset_dir / "nanopore.yml"))
+        cfg.update(nano.config)
 
-        preset_dir = utils.LORA_PATH / "presets"
+    # load default optionse for bacteria or eukaryotes or the default
+    if options.mode == "bacteria":  # default (nothing to do)
+        mode_cfg = SequanaConfig(str(preset_dir / "bacteria.yml"))
+        cfg.update(mode_cfg.config)
+    elif options.mode == "eukaryotes":  # default (nothing to do)
+        mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
+        cfg.update(mode_cfg.config)
 
-        # Default parameters are for pacbio. There is no pacbio presets
-        if options.nanopore:
-            nano = SequanaConfig(str(preset_dir / "nanopore.yml"))
-            cfg.update(nano.config)
+    #checkm
+    if options.checkm_name and options.checkm_rank:
+        cfg.checkm["do"] = True
+        cfg.checkm["taxon_rank"] = options.checkm_rank
+        cfg.checkm["taxon_name"] = options.checkm_name
 
-        # load default optionse for bacteria or eukaryotes or the default
-        if options.mode == "bacteria":  # default (nothing to do)
-            mode_cfg = SequanaConfig(str(preset_dir / "bacteria.yml"))
-            cfg.update(mode_cfg.config)
-        elif options.mode == "eukaryotes":  # default (nothing to do)
-            mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
-            cfg.update(mode_cfg.config)
+    # The user may overwrite the default
+    if options.do_circlator:
+        cfg.circlator["do"] = options.do_circlator
+    if options.blastdb:
+        cfg.blast["blastdb"] = options.blastdb
+    if options.lineage:
+        cfg.busco["lineage"] = options.lineage
 
-        #checkm
-        if options.checkm_name and options.checkm_rank:
-            cfg.checkm["do"] = True
-            cfg.checkm["taxon_rank"] = options.checkm_rank
-            cfg.checkm["taxon_name"] = options.checkm_name
+    cfg.canu_correction["do"] = options.do_correction
+    # override preset only if user set an assembler
+    if options.assembler:
+        cfg.assembler = options.assembler
 
-        # The user may overwrite the default
-        if options.do_circlator:
-            cfg.circlator["do"] = options.do_circlator
-        if options.blastdb:
-            cfg.blast["blastdb"] = options.blastdb
-        if options.lineage:
-            cfg.busco["lineage"] = options.lineage
-
-        cfg.canu_correction["do"] = options.do_correction
-        # override preset only if user set an assembler
-        if options.assembler:
-            cfg.assembler = options.assembler
-
-        cfg.ccs["min-rq"] = options.ccs_min_rq
-        cfg.ccs["min-passes"] = options.ccs_min_passes
+    cfg.ccs["min-rq"] = options.pacbio_ccs_min_rq
+    cfg.ccs["min-passes"] = options.pacbio_ccs_min_passes
 
     # finalise the command and save it; copy the snakemake. update the config
     # file and save it.

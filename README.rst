@@ -118,6 +118,8 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
+0.3.0     * Use click instead of argparse
+          * added multiqc / checkm / unicycler
 0.2.0     * add apptainers in most rules
           * remove utils.smk to move rulegraph inside main pipeline
           * rename lora.smk into lora.rules for consistency with other 

@@ -1,0 +1,15 @@
+blastn
+busco
+canu
+circlator
+ccs
+flye
+hifiasm
+minimap2
+pbindex
+prokka
+quast.py
+samtools
+sequana_coverage
+seqkit
+seqtk

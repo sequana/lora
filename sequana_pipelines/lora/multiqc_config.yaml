@@ -21,7 +21,7 @@
 
 # Title to use for the report.
 title: "LORA pipeline MultiQC summary"
-subtitle: "LORA analysis" 
+subtitle: "LORA analysis"
 intro_text: "Report summarising assembly, quast, prokka, etc"
 
 # Add generic information to the top of reports

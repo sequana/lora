@@ -5,7 +5,8 @@ from sequana_pipelines.lora.src import exceptions
 assembler_output = {
     "canu": "{sample}/canu/{sample}.contigs.fasta",
     "hifiasm": "{sample}/hifiasm/{sample}.contigs.fasta",
-    "flye": "{sample}/flye/{sample}.contigs.fasta"
+    "flye": "{sample}/flye/{sample}.contigs.fasta",
+    "unicycler": "{sample}/uniclycler/{sample}.contigs.fasta"
 }
 
 polishing_output = {

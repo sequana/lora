@@ -1,6 +1,26 @@
 """Assembler rules"""
 
 
+rule unicycler:
+    input:
+        get_fastq,
+    output:
+        "{sample}/unicycler/{sample}.contigs.fasta"
+    params:
+        mode=config["unicycler"]["mode"],
+        options=config["unicycler"]["options"],
+    log:
+        "{sample}/logs/unicycler.log",
+    threads:
+        config["unicycler"]["threads"]
+    container:
+        config["apptainers"]["unicycler"]
+    resources:
+        **config["unicycler"]["resources"],
+    wrapper:
+        f"{manager.wrappers}/wrappers/unicycler"
+
+
 rule canu:
     input:
         get_fastq,
@@ -12,7 +32,8 @@ rule canu:
         genome_size=config["canu"]["genome_size"],
         use_grid=config["canu"]["use_grid"],
         options=config["canu"]["options"],
-    threads: config["canu"]["threads"]
+    threads:
+        config["canu"]["threads"]
     resources:
         **config["canu"]["resources"],
     container:
@@ -33,7 +54,8 @@ rule canu_correction:
         genome_size=config["canu_correction"]["genome_size"],
         use_grid=config["canu_correction"]["use_grid"],
         options=config["canu_correction"]["correction_options"],
-    threads: config["canu_correction"]["threads"]
+    threads:
+        config["canu_correction"]["threads"]
     resources:
         **config["canu_correction"]["resources"],
     container:
@@ -54,7 +76,8 @@ rule canu_trimming:
         genome_size=config["canu_correction"]["genome_size"],
         use_grid=config["canu_correction"]["use_grid"],
         options="-corrected " + config["canu_correction"]["trimming_options"],
-    threads: config["canu_correction"]["threads"]
+    threads:
+        config["canu_correction"]["threads"]
     resources:
         **config["canu_correction"]["resources"],
     container:
@@ -107,7 +130,8 @@ rule flye:
         options=config["flye"]["options"],
     container:
         config['apptainers']['flye']
-    threads: config["flye"]["threads"]
+    threads:
+        config["flye"]["threads"]
     resources:
         **config["flye"]["resources"],
     shell:
