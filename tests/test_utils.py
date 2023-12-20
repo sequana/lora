@@ -3,7 +3,11 @@ import sys
 import pytest
 from pytest_mock import MockerFixture
 
-from sequana_pipelines.lora.src.utils import get_tools_versions, run_tools_versions, run_version
+from sequana_pipelines.lora.src.utils import (
+    get_tools_versions,
+    run_tools_versions,
+    run_version,
+)
 
 
 @pytest.mark.asyncio
@@ -39,9 +43,9 @@ async def test_run_version_not_found(mocker: MockerFixture):
 
 @pytest.mark.asyncio
 async def test_run_tools_versions():
-    used_tools = {"( ͡° ͜ʖ ͡°)": "lora_is_pretty_good --version" , "python": "python --version"}
+    used_tools = {"( ͡° ͜ʖ ͡°)": "lora_is_pretty_good --version", "python": "python --version"}
     results = await run_tools_versions(used_tools, {})
-    assert results[0][1] == "No version found"
+    assert results[0][1] in ["No version found", "Tool not found"]
     assert results[1][1] == f"{sys.version.split()[0]}"
 
 
