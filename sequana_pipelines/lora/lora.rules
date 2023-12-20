@@ -92,7 +92,9 @@ onsuccess:
     from sequana import logger
 
     logger.setLevel("INFO")
-    manager.teardown()
+    manager.teardown(
+        extra_dirs_to_remove=[".keras"]
+            )
 
     # Create LORA report and summary
     create_reports("summary.html", "lora.html", manager.samples, config)

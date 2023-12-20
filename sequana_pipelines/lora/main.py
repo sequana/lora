@@ -10,48 +10,53 @@
 #  Documentation: http://sequana.readthedocs.io
 #  Contributors:  https://github.com/sequana/sequana/graphs/contributors
 ##############################################################################
-import sys
 import os
+import sys
 
-import rich_click as click
 import click_completion
+import rich_click as click
 
 click_completion.init()
 
 NAME = "lora"
 
 
-from sequana_pipetools.options import (
-    ClickSlurmOptions, ClickSnakemakeOptions, ClickInputOptions, ClickGeneralOptions, before_pipeline,
-include_options_from, init_click)
-from sequana_pipetools import SequanaManager, SequanaConfig
-from sequana_pipetools import logger
-
 import rich_click as click
+from sequana_pipetools import SequanaConfig, SequanaManager, logger
+from sequana_pipetools.options import (
+    ClickGeneralOptions,
+    ClickInputOptions,
+    ClickSlurmOptions,
+    ClickSnakemakeOptions,
+    before_pipeline,
+    include_options_from,
+    init_click,
+)
 
 from .src import utils
 
-
 NAME = "lora"
 
-help = init_click(NAME, groups={
-    "Pipeline Specific": [
-    "--assembler",
-    "--blastdb",
-    "--bacteria",
-    "--do-circlator",
-    "--do-correction",
-    "--mode",
-    "--nanopore",
-    "--pacbio",
-    "--pacbio-input-csv",
-    "--pacbio-ccs-min-passes",
-    "--pacbio-ccs-min-rq"
-    ],
-    "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"]
-    }
+help = init_click(
+    NAME,
+    groups={
+        "Pipeline Specific": [
+            "--assembler",
+            "--blastdb",
+            "--bacteria",
+            "--do-circlator",
+            "--do-correction",
+            "--do-coverage",
+            "--mode",
+            "--nanopore",
+            "--pacbio",
+            "--pacbio-input-csv",
+            "--pacbio-ccs-min-passes",
+            "--pacbio-ccs-min-rq",
+        ],
+        "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"],
+    },
 )
-
 
 
 @click.command(context_settings=help)
@@ -59,65 +64,82 @@ help = init_click(NAME, groups={
 @include_options_from(ClickSlurmOptions, profile="local")
 @include_options_from(ClickInputOptions, add_input_readtag=False, input_pattern="*fastq.gz")
 @include_options_from(ClickGeneralOptions)
-@click.option("--pacbio-input-csv", "input_csv",
-            help="Simple CSV file with the samples names and files. LORA will generate CCS and merge your files."
-            " If you do not want to do CCS, you can put only one file for each samples.",
-        )
-@click.option("--assembler", "assembler",
-            type=click.Choice(["canu", "hifiasm", "flye", "unicycler"]),
-            required=True,
-            help="An assembler in canu, hifiasm, flye",
-        )
-@click.option("--mode", "mode",
-            default="default",
-            type=click.Choice(["default", "eukaryotes", "bacteria"]),
-            show_default=True,
-            help="If bacteria, blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
-            " If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
-        )
-@click.option("--do-correction", "do_correction",
-            is_flag=True,
-            help="Run canu correction before hifiasm or flye.",
-        )
-@click.option("--nanopore", "nanopore", is_flag=True,
-            default=False,
-            help="Tells LORA that the input data is made of nanopore reads. CCS steps is OFF",
-        )
-@click.option("--pacbio", "pacbio", is_flag="store_true",
-            help="Tells LORA that the input data is made of pacbio reads",
-        )
-@click.option("--do-circlator", "do_circlator", is_flag="store_true", 
-    help="Run circlator after assembler." )
+@click.option(
+    "--pacbio-input-csv",
+    "input_csv",
+    help="Simple CSV file with the samples names and files. LORA will generate CCS and merge your files."
+    " If you do not want to do CCS, you can put only one file for each samples.",
+)
+@click.option(
+    "--assembler",
+    "assembler",
+    type=click.Choice(["canu", "hifiasm", "flye", "unicycler"]),
+    required=True,
+    help="An assembler in canu, hifiasm, flye",
+)
+@click.option(
+    "--mode",
+    "mode",
+    default="default",
+    type=click.Choice(["default", "eukaryotes", "bacteria"]),
+    show_default=True,
+    help="If bacteria, blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
+    " If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
+)
+@click.option(
+    "--do-correction",
+    "do_correction",
+    is_flag=True,
+    help="Run canu correction before hifiasm or flye.",
+)
+@click.option(
+    "--nanopore",
+    "nanopore",
+    is_flag=True,
+    default=False,
+    help="Tells LORA that the input data is made of nanopore reads. CCS steps is OFF",
+)
+@click.option(
+    "--pacbio",
+    "pacbio",
+    is_flag="store_true",
+    help="Tells LORA that the input data is made of pacbio reads",
+)
+@click.option("--do-circlator", "do_circlator", is_flag="store_true", help="Run circlator after assembler.")
+@click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
 @click.option("--blastdb", "blastdb", help="Path to your blast database")
-@click.option("--busco-lineage",  "lineage",
-            help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.",
-        )
-@click.option("--checkm-rank",
-            default="genus",
-            show_default=True,
-            help="For bacteria, checkm can be used. Usually at the genus level. can be set to 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species'. "
-        )
-@click.option("--checkm-name",
-            default=None,
-            help="checkm taxon name. Type checkm taxon_list for a complete list. You can also check the LORA wiki page here: https://github.com/sequana/lora/wiki/checkm"
-        )
-@click.option("--pacbio-ccs-min-passes",
-            default=3,
-            show_default=True,
-            type=click.INT,
-            help="minimum number of passes required to build the CCS. Set to 3 for HIFI quality",
-        )
-@click.option("--pacbio-ccs-min-rq",
-            default=0.7,
-            show_default=True,
-            type=click.FLOAT,
-            help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality")
-
+@click.option(
+    "--busco-lineage",
+    "lineage",
+    help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.",
+)
+@click.option(
+    "--checkm-rank",
+    default="genus",
+    show_default=True,
+    help="For bacteria, checkm can be used. Usually at the genus level. can be set to 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species'. ",
+)
+@click.option(
+    "--checkm-name",
+    default=None,
+    help="checkm taxon name. Type checkm taxon_list for a complete list. You can also check the LORA wiki page here: https://github.com/sequana/lora/wiki/checkm",
+)
+@click.option(
+    "--pacbio-ccs-min-passes",
+    default=3,
+    show_default=True,
+    type=click.INT,
+    help="minimum number of passes required to build the CCS. Set to 3 for HIFI quality",
+)
+@click.option(
+    "--pacbio-ccs-min-rq",
+    default=0.7,
+    show_default=True,
+    type=click.FLOAT,
+    help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality",
+)
 def main(**options):
-    """
-
-
-    """
+    """ """
     # the real stuff is here
     manager = SequanaManager(options, NAME)
     options = manager.options
@@ -134,7 +156,6 @@ def main(**options):
     # use profile slurm if user set a slurm queue
     if options.slurm_queue != "common":
         options.profile = "slurm"
-
 
     # fill the config file with input parameters
     cfg = manager.config.config
@@ -157,7 +178,7 @@ def main(**options):
         mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
         cfg.update(mode_cfg.config)
 
-    #checkm
+    # checkm
     if options.checkm_name and options.checkm_rank:
         cfg.checkm["do"] = True
         cfg.checkm["taxon_rank"] = options.checkm_rank
@@ -170,6 +191,8 @@ def main(**options):
         cfg.blast["blastdb"] = options.blastdb
     if options.lineage:
         cfg.busco["lineage"] = options.lineage
+    if options.do_coverage:
+        cfg.sequana_coverage.do = options.do_coverage
 
     cfg.canu_correction["do"] = options.do_correction
     # override preset only if user set an assembler

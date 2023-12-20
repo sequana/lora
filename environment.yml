@@ -1,0 +1,20 @@
+name: mapper
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - flye
+  - minimap2
+  - bowtie2
+  - samtools
+  - seqkit
+  - seqtk
+  - quast
+  - prokka
+  - blast
+  - blast
+  - pip:
+    - sequana
