@@ -20,10 +20,10 @@ from sequana_pipelines.lora.src import exceptions
 shell.executable("bash")
 
 
-configfile: "config.yml"
+configfile: "config.yaml"
 
 
-manager = PipelineManagerDirectory("lora", config, schema="schema.yml")
+manager = PipelineManagerDirectory("lora", config, schema="schema.yaml")
 
 csv_filename = config.get("input_csv")
 input_directory = config.get("input_directory")
@@ -68,8 +68,8 @@ rule rulegraph:
     output:
         dot=temp("rulegraph/rg.ann.dot"),
     params:
-        configname="config.yml",
-        required_local_files=["schema.yml", "rules"],
+        configname="config.yaml",
+        required_local_files=["schema.yaml", "rules"],
     wrapper:
         "main/wrappers/rulegraph"
 

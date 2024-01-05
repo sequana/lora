@@ -312,7 +312,7 @@ mapping:
                 required: true
 
 
- "sequana_coverage":
+    "sequana_coverage":
         type: map
         mapping:
             "do":

@@ -37,7 +37,7 @@ apptainers:
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
     seqkit: https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
-    sequana_coverage: https://zenodo.org/record/10209929/files/sequana_0.16.1.img
+    sequana_coverage: https://zenodo.org/record/10460105/files/sequana_0.16.5.img
     unicycler: https://zenodo.org/record/7335176/files/denovo_tools_0.0.2.img
 
 
@@ -281,7 +281,7 @@ minimap2:
 #     distance is smaller than this parameter
 #
 sequana_coverage:
-    do: true
+    do: false
     circular: true
     window_size: 20001
     chunksize: 5000000
@@ -310,7 +310,7 @@ sequana_coverage:
 # - threads: Number of threads to use
 quast:
     preset: 'pacbio'
-    options: ''
+    options: ' --rna-finding'
     threads: 4
     resources:
         mem: 4G

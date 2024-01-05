@@ -8,7 +8,6 @@ busco:
     do: true
     lineage: 'busco/v5/lineages/bacteria_odb10'
 
-
 prokka:
     do: true
 
@@ -17,3 +16,6 @@ blast:
 
 checkm:
     do: true
+
+quast:
+    options: " --rna-finding "

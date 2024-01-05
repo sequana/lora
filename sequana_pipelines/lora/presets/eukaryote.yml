@@ -6,11 +6,13 @@ sequana_coverage:
 
 busco:
     do: true
-    lineage: ''
-
+    lineage: 'busco/v5/lineages/eukaryotes_odb10'
 
 prokka:
     do: false
 
 blast:
     do: true
+
+quast:
+    options: " -e --rna-finding"
