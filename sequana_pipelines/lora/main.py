@@ -75,7 +75,7 @@ help = init_click(
     "assembler",
     type=click.Choice(["canu", "hifiasm", "flye", "unicycler"]),
     required=True,
-    help="An assembler in canu, hifiasm, flye",
+    help="An assembler in canu, hifiasm, flye (unicycler not yet implemented). We recommend flye that also performs circularisation.",
 )
 @click.option(
     "--mode",
@@ -83,8 +83,8 @@ help = init_click(
     default="default",
     type=click.Choice(["default", "eukaryotes", "bacteria"]),
     show_default=True,
-    help="If bacteria, blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
-    " If eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
+    help="If mode is set to 'bacteria', blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
+    " If mode is set to eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
 )
 @click.option(
     "--do-correction",
@@ -105,7 +105,12 @@ help = init_click(
     is_flag="store_true",
     help="Tells LORA that the input data is made of pacbio reads",
 )
-@click.option("--do-circlator", "do_circlator", is_flag="store_true", help="Run circlator after assembler.")
+@click.option(
+    "--do-circlator",
+    "do_circlator",
+    is_flag="store_true",
+    help="Run circlator after assembler. Use with canu assembler.",
+)
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
 @click.option("--blastdb", "blastdb", help="Path to your blast database")
 @click.option(
@@ -187,10 +192,14 @@ def main(**options):
     # The user may overwrite the default
     if options.do_circlator:
         cfg.circlator["do"] = options.do_circlator
+
     if options.blastdb:
         cfg.blast["blastdb"] = options.blastdb
+        cfg.blast["do"] = True
+
     if options.lineage:
         cfg.busco["lineage"] = options.lineage
+
     if options.do_coverage:
         cfg.sequana_coverage.do = options.do_coverage
 
