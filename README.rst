@@ -122,6 +122,7 @@ Version   Description
           * update sequana container to v0.16.5
           * slight update on presets and config file (coverage off,
             --rna-finding in quast, blast set to ON if DB is provided)
+          * add unicyler apptainer
 0.3.0     * Use click instead of argparse
           * added multiqc / checkm / unicycler
 0.2.0     * add apptainers in most rules

@@ -182,9 +182,9 @@ rule multiqc:
 
 
 rule checkm_marker:
-    output: 
+    output:
         marker="marker"
-    threads: 
+    threads:
          1
     container:
         config['apptainers']['checkm']

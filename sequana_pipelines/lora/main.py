@@ -179,6 +179,8 @@ def main(**options):
     if options.mode == "bacteria":  # default (nothing to do)
         mode_cfg = SequanaConfig(str(preset_dir / "bacteria.yml"))
         cfg.update(mode_cfg.config)
+        if options.nanopore:
+            cfg["quast"]["preset"] = "nanopore"
     elif options.mode == "eukaryotes":  # default (nothing to do)
         mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
         cfg.update(mode_cfg.config)

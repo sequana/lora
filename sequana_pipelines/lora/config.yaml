@@ -6,7 +6,7 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # ============================================================================
-sequana_wrappers: "v23.11.28"
+sequana_wrappers: "v24.1.8"
 
 input_directory: ''
 input_pattern: '*.bam'
@@ -38,7 +38,7 @@ apptainers:
     seqkit: https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
     sequana_coverage: https://zenodo.org/record/10460105/files/sequana_0.16.5.img
-    unicycler: https://zenodo.org/record/7335176/files/denovo_tools_0.0.2.img
+    unicycler: https://zenodo.org/record/10469285/files/unicycler_0.5.0.img
 
 
 ##############################################################################
@@ -403,9 +403,9 @@ blast:
 # - taxon_rank: one of genus, species, etc
 # - taxon_name: type 'checkm taxon_list'
 checkm:
-    do: true
+    do: false
     taxon_rank: genus
-    taxon_name: Mycobacterium
+    taxon_name: 
     threads: 4
     resources:
         mem: 4G

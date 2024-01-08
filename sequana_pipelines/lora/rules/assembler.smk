@@ -9,6 +9,7 @@ rule unicycler:
     params:
         mode=config["unicycler"]["mode"],
         options=config["unicycler"]["options"],
+        long_reads=True
     log:
         "{sample}/logs/unicycler.log",
     threads:
