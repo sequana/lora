@@ -21,8 +21,13 @@ def seqtk_version_parser(stderr: str):
     return stderr.strip().split("\n")[1].split()[-1]
 
 
+def unicycler_version_parser(stdout: str):
+    return stdout.split("\n", 1)[0].split()[1]
+
+
 def ccs_version_parser(stdout: str):
     return stdout.split("\n", 1)[0].split()[1]
+
 
 def checkm_version_parser(stdout: str):
     return stdout.split("\n", 1)[1].split()[2]
@@ -35,6 +40,7 @@ VERSION_PARSER = {
         "checkm": checkm_version_parser,
         "circlator": strip_version_parser,
         "flye": strip_version_parser,
+        "unicycler": unicycler_version_parser,
         "hifiasm": strip_version_parser,
         "minimap2": strip_version_parser,
     },
@@ -93,7 +99,7 @@ async def run_version(tool: str, cmd: str, has_apptainer: bool, apptainers: Dict
     if proc.returncode is None or proc.returncode == 127:
         # user may use apptainer
         if has_apptainer:
-           return tool, get_apptainer_version(tool, apptainers)
+            return tool, get_apptainer_version(tool, apptainers)
         return tool, "Tool not found"
 
     # Some software return error code 1 with version information
