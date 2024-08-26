@@ -195,7 +195,7 @@ rule checkm_marker:
         **config["checkm"]["resources"],
     shell:
         """
-        checkm taxon_set {params.taxon_rank} {params.taxon_name} {output.marker}
+        checkm taxon_set {params.taxon_rank} "{params.taxon_name}" {output.marker}
         """
 
 rule checkm:

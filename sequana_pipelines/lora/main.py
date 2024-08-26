@@ -28,11 +28,11 @@ from sequana_pipetools.options import (
     ClickInputOptions,
     ClickSlurmOptions,
     ClickSnakemakeOptions,
-    before_pipeline,
     include_options_from,
     init_click,
 )
 
+from .checkm import checkm 
 from .src import utils
 
 NAME = "lora"
@@ -42,19 +42,16 @@ help = init_click(
     groups={
         "Pipeline Specific": [
             "--assembler",
+            "--data-type",
             "--blastdb",
             "--bacteria",
             "--do-circlator",
             "--do-correction",
             "--do-coverage",
             "--mode",
-            "--nanopore",
-            "--pacbio",
-            "--pacbio-input-csv",
-            "--pacbio-ccs-min-passes",
-            "--pacbio-ccs-min-rq",
         ],
         "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"],
+        "Pipeline Specific Pacbio": ["--pacbio-input-csv", "--pacbio-ccs-min-passes", "--pacbio-ccs-min-rq", "--pacbio-do-ccs"],
     },
 )
 
@@ -93,17 +90,17 @@ help = init_click(
     help="Run canu correction before hifiasm or flye.",
 )
 @click.option(
-    "--nanopore",
-    "nanopore",
+    "--pacbio-do-ccs",
+    "do_ccs",
     is_flag=True,
-    default=False,
-    help="Tells LORA that the input data is made of nanopore reads. CCS steps is OFF",
+    help="If your input is made of raw Pacbio BAM with no consensus (subreads), you recommend to construct consensus file (CCS) using this option. See also --pacbio-ccs-min-passes and --pacbio-ccs-",
 )
 @click.option(
-    "--pacbio",
-    "pacbio",
-    is_flag="store_true",
-    help="Tells LORA that the input data is made of pacbio reads",
+    "--data-type",
+    "data_type",
+    type=click.Choice(["pacbio", "nanopore"]),
+    required=True,
+    help="Tells LORA that the input data is made of nanopore or pacbio data.",
 )
 @click.option(
     "--do-circlator",
@@ -122,19 +119,21 @@ help = init_click(
     "--checkm-rank",
     default="genus",
     show_default=True,
+    type=click.Choice(checkm['ranks']),
     help="For bacteria, checkm can be used. Usually at the genus level. can be set to 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species'. ",
 )
 @click.option(
     "--checkm-name",
+    type=str,
     default=None,
-    help="checkm taxon name. Type checkm taxon_list for a complete list. You can also check the LORA wiki page here: https://github.com/sequana/lora/wiki/checkm",
+    help="Valid checkm taxon name. This depends on the rank provided with --checkm-rank. Please have a look at this page on LORA wiki page here: https://github.com/sequana/lora/wiki/checkm ; you may also set --checkm-rank and type any invalid values to get a list of valid names",
 )
 @click.option(
     "--pacbio-ccs-min-passes",
     default=3,
     show_default=True,
     type=click.INT,
-    help="minimum number of passes required to build the CCS. Set to 3 for HIFI quality",
+    help="minimum number of passes required to build the CCS. Set to 10 for HIFI quality",
 )
 @click.option(
     "--pacbio-ccs-min-rq",
@@ -154,10 +153,6 @@ def main(**options):
 
     cfg = manager.config.config
 
-    if not options.nanopore and not options.pacbio:
-        logger.error("You must use one of --nanopore or --pacbio options")
-        sys.exit(1)
-
     # use profile slurm if user set a slurm queue
     if options.slurm_queue != "common":
         options.profile = "slurm"
@@ -171,7 +166,7 @@ def main(**options):
     preset_dir = utils.LORA_PATH / "presets"
 
     # Default parameters are for pacbio. There is no pacbio presets
-    if options.nanopore:
+    if options.data_type == "nanopore":
         nano = SequanaConfig(str(preset_dir / "nanopore.yml"))
         cfg.update(nano.config)
 
@@ -179,17 +174,30 @@ def main(**options):
     if options.mode == "bacteria":  # default (nothing to do)
         mode_cfg = SequanaConfig(str(preset_dir / "bacteria.yml"))
         cfg.update(mode_cfg.config)
-        if options.nanopore:
+        if options.data_type == "nanopore":
             cfg["quast"]["preset"] = "nanopore"
     elif options.mode == "eukaryotes":  # default (nothing to do)
         mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
         cfg.update(mode_cfg.config)
 
     # checkm
-    if options.checkm_name and options.checkm_rank:
+    if options.checkm_name:
         cfg.checkm["do"] = True
         cfg.checkm["taxon_rank"] = options.checkm_rank
-        cfg.checkm["taxon_name"] = options.checkm_name
+
+        # check checkM  taxon name
+        valid_taxon = checkm[options.checkm_rank]
+        if options.checkm_name not in valid_taxon:
+            from sequana_pipetools import levenshtein_distance
+            guesses = [x for x in valid_taxon if levenshtein_distance(options.checkm_name.lower(), x.lower())<5]
+            msg = f"CheckM issue. For the provided rank ({options.checkm_rank}), you set an unknown name: {options.checkm_name}. Please check the list on https://github.com/sequana/lora/wiki/checkm."
+            if len(guesses):
+                msg += f" Maybe you meant one of: {guesses}, Please use the proper lower/upper case"
+            logger.error(msg)
+            sys.exit(1)
+        else:
+            # Note the quotes to include spaces within a valid string for the species
+            cfg.checkm["taxon_name"] = f"'{options.checkm_name}'"
 
     # The user may overwrite the default
     if options.do_circlator:
@@ -210,6 +218,16 @@ def main(**options):
     if options.assembler:
         cfg.assembler = options.assembler
 
+    # by default, not CCS required. If we have BAM as input, it may be original subreads, in which case you want to do
+    # the CCS (possibly) or it coudld already HIFI/CCS data in which case you do not want to dot it. So, we require the
+    # user to tell us if he wants to build CCS
+
+    if options.do_ccs:
+        cfg.ccs['do'] = True
+        if options.data_type == "pacbio" and options.input_pattern.endswith(".bam") is False:
+            logger.warning("You chose to build pacbio CCS reads but your input files do not end in .bam ; that's probably not what you want.")
+    else:
+        cfg.ccs['do'] = False
     cfg.ccs["min-rq"] = options.pacbio_ccs_min_rq
     cfg.ccs["min-passes"] = options.pacbio_ccs_min_passes
 

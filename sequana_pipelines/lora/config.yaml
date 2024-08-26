@@ -254,7 +254,7 @@ minimap2:
     options: ''
     threads: 4
     resources:
-        mem: 4G
+        mem: 8G
 
 
 #############################################################################
@@ -304,7 +304,7 @@ sequana_coverage:
 # Quast
 #
 # :Parameters:
-#   
+#
 # - preset: Preset for application (pacbio/nanopore).
 # - options: any options recognised by `quast` cli
 # - threads: Number of threads to use
@@ -359,9 +359,10 @@ busco:
 # - do: if unchecked, this rule is ignored
 # - threads: Number of threads to use.
 # - options: any options recognised by `prokka` cli
+#            --centre X --compliant mean generate clean contig name
 prokka:
     do: false
-    options: ''
+    options: '--centre X --compliant'
     threads: 4
     resources:
         mem: 4G
@@ -396,16 +397,16 @@ blast:
 
 
 ##############################################################################
-# Blast
+# checkm
 #
 # :Parameters:
 # 
-# - taxon_rank: one of genus, species, etc
-# - taxon_name: type 'checkm taxon_list'
+# - taxon_rank: one of genus, species, etc  (see sequana_lora --help)
+# - taxon_name: try (sequana_lora --checkm-rank genus --checkm-name DUMMY) 
 checkm:
     do: false
     taxon_rank: genus
-    taxon_name: 
+    taxon_name:
     threads: 4
     resources:
         mem: 4G

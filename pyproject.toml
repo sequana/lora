@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "sequana-lora"
-version = "0.3.1"
+version = "0.4.0"
 description = "Run assembler (Canu, Flye, Hifiasm) on a set of long read files"
 authors = ["Sequana Team"]
 license = "BSD-3"
@@ -32,7 +32,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-sequana-pipetools = "^0.17.0"
+sequana-pipetools = "^1.0.3"
 pandas = "^2.0.0"
 Jinja2 = "^3.1.2"
 click-completion = "^0.5.2"

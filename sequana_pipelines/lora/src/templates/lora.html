@@ -37,7 +37,9 @@
               id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}
               class="even:bg-slate-50 border-t border-gray-300"
             >
-              <td class="text-left font-medium py-1 px-3">{{sample}}</td>
+              <td class="text-left font-medium py-1 px-3">
+              <a href="./{{sample}}/sorted_contigs/{{sample}}.fasta">{{sample}}</a>|
+              <button type="submit" onclick="window.open('{{sample}}/sorted_contigs/{{sample}}.fasta')">Download contigs</button></td>
               {% for value in values %}
               <td class="text-right py-1 px-3">{{value}}</td>
               {% endfor %}
@@ -47,6 +49,8 @@
         </div>
       </table>
       </div>
+
+
       {% if analysis %}
         {% for sample, contigs_dict in analysis.items() %}
           <div id="{{sample}}" class="hidden">

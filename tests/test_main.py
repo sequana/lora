@@ -22,7 +22,7 @@ def test_standalone_script(tmpdir):
     runner = CliRunner()
 
     results = runner.invoke(main.main, ["--input-directory", str(input_dir), "--working-directory", 
-        str(tmpdir), "--force", "--pacbio", "--assembler", "flye"])
+        str(tmpdir), "--force", "--data-type", "pacbio", "--assembler", "flye"])
 
     assert results.exit_code == 0
 
@@ -37,7 +37,7 @@ def test_standalone_script_nanopore(tmpdir):
         "--working-directory",
         str(tmpdir),
         "--force",
-        "--nanopore",
+        "--data-type", "nanopore",
         "--mode",
         "eukaryotes",
         "--assembler",
