@@ -5,7 +5,8 @@ rule unicycler:
     input:
         get_fastq,
     output:
-        "{sample}/unicycler/{sample}.contigs.fasta"
+        fasta="{sample}/unicycler/{sample}.contigs.fasta",
+        gfa="{sample}/unicycler/assembly.gfa",
     params:
         mode=config["unicycler"]["mode"],
         options=config["unicycler"]["options"],
@@ -126,9 +127,11 @@ rule flye:
         get_corrected_fastq,
     output:
         contig="{sample}/flye/{sample}.contigs.fasta",
+        gfa="{sample}/flye/assembly_graph.gfa",
     params:
         preset=config["flye"]["preset"],
         options=config["flye"]["options"],
+        genome_size=config["flye"]["genome_size"],
     container:
         config['apptainers']['flye']
     threads:
@@ -139,6 +142,37 @@ rule flye:
         """
         outdir="$(dirname "{output.contig}")"
 
-        flye {params.options} --{params.preset} {input} --out-dir ${{outdir}} --threads {threads} \
-            && mv ${{outdir}}/assembly.fasta {output}
+        flye --genome-size {params.genome_size} {params.options} --{params.preset} {input} --out-dir ${{outdir}} --threads {threads} \
+            && mv ${{outdir}}/assembly.fasta {output.contig}
         """
+
+
+def get_bandage_input(wildcards):
+    if config["assembler"] == "flye":
+        return rules.flye.output.gfa
+    elif config["assembler"] == "unicycler":
+        return rules.unicycler.output.gfa
+
+
+rule bandage:
+    input:
+        gfa=get_bandage_input
+    output:
+        "{sample}/bandage/{sample}_graph.png"
+    container:
+        config["apptainers"]["bandage"]
+    shell:
+        """
+        Bandage image {input.gfa} {output}
+        """
+
+
+
+
+
+
+
+
+
+
+
