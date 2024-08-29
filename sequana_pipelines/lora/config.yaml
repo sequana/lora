@@ -6,7 +6,7 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # ============================================================================
-sequana_wrappers: "v24.1.8"
+sequana_wrappers: "v24.8.29"
 
 input_directory: ''
 input_pattern: '*.bam'
@@ -15,6 +15,7 @@ assembler: 'flye'
 
 # apptainers links
 apptainers:
+    bandage: https://zenodo.org/record/13399042/files/bandage_0.8.1.img
     blast: https://zenodo.org/record/7848524/files/blast_2.12.0.img
     bwa: https://zenodo.org/record/7736677/files/bwa_0.7.17.img
     busco: https://zenodo.org/record/7794877/files/busco_5.4.6.img
@@ -23,10 +24,9 @@ apptainers:
     ccs: https://zenodo.org/record/7817325/files/ccs_6.4.0.img
     circlator: https://zenodo.org/record/7821905/files/circlator_1.5.5.img
     graphviz: https://zenodo.org/record/7928262/files/graphviz_7.0.5.img
-    # flye 2.9.1
     # flye: https://zenodo.org/record/7733985/files/flye_2.9.1.img
     flye: https://zenodo.org/record/10409326/files/flye_2.9.3.img
-    hifiasm: https://zenodo.org/record/7737424/files/hifiasm_0.19.1.img
+    hifiasm: https://zenodo.org/record/10610397/files/hifiasm_0.19.8.img
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     multiqc: https://zenodo.org/record/10205070/files/multiqc_1.16.0.img
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
@@ -54,8 +54,8 @@ apptainers:
 # - resources: computing resources needed to run the job on a cluster
 ccs:
     do: true
-    min-rq: 0.7
-    min-passes: 0
+    min-rq: 0.99
+    min-passes: 10
     max-chunks: 10
     options: ''
     threads: 4
@@ -157,6 +157,7 @@ hifiasm:
 # - threads: Number of threads to use
 flye:
     preset: 'pacbio-raw'
+    genome_size: 
     options: ''
     threads: 4
     resources:
