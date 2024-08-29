@@ -6,7 +6,8 @@ rule seqkit_sort:
     input:
         get_final_contigs
     output:
-        "{sample}/sorted_contigs/{sample}.fasta"
+        ctg="{sample}/sorted_contigs/{sample}.fasta",
+        names="{sample}/sorted_contigs/{sample}.names.txt"
     threads:
         config["seqkit_sort"]["threads"]
     resources:
@@ -15,7 +16,8 @@ rule seqkit_sort:
         config['apptainers']['seqkit']
     shell:
         """
-        seqkit sort --threads {threads} --by-length --reverse {input} -o {output}
+        seqkit sort --threads {threads} --by-length --reverse {input} -o {output.ctg}
+        grep ">" {output.ctg} > {output.names}
         """
 
 rule minimap2_and_genomecov:
