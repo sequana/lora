@@ -125,6 +125,10 @@ Version   Description
           * add unicyler apptainer
           * add checkm module to help users chosing correct marker and name.
           * replaces --pacbio and --nanopore with --data-type
+          * add bandage if assembly graph is available
+          * fixed hifiasm container
+          * improved report
+          * make genome-size compulsary
 0.3.0     * Use click instead of argparse
           * added multiqc / checkm / unicycler
 0.2.0     * add apptainers in most rules

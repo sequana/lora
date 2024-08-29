@@ -22,7 +22,8 @@ NAME = "lora"
 
 
 import rich_click as click
-from sequana_pipetools import SequanaConfig, SequanaManager, logger
+from sequana_pipetools import SequanaConfig, SequanaManager, logger, levenshtein_distance, download_and_extract_tar_gz
+
 from sequana_pipetools.options import (
     ClickGeneralOptions,
     ClickInputOptions,
@@ -32,7 +33,8 @@ from sequana_pipetools.options import (
     init_click,
 )
 
-from .checkm import checkm 
+from .info import checkm
+from .info import busco
 from .src import utils
 
 NAME = "lora"
@@ -42,6 +44,7 @@ help = init_click(
     groups={
         "Pipeline Specific": [
             "--assembler",
+            "--genome-size",
             "--data-type",
             "--blastdb",
             "--bacteria",
@@ -51,9 +54,25 @@ help = init_click(
             "--mode",
         ],
         "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"],
-        "Pipeline Specific Pacbio": ["--pacbio-input-csv", "--pacbio-ccs-min-passes", "--pacbio-ccs-min-rq", "--pacbio-do-ccs"],
+        "Pipeline Specific Pacbio": ["--pacbio-input-csv", "--pacbio-ccs-min-passes", "--pacbio-ccs-min-rq", "--pacbio-build-ccs"],
     },
 )
+
+
+class ChoiceOrDir(click.ParamType):
+    name = "choice_or_dir"
+    def __init__(self, choices):
+        self.choices = choices
+    def convert(self, value, param, ctx):
+        if value in self.choices:
+            return value
+        if os.path.isdir(value):
+            return value
+
+        guesses = [x for x in busco if levenshtein_distance(value, x.lower())<5]
+        self.fail(f"{value} is not a valid choice or file path. Maybe you meant {guesses}", param, ctx)
+# 
+BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
 
 
 @click.command(context_settings=help)
@@ -75,6 +94,13 @@ help = init_click(
     help="An assembler in canu, hifiasm, flye (unicycler not yet implemented). We recommend flye that also performs circularisation.",
 )
 @click.option(
+    "--genome-size",
+    "genome_size",
+    type=click.STRING,
+    required=True,
+    help="A estimate of the genome size. For canu, this is used only to report depth of coverage. For flye, this is higly recommended so we make it compulsary in LORA. You can use 'm' or 'g' letter to indicate mega and giga bases, e.g., 5m, 2g.",
+)
+@click.option(
     "--mode",
     "mode",
     default="default",
@@ -90,10 +116,12 @@ help = init_click(
     help="Run canu correction before hifiasm or flye.",
 )
 @click.option(
-    "--pacbio-do-ccs",
+    "--pacbio-build-ccs",
     "do_ccs",
     is_flag=True,
-    help="If your input is made of raw Pacbio BAM with no consensus (subreads), you recommend to construct consensus file (CCS) using this option. See also --pacbio-ccs-min-passes and --pacbio-ccs-",
+    help="""If your input is made of raw Pacbio BAM with no consensus (subreads), we recommend you to construct consensus
+file (CCS) from the subreads.bam files. By default min-passes is set to 10 and min-rq to 0.99 to build so-called HiFi
+reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-ccs-min-rq options""",
 )
 @click.option(
     "--data-type",
@@ -113,7 +141,8 @@ help = init_click(
 @click.option(
     "--busco-lineage",
     "lineage",
-    help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage.",
+    type=BUSCO_OR_DIR,
+    help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage. If the lineage is not a valid path, we download it locally. This may take time. Full list is on https://github.com/sequana/lora//wiki/busco",
 )
 @click.option(
     "--checkm-rank",
@@ -130,14 +159,14 @@ help = init_click(
 )
 @click.option(
     "--pacbio-ccs-min-passes",
-    default=3,
+    default=10,
     show_default=True,
     type=click.INT,
     help="minimum number of passes required to build the CCS. Set to 10 for HIFI quality",
 )
 @click.option(
     "--pacbio-ccs-min-rq",
-    default=0.7,
+    default=0.99,
     show_default=True,
     type=click.FLOAT,
     help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality",
@@ -188,7 +217,6 @@ def main(**options):
         # check checkM  taxon name
         valid_taxon = checkm[options.checkm_rank]
         if options.checkm_name not in valid_taxon:
-            from sequana_pipetools import levenshtein_distance
             guesses = [x for x in valid_taxon if levenshtein_distance(options.checkm_name.lower(), x.lower())<5]
             msg = f"CheckM issue. For the provided rank ({options.checkm_rank}), you set an unknown name: {options.checkm_name}. Please check the list on https://github.com/sequana/lora/wiki/checkm."
             if len(guesses):
@@ -197,7 +225,7 @@ def main(**options):
             sys.exit(1)
         else:
             # Note the quotes to include spaces within a valid string for the species
-            cfg.checkm["taxon_name"] = f"'{options.checkm_name}'"
+            cfg.checkm["taxon_name"] = f"{options.checkm_name}"
 
     # The user may overwrite the default
     if options.do_circlator:
@@ -208,15 +236,40 @@ def main(**options):
         cfg.blast["do"] = True
 
     if options.lineage:
-        cfg.busco["lineage"] = options.lineage
+        cfg.busco['do'] = True
+        if os.path.isdir(options.lineage):
+            cfg.busco["lineage"] = options.lineage
+        else:
+            # if not a directory, we need to download the dataset locally.
+            logger.info(f"Download {options.lineage} locally for BUSCO analysis")
+            url = busco[options.lineage]
+            download_and_extract_tar_gz(url, f"{manager.workdir}/busco_downloads")
+            cfg.busco["lineage"] = f"busco_downloads/{options.lineage}_odb10"
 
     if options.do_coverage:
         cfg.sequana_coverage.do = options.do_coverage
 
     cfg.canu_correction["do"] = options.do_correction
+
     # override preset only if user set an assembler
     if options.assembler:
         cfg.assembler = options.assembler
+
+    # handle genome size
+    try:
+        # is this a number ?
+        int(optioms.genome_size)
+    except:
+        if not options.genome_size.endswith(('k','m','g')):
+            logger.error(f"Genome size must end in k, m, g to indicate kilo, mega, giga bases, or a valid integer number. You provided {options.genome_size}")
+            sys.exit(1)
+
+        pass
+
+    cfg['canu']['genome_size'] = options.genome_size
+    cfg['canu_correction']['genome_size'] = options.genome_size
+    cfg['flye']['genome_size'] = options.genome_size 
+
 
     # by default, not CCS required. If we have BAM as input, it may be original subreads, in which case you want to do
     # the CCS (possibly) or it coudld already HIFI/CCS data in which case you do not want to dot it. So, we require the
@@ -228,6 +281,8 @@ def main(**options):
             logger.warning("You chose to build pacbio CCS reads but your input files do not end in .bam ; that's probably not what you want.")
     else:
         cfg.ccs['do'] = False
+        cfg.flye['preset'] = "pacbio-corr"
+
     cfg.ccs["min-rq"] = options.pacbio_ccs_min_rq
     cfg.ccs["min-passes"] = options.pacbio_ccs_min_passes
 

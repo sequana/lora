@@ -20,6 +20,34 @@ rule seqkit_sort:
         grep ">" {output.ctg} > {output.names}
         """
 
+
+rule fasta2paf:
+    input:
+        rules.seqkit_sort.output.ctg
+    output:
+        paf="{sample}/graph/{sample}.paf"
+    container:
+        config["apptainers"]["minimap2"]
+    shell:
+        """
+        minimap2 -x ava-pb -t4 {input} {input} > {output}
+        """
+
+
+rule paf2gfa:
+    input:
+        ctg=rules.seqkit_sort.output.ctg
+        paf=rules.fasta2paf.output.paf
+    output:
+        gfa="{sample}/graph/{sample}.gfa"
+    container:
+        config["apptainers"]["miniasm"]
+    shell:
+        """
+        miniasm -f {input.ctg} {input.paf} > {output.gfa}
+        """
+
+
 rule minimap2_and_genomecov:
     input:
         fastq = get_fastq,

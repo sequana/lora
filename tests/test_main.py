@@ -13,7 +13,7 @@ def test_standalone_subprocess(tmpdir):
 
     input_dir = test_dir / "resources"
     cmd = ["test", "--input-directory", str(input_dir), "--working-directory", str(tmpdir), 
-            "--force", "--assembler", "flye"]
+            "--force", "--assembler", "flye", "--genome-size", "1m"]
     subprocess.call(cmd)
 
 
@@ -22,7 +22,7 @@ def test_standalone_script(tmpdir):
     runner = CliRunner()
 
     results = runner.invoke(main.main, ["--input-directory", str(input_dir), "--working-directory", 
-        str(tmpdir), "--force", "--data-type", "pacbio", "--assembler", "flye"])
+        str(tmpdir), "--force", "--data-type", "pacbio", "--assembler", "flye", "--genome-size", "1m"])
 
     assert results.exit_code == 0
 
@@ -41,7 +41,9 @@ def test_standalone_script_nanopore(tmpdir):
         "--mode",
         "eukaryotes",
         "--assembler",
-        "flye"
+        "flye",
+        "--genome-size", 
+        "1m",
     ]
     results = runner.invoke(main.main, args)
     assert results.exit_code == 0

@@ -59,10 +59,12 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
         # for older reports
         if os.path.exists(lora_dir / sample / f"sorted_contigs/{sample}.names.txt"):
             with open(lora_dir / sample / f"sorted_contigs/{sample}.names.txt", "r") as fin:
-                ctg_names = [x.strip(">\n") for x in fin.readlines()]
+                data = fin.readlines()
+                ctg_names = [x.strip(">\n").split()[0] for x in data if len(x.strip("\n"))]
             analysis[sample]['contig_order'] = ctg_names
         else:
             analysis[sample]['contig_order'] = sorted(list(analysis[sample].keys()))
+
     # create summary report
     create_summary(summary_name, lora_name, summary_results, config, lora_dir)
 

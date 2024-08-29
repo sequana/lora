@@ -152,6 +152,9 @@ mapping:
             "options":
                 type: text
                 required: false
+            "genome_size":
+                type: str
+                required: true
             "threads":
                 type: int
                 required: true
@@ -438,7 +441,7 @@ mapping:
                 required: true
             "blastdb":
                 type: str
-                required: true
+                required: false
                 nullable: false
             "evalue":
                 type: str

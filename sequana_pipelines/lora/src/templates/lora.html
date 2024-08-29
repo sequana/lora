@@ -100,7 +100,7 @@ class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">here</a>
                 <div class="flex items-center justify-around mb-4">
                   <table id="{{sample}}_{{contig}}_sequana" class="table-auto w-1/6 text-left">
                     <tbody>
-                      {% for key, value in analysis[sample]['coverage'].items() %}
+                      {% for key, value in analysis[sample][contig]['coverage'].items() %}
                       <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
                         <th class="px-2 py-2">{{key}}</th>
                         <td class="px-2 py-2 text-right">{{value}}</td>

@@ -152,6 +152,9 @@ def get_bandage_input(wildcards):
         return rules.flye.output.gfa
     elif config["assembler"] == "unicycler":
         return rules.unicycler.output.gfa
+    elif config["assembler"] == "canu":
+        return rules.paf2gfa.output.gfa
+
 
 
 rule bandage:
