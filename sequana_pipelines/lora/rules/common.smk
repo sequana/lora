@@ -32,7 +32,7 @@ def requested_output(manager):
         output_list += [expand("{sample}/polypolish/{sample}.polish.fasta", sample=manager.samples)]
     if config["checkm"]["do"]:
         output_list += [expand("{sample}/checkm/{sample}.marker_pos_plot.png", sample=manager.samples)]
-    if config["assembler"] in ["flye", "unicycler", "canu"]:
+    if config["assembler"] in ["flye", "unicycler"]:
         output_list += [expand("{sample}/bandage/{sample}_graph.png", sample=manager.samples)]
 
     return output_list
@@ -85,12 +85,19 @@ def get_bam(wildcards):
     return manager.samples[wildcards.sample][0]
 
 
-def get_fastq(wildcards):
-    """Convert bam to fastq format."""
+def get_raw_fastq(wildcards):
     filename = manager.samples[wildcards.sample][0]
     if filename.endswith(".bam"):
         return f"{wildcards.sample}/bam_to_fastq/{wildcards.sample}.fastq"
     return filename
+
+
+def get_fastq(wildcards):
+    """Convert bam to fastq format."""
+    if config["fastp"]["do"]:
+        return f"{wildcards.sample}/fastp/{wildcards.sample}.fastq.gz"
+    else:
+        return get_raw_fastq(wildcards)
 
 
 def get_corrected_fastq(wildcards):

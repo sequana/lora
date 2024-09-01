@@ -36,7 +36,7 @@ rule fasta2paf:
 
 rule paf2gfa:
     input:
-        ctg=rules.seqkit_sort.output.ctg
+        ctg=rules.seqkit_sort.output.ctg,
         paf=rules.fasta2paf.output.paf
     output:
         gfa="{sample}/graph/{sample}.gfa"
@@ -118,7 +118,7 @@ rule busco:
     output:
         directory("{sample}/busco")
     log:
-        "{sample}/logs/{sample}_busco.out"
+        "{sample}/logs/busco.out"
     params:
         mode = "genome",
         lineage = config['busco']['lineage'],
@@ -143,13 +143,15 @@ rule prokka:
         config['prokka']['options']
     threads:
         config['prokka']['threads']
+    log:
+        "{sample}/logs/prokka.out"
     container:
         config['apptainers']['prokka']
     resources:
         **config["prokka"]["resources"],
     shell:
         """
-        prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs}
+        prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs} 2>&1 >{log}
         """
 
 

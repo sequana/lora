@@ -110,3 +110,34 @@ rule bam_to_fastq:
         """
         samtools bam2fq -@ $(({threads} - 1)) {params} {input} > {output.fastq}
         """
+
+
+rule fastp:
+    """Preprocessing to remove short reads"""
+    input:
+        get_raw_fastq
+    output:
+        fastq="{sample}/fastp/{sample}.fastq.gz",
+        html="{sample}/fastp/{sample}.html",
+        json="{sample}/fastp/{sample}.json"
+    params:
+        min_length_required=config["fastp"]["min_length_required"]
+    resources:
+        **config["canu"]["resources"],
+    threads:
+        config['fastp']['threads']
+    container:
+        config['apptainers']['fastp']
+    log:
+        "{sample}/logs/fastp.log",
+    shell:
+        """
+        fastp --in1 {input} --length_required {params.min_length_required} --out1 {output} --disable_adapter_trimming --disable_quality_filtering --html {output.html} --json {output.json} --thread {threads} 2>&1 > {log}
+        """
+
+
+
+
+
+
+

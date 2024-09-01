@@ -93,15 +93,13 @@ onsuccess:
 
     logger.setLevel("INFO")
     manager.teardown(
-        extra_dirs_to_remove=[".keras"]
+        extra_dirs_to_remove=[".keras", ".parallel", ".cache"]
             )
 
     # Create LORA report and summary
     create_reports("summary.html", "lora.html", manager.samples, config)
 
     print("Please open the report summary.html or multiqc/multiqc_report.html.")
-    shell("rm -f ./samples/*/*.done")
-    shell("rm -f ./samples/*/*.log")
     shell("chmod -R g+w .")
     shell("rm -rf rulegraph")
 

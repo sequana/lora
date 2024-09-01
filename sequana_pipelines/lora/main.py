@@ -22,8 +22,12 @@ NAME = "lora"
 
 
 import rich_click as click
-from sequana_pipetools import SequanaConfig, SequanaManager, logger, levenshtein_distance, download_and_extract_tar_gz
-
+from sequana_pipetools import (
+    SequanaConfig,
+    SequanaManager,
+    download_and_extract_tar_gz,
+    levenshtein_distance,
+)
 from sequana_pipetools.options import (
     ClickGeneralOptions,
     ClickInputOptions,
@@ -33,8 +37,7 @@ from sequana_pipetools.options import (
     init_click,
 )
 
-from .info import checkm
-from .info import busco
+from .info import busco, checkm
 from .src import utils
 
 NAME = "lora"
@@ -49,29 +52,39 @@ help = init_click(
             "--blastdb",
             "--bacteria",
             "--do-circlator",
-            "--do-correction",
+            "--do-canu-correction",
             "--do-coverage",
+            "--do-prokka",
             "--mode",
         ],
         "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"],
-        "Pipeline Specific Pacbio": ["--pacbio-input-csv", "--pacbio-ccs-min-passes", "--pacbio-ccs-min-rq", "--pacbio-build-ccs"],
+        "Pipeline Specific Pacbio": [
+            "--pacbio-input-csv",
+            "--pacbio-ccs-min-passes",
+            "--pacbio-ccs-min-rq",
+            "--pacbio-build-ccs",
+        ],
     },
 )
 
 
 class ChoiceOrDir(click.ParamType):
     name = "choice_or_dir"
+
     def __init__(self, choices):
         self.choices = choices
+
     def convert(self, value, param, ctx):
         if value in self.choices:
             return value
         if os.path.isdir(value):
             return value
 
-        guesses = [x for x in busco if levenshtein_distance(value, x.lower())<5]
+        guesses = [x for x in busco if levenshtein_distance(value, x.lower()) < 5]
         self.fail(f"{value} is not a valid choice or file path. Maybe you meant {guesses}", param, ctx)
-# 
+
+
+#
 BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
 
 
@@ -104,10 +117,16 @@ BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
     "--mode",
     "mode",
     default="default",
-    type=click.Choice(["default", "eukaryotes", "bacteria"]),
+    type=click.Choice(["default", "eukaryota", "bacteria"]),
     show_default=True,
     help="If mode is set to 'bacteria', blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
-    " If mode is set to eukaryotes, only blast and busco tasks are ON. Default sets all these tasks OFF.",
+    " If mode is set to eukaryota, only blast and busco tasks are ON. Default sets all these tasks OFF.",
+)
+@click.option(
+    "--do-prokka",
+    "do_prokka",
+    is_flag=True,
+    help="Run prokka on final contigs",
 )
 @click.option(
     "--do-correction",
@@ -126,7 +145,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
 @click.option(
     "--data-type",
     "data_type",
-    type=click.Choice(["pacbio", "nanopore"]),
+    type=click.Choice(["pacbio-raw", "pacbio-corr", "pacbio-hifi", "nanopore"]),
     required=True,
     help="Tells LORA that the input data is made of nanopore or pacbio data.",
 )
@@ -134,7 +153,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     "--do-circlator",
     "do_circlator",
     is_flag="store_true",
-    help="Run circlator after assembler. Use with canu assembler.",
+    help="Run circlator after assembler. Set to True is assembler Canu is chosen",
 )
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
 @click.option("--blastdb", "blastdb", help="Path to your blast database")
@@ -148,7 +167,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     "--checkm-rank",
     default="genus",
     show_default=True,
-    type=click.Choice(checkm['ranks']),
+    type=click.Choice(checkm["ranks"]),
     help="For bacteria, checkm can be used. Usually at the genus level. can be set to 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species'. ",
 )
 @click.option(
@@ -180,6 +199,10 @@ def main(**options):
     # creates the working directory
     manager.setup()
 
+    from sequana_pipetools import logger
+
+    logger.setLevel(options.level)
+
     cfg = manager.config.config
 
     # use profile slurm if user set a slurm queue
@@ -187,27 +210,52 @@ def main(**options):
         options.profile = "slurm"
 
     # fill the config file with input parameters
-    cfg = manager.config.config
     cfg.input_directory = os.path.abspath(options.input_directory)
     cfg.input_pattern = options.input_pattern
     cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
 
-    preset_dir = utils.LORA_PATH / "presets"
+    # prokka
+    cfg.prokka.do = True if (options.do_prokka or options.mode == "bacteria") else False
 
-    # Default parameters are for pacbio. There is no pacbio presets
+    #
     if options.data_type == "nanopore":
-        nano = SequanaConfig(str(preset_dir / "nanopore.yml"))
-        cfg.update(nano.config)
+        cfg["canu"]["preset"] = "nanopore"
+        cfg["canu_correction"]["preset"] = "nanopore"
+        cfg["flye"]["preset"] = "nano-raw"  # this could also be nano-corr or nano-hifi
+        cfg["minimap2"]["preset"] = "map-ont"
+        cfg["quast"]["preset"] = "nanopore"
+        cfg["circlator"]["data_type"] = "pacbio-corrected"
+    elif options.data_type == "pacbio-raw":
+        cfg["canu"]["preset"] = "pacbio"
+        cfg["canu_correction"]["preset"] = "pacbio"
+        cfg["flye"]["preset"] = "pacbio-raw"
+        cfg["minimap2"]["preset"] = "map-pb"
+        cfg["quast"]["preset"] = "pacbio"
+        cfg["circlator"]["data_type"] = "pacbio-raw"
+    elif options.data_type == "pacbio-corr":
+        cfg["canu"]["preset"] = "pacbio"
+        cfg["canu_correction"]["preset"] = "pacbio"
+        cfg["flye"]["preset"] = "pacbio-corr"
+        cfg["minimap2"]["preset"] = "map-pb"
+        cfg["quast"]["preset"] = "pacbio"
+        cfg["circlator"]["data_type"] = "pacbio-corrected"
+    elif options.data_type == "pacbio-hifi":
+        cfg["canu"]["preset"] = "pacbio-hifi"
+        cfg["canu_correction"]["preset"] = "pacbio-hifi"
+        cfg["flye"]["preset"] = "pacbio-hifi"
+        cfg["minimap2"]["preset"] = "map-pb"
+        cfg["quast"]["preset"] = "pacbio"
+        cfg["circlator"]["data_type"] = "pacbio-corrected"
 
     # load default optionse for bacteria or eukaryotes or the default
     if options.mode == "bacteria":  # default (nothing to do)
-        mode_cfg = SequanaConfig(str(preset_dir / "bacteria.yml"))
-        cfg.update(mode_cfg.config)
-        if options.data_type == "nanopore":
-            cfg["quast"]["preset"] = "nanopore"
-    elif options.mode == "eukaryotes":  # default (nothing to do)
-        mode_cfg = SequanaConfig(str(preset_dir / "eukaryote.yml"))
-        cfg.update(mode_cfg.config)
+        cfg["quast"]["options"] = " --rna-finding"
+        options.lineage = "bacteria"
+
+    #
+    if options.mode == "eukaryota":
+        cfg["quast"]["options"] = " -e --rna-finding"
+        options.lineage = "eukaryota"
 
     # checkm
     if options.checkm_name:
@@ -217,7 +265,7 @@ def main(**options):
         # check checkM  taxon name
         valid_taxon = checkm[options.checkm_rank]
         if options.checkm_name not in valid_taxon:
-            guesses = [x for x in valid_taxon if levenshtein_distance(options.checkm_name.lower(), x.lower())<5]
+            guesses = [x for x in valid_taxon if levenshtein_distance(options.checkm_name.lower(), x.lower()) < 5]
             msg = f"CheckM issue. For the provided rank ({options.checkm_rank}), you set an unknown name: {options.checkm_name}. Please check the list on https://github.com/sequana/lora/wiki/checkm."
             if len(guesses):
                 msg += f" Maybe you meant one of: {guesses}, Please use the proper lower/upper case"
@@ -227,64 +275,77 @@ def main(**options):
             # Note the quotes to include spaces within a valid string for the species
             cfg.checkm["taxon_name"] = f"{options.checkm_name}"
 
-    # The user may overwrite the default
-    if options.do_circlator:
-        cfg.circlator["do"] = options.do_circlator
+    # circlator option
+    cfg.circlator["do"] = True if options.do_circlator else False
+    if options.assembler == "canu":
+        logger.warning(
+            "Circlator is set to ON automatically because you chose Canu as the assembler. Edit the config.yaml if that is not what you want."
+        )
+        cfg.circlator["do"] = True
 
+    # blast
     if options.blastdb:
         cfg.blast["blastdb"] = options.blastdb
         cfg.blast["do"] = True
 
+    # busco lineage
     if options.lineage:
-        cfg.busco['do'] = True
+        cfg.busco.do = True
         if os.path.isdir(options.lineage):
-            cfg.busco["lineage"] = options.lineage
+            cfg.busco.lineage = options.lineage
         else:
-            # if not a directory, we need to download the dataset locally.
-            logger.info(f"Download {options.lineage} locally for BUSCO analysis")
-            url = busco[options.lineage]
-            download_and_extract_tar_gz(url, f"{manager.workdir}/busco_downloads")
-            cfg.busco["lineage"] = f"busco_downloads/{options.lineage}_odb10"
+            name = busco[options.lineage].split("/")[-1].split(".")[0]
+            outdir = f"{manager.workdir}/busco_downloads/{name}"
+            if os.path.isdir(outdir):
+                logger.info(f"Reusing {outdir} busco lineage")
+                cfg.busco["lineage"] = f"busco_downloads/{name}"
+            else:
+                # if not a directory, we need to download the dataset locally.
+                logger.info(f"Download {options.lineage} locally for BUSCO analysis")
+                url = busco[options.lineage]
+                download_and_extract_tar_gz(url, f"{manager.workdir}/busco_downloads")
+                cfg.busco["lineage"] = f"busco_downloads/{options.lineage}_odb10"
 
-    if options.do_coverage:
-        cfg.sequana_coverage.do = options.do_coverage
+    # coverage if provided, or mode is bacteria
+    cfg.sequana_coverage.do = True if (options.do_coverage or options.mode == "bacteria") else False
 
+    # canu correction
     cfg.canu_correction["do"] = options.do_correction
 
     # override preset only if user set an assembler
-    if options.assembler:
-        cfg.assembler = options.assembler
+    cfg.assembler = options.assembler
 
     # handle genome size
     try:
         # is this a number ?
         int(optioms.genome_size)
     except:
-        if not options.genome_size.endswith(('k','m','g')):
-            logger.error(f"Genome size must end in k, m, g to indicate kilo, mega, giga bases, or a valid integer number. You provided {options.genome_size}")
+        if not options.genome_size.endswith(("k", "m", "g")):
+            logger.error(
+                f"Genome size must end in k, m, g to indicate kilo, mega, giga bases, or a valid integer number. You provided {options.genome_size}"
+            )
             sys.exit(1)
-
         pass
 
-    cfg['canu']['genome_size'] = options.genome_size
-    cfg['canu_correction']['genome_size'] = options.genome_size
-    cfg['flye']['genome_size'] = options.genome_size 
+    # genome size used here
+    cfg["canu"]["genome_size"] = options.genome_size
+    cfg["canu_correction"]["genome_size"] = options.genome_size
+    cfg["flye"]["genome_size"] = options.genome_size
 
-
-    # by default, not CCS required. If we have BAM as input, it may be original subreads, in which case you want to do
+    # by default, CCS required. If we have BAM as input, it may be original subreads, in which case you want to do
     # the CCS (possibly) or it coudld already HIFI/CCS data in which case you do not want to dot it. So, we require the
     # user to tell us if he wants to build CCS
 
     if options.do_ccs:
-        cfg.ccs['do'] = True
-        if options.data_type == "pacbio" and options.input_pattern.endswith(".bam") is False:
-            logger.warning("You chose to build pacbio CCS reads but your input files do not end in .bam ; that's probably not what you want.")
+        cfg.ccs["do"] = True
+        # if options.data_type == "pacbio" and options.input_pattern.endswith(".bam") is False:
+        #    logger.warning("You chose to build pacbio CCS reads but your input files do not end in .bam ; that's probably not what you want.")
     else:
-        cfg.ccs['do'] = False
-        cfg.flye['preset'] = "pacbio-corr"
+        cfg.ccs["do"] = False
+        # cfg.flye['preset'] = "pacbio-corr"
 
-    cfg.ccs["min-rq"] = options.pacbio_ccs_min_rq
-    cfg.ccs["min-passes"] = options.pacbio_ccs_min_passes
+    cfg["ccs"]["min-rq"] = options.pacbio_ccs_min_rq
+    cfg["ccs"]["min-passes"] = options.pacbio_ccs_min_passes
 
     # finalise the command and save it; copy the snakemake. update the config
     # file and save it.

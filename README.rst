@@ -117,18 +117,25 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
-0.4.0     * uniformised extension with other pipelines. fix regression on
+1.0.0     * uniformised extension with other pipelines. fix regression on
             schema file
           * update sequana container to v0.16.5
-          * slight update on presets and config file (coverage off,
-            --rna-finding in quast, blast set to ON if DB is provided)
           * add unicyler apptainer
           * add checkm module to help users chosing correct marker and name.
-          * replaces --pacbio and --nanopore with --data-type
+          * replaces --pacbio and --nanopore with --data-type. pacbio is now
+            decompose into 3 sub-categories: pacbio-raw, pacbio-hifi and pacbio-corr
           * add bandage if assembly graph is available
-          * fixed hifiasm container
-          * improved report
+          * fixed hifiasm container to use newest version
+          * improved report html
           * make genome-size compulsary
+          * add fastp as preprocessing tool
+          * remove presets in favor of click options
+          * CCS defaults to hifi. pacbio presets in config set to pacbio-hifi
+          * blast removes from default. users must set blast DB themselves.
+          * busco lineage downloaded from the web.
+          * CANU preset changes: pacbio-->pacbio-hifi
+          * CANU-correction preset changes: pacbio-->pacbio-hifi
+          * FLYE preset changes: pacbio-raw-->pacbio-hifi
 0.3.0     * Use click instead of argparse
           * added multiqc / checkm / unicycler
 0.2.0     * add apptainers in most rules

@@ -23,9 +23,9 @@ apptainers:
     checkm: https://zenodo.org/record/10040946/files/checkm_1.2.2.img
     ccs: https://zenodo.org/record/7817325/files/ccs_6.4.0.img
     circlator: https://zenodo.org/record/7821905/files/circlator_1.5.5.img
-    graphviz: https://zenodo.org/record/7928262/files/graphviz_7.0.5.img
-    # flye: https://zenodo.org/record/7733985/files/flye_2.9.1.img
     flye: https://zenodo.org/record/10409326/files/flye_2.9.3.img
+    fastp: https://zenodo.org/record/8036563/files/fastp_0.23.3.img
+    graphviz: https://zenodo.org/record/7928262/files/graphviz_7.0.5.img
     hifiasm: https://zenodo.org/record/10610397/files/hifiasm_0.19.8.img
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     miniasm: https://zenodo.org/record/13550867/files/miniasm_0.3.0.img
@@ -100,8 +100,8 @@ bam_to_fastq:
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 canu:
-    genome_size: '3.3m'
-    preset: 'pacbio'
+    genome_size: ''
+    preset: 'pacbio-hifi'
     use_grid: true
     options: ''
     threads: 1
@@ -126,7 +126,7 @@ canu:
 canu_correction:
     do: false
     genome_size: '3.3m'
-    preset: 'pacbio'
+    preset: 'pacbio-hifi'
     use_grid: true
     correction_options: ''
     trimming_options: ''
@@ -157,7 +157,7 @@ hifiasm:
 # - options: any options recognised by `flye` cli
 # - threads: Number of threads to use
 flye:
-    preset: 'pacbio-raw'
+    preset: 'pacbio-hifi'
     genome_size: 
     options: ''
     threads: 4
@@ -413,6 +413,24 @@ checkm:
     resources:
         mem: 4G
 
+
+##############################################################################
+# fastp
+#
+# :Parameters:
+#
+# - min_required_length: all reads below that value are removed.
+#
+fastp:
+    do: true
+    options:
+    min_length_required: 1000
+    threads: 4
+    resources:
+        mem: 4G
+
+
+
 #############################################################################
 ##   MultiQC aggregates results from bioinformatics analyses across many
 ##   samples into a single report.
@@ -424,7 +442,7 @@ checkm:
 ##       If you want your own multiqc, fill this entry
 multiqc:
     options: -p -f
-    modules: busco quast sequana_coverage prokka
+    modules: busco quast sequana_coverage prokka fastp
     input_directory: .
     config_file: multiqc_config.yaml
     resources:

@@ -71,7 +71,7 @@ fn_ignore_dirs:
     - '.snakemake'
 fn_ignore_paths:
     - '*/canu'
-    - '*/ccs'
+    - '*/ccs/*.bam'
     - '*/circlator'
     - '*/quast/*/'
     - '*/busco/*/'

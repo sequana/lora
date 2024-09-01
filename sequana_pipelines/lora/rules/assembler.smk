@@ -12,7 +12,7 @@ rule unicycler:
         options=config["unicycler"]["options"],
         long_reads=True
     log:
-        "{sample}/logs/unicycler.log",
+        "{sample}/logs/unicycler.out",
     threads:
         config["unicycler"]["threads"]
     container:
@@ -132,6 +132,8 @@ rule flye:
         preset=config["flye"]["preset"],
         options=config["flye"]["options"],
         genome_size=config["flye"]["genome_size"],
+    log:
+        "{sample}/logs/flye.out",
     container:
         config['apptainers']['flye']
     threads:
@@ -142,8 +144,7 @@ rule flye:
         """
         outdir="$(dirname "{output.contig}")"
 
-        flye --genome-size {params.genome_size} {params.options} --{params.preset} {input} --out-dir ${{outdir}} --threads {threads} \
-            && mv ${{outdir}}/assembly.fasta {output.contig}
+        flye --genome-size {params.genome_size} {params.options} --{params.preset} {input} --out-dir ${{outdir}} --threads {threads} 2>&1 1>{log}    && mv ${{outdir}}/assembly.fasta {output.contig}
         """
 
 
