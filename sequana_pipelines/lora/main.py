@@ -52,9 +52,10 @@ help = init_click(
             "--blastdb",
             "--bacteria",
             "--do-circlator",
-            "--do-canu-correction",
+            "--do-correction",
             "--do-coverage",
             "--do-prokka",
+            "--filter-read-length-below",
             "--mode",
         ],
         "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"],
@@ -114,6 +115,14 @@ BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
     help="A estimate of the genome size. For canu, this is used only to report depth of coverage. For flye, this is higly recommended so we make it compulsary in LORA. You can use 'm' or 'g' letter to indicate mega and giga bases, e.g., 5m, 2g.",
 )
 @click.option(
+    "--min-length-required",
+    "min_length_required",
+    type=click.INT,
+    default=1000,
+    show_default=True,
+    help="Minimum read required. Reads with value below are filtered. Note that Canu already filters reads below 1kb by default.",
+)
+@click.option(
     "--mode",
     "mode",
     default="default",
@@ -150,10 +159,10 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     help="Tells LORA that the input data is made of nanopore or pacbio data.",
 )
 @click.option(
-    "--do-circlator",
-    "do_circlator",
-    is_flag="store_true",
-    help="Run circlator after assembler. Set to True is assembler Canu is chosen",
+    "--do-circlator/--no-circlator",
+    "circlator",
+    default=False,
+    help="Run circlator after assembler.",
 )
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
 @click.option("--blastdb", "blastdb", help="Path to your blast database")
@@ -252,6 +261,7 @@ def main(**options):
         cfg["quast"]["options"] = " --rna-finding"
         options.lineage = "bacteria"
 
+    cfg.fastp.min_length_required = options["min_length_required"]
     #
     if options.mode == "eukaryota":
         cfg["quast"]["options"] = " -e --rna-finding"
@@ -276,12 +286,12 @@ def main(**options):
             cfg.checkm["taxon_name"] = f"{options.checkm_name}"
 
     # circlator option
-    cfg.circlator["do"] = True if options.do_circlator else False
-    if options.assembler == "canu":
+
+    cfg.circlator["do"] = True if options.circlator else False
+    if options.assembler == "canu" and options.circlator is False:
         logger.warning(
-            "Circlator is set to ON automatically because you chose Canu as the assembler. Edit the config.yaml if that is not what you want."
+            "\U0001F449 \u2757 Canu would higly benefit for circlator. However, you did not set it. please conider using --circlator."
         )
-        cfg.circlator["do"] = True
 
     # blast
     if options.blastdb:
