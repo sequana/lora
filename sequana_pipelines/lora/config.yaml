@@ -17,7 +17,7 @@ assembler: 'flye'
 apptainers:
     bandage: https://zenodo.org/record/13399042/files/bandage_0.8.1.img
     blast: https://zenodo.org/record/7848524/files/blast_2.12.0.img
-    bwa: https://zenodo.org/record/7736677/files/bwa_0.7.17.img
+    bwa: https://zenodo.org/record/7970243/files/bwa_0.7.17.img
     busco: https://zenodo.org/record/7794877/files/busco_5.4.6.img
     canu: https://zenodo.org/record/7866415/files/canu_2.1.1.img
     checkm: https://zenodo.org/record/10040946/files/checkm_1.2.2.img
@@ -32,7 +32,7 @@ apptainers:
     multiqc: https://zenodo.org/record/10205070/files/multiqc_1.16.0.img
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
     minimap2: https://zenodo.org/record/7822910/files/samtools_1.17_minimap2_2.24.0.img
-    polypolish: https://zenodo.org/record/7704079/files/polypolish_0.5.0.img
+    polypolish: https://zenodo.org/record/13732628/files/polypolish_0.6.0.img
     prokka: https://zenodo.org/record/7848754/files/prokka_1.14.6.img
     quast: https://zenodo.org/record/7848771/files/quast_5.2.0.img
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
@@ -145,7 +145,7 @@ hifiasm:
     options: '-f0 -l0 --n-hap 1'
     threads: 4
     resources:
-        mem: 4G
+        mem: 8G
 
 
 ##############################################################################
@@ -333,7 +333,7 @@ unicycler:
     options: ""
     threads: 8
     resources:
-        mem: 64G
+        mem: 16G
 
 ##############################################################################
 # Busco
@@ -388,11 +388,13 @@ seqkit_head:
 # - evalue: Expectation value (E) threshold for saving hits.
 # - options: any options recognised by `blastn` cli (except --outfmt)
 # - threads: Number of threads to use.
+#
+# for max_target_seqs see https://academic.oup.com/bioinformatics/article/35/9/1613/5106166
 blast:
     do: false
     blastdb: ''
     evalue: '1e-10'
-    options: ' -max_target_seqs 5'
+    options: ' -max_target_seqs 100'
     threads: 4
     resources:
         mem: 12G

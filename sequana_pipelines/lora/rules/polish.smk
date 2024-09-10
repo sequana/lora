@@ -75,48 +75,73 @@ rule mapping_R1_for_polypolish:
         """
 
 
-rule mapping_R2_for_polypolish:
-    input:
-        contigs=get_circlator_contigs,
-        illumina=get_illumina_data,
-        index="{sample}/logs/{sample}_indexing_polishing.done"
-    output:
-        aln="{sample}/preprocess_for_polypolish/{sample}.2.sam"
-    resources:
-        **config["polypolish_bwa"]["resources"],
-    container:
-        config['apptainers']['bwa']
-    shell:
-        """
-        bwa mem -a {input.contigs} {input.illumina[1]} > {output.aln}
-        """
+if Ifact.paired:
+    
+    rule mapping_R2_for_polypolish:
+        input:
+            contigs=get_circlator_contigs,
+            illumina=get_illumina_data,
+            index="{sample}/logs/{sample}_indexing_polishing.done"
+        output:
+            aln="{sample}/preprocess_for_polypolish/{sample}.2.sam"
+        resources:
+            **config["polypolish_bwa"]["resources"],
+        container:
+            config['apptainers']['bwa']
+        shell:
+            """
+            bwa mem -a {input.contigs} {input.illumina[1]} > {output.aln}
+            """
 
+    rule preprocess_for_polypolish:
+        input:
+            contigs=get_circlator_contigs,
+            aln1="{sample}/preprocess_for_polypolish/{sample}.1.sam",
+            aln2="{sample}/preprocess_for_polypolish/{sample}.2.sam"
+        output:
+            filter1="{sample}/preprocess_for_polypolish/{sample}.filter.1.sam",
+            filter2="{sample}/preprocess_for_polypolish/{sample}.filter.2.sam"
+        container:
+            config['apptainers']['polypolish']
+        shell:
+            """
+            polypolish filter \
+               --in1 {input.aln1} \
+               --in2 {input.aln2} \
+               --out1 {output.filter1} \
+               --out2 {output.filter2}
+            """
 
-rule preprocess_for_polypolish:
-    input:
-        contigs=get_circlator_contigs,
-        aln1="{sample}/preprocess_for_polypolish/{sample}.1.sam",
-        aln2="{sample}/preprocess_for_polypolish/{sample}.2.sam"
-    output:
-        filter1="{sample}/preprocess_for_polypolish/{sample}.filter.1.sam",
-        filter2="{sample}/preprocess_for_polypolish/{sample}.filter.2.sam"
-    container:
-        config['apptainers']['polypolish']
-    shell:
-        """
-        polypolish_insert_filter.py \
-           --in1 {input.aln1} \
-           --in2 {input.aln2} \
-           --out1 {output.filter1} \
-           --out2 {output.filter2}
-        """
+else:
+    # for single-end data
+    rule preprocess_for_polypolish:
+        input:
+            aln1="{sample}/preprocess_for_polypolish/{sample}.1.sam"
+        output:
+            filter1="{sample}/preprocess_for_polypolish/{sample}.filter.1.sam",
+        container:
+            config['apptainers']['samtools']
+        shell:
+            """
+            samtools view -h -F 256 -F 272 {input.aln1} > {output.filter1}
+            """
+
+def get_polypolish_alignment_files(wildcards):
+    if Ifact.paired:
+       return (
+           f"{wildcards.sample}/preprocess_for_polypolish/{wildcards.sample}.filter.1.sam",
+           f"{wildcards.sample}/preprocess_for_polypolish/{wildcards.sample}.filter.2.sam"
+       )
+    else:
+       return (
+           f"{wildcards.sample}/preprocess_for_polypolish/{wildcards.sample}.filter.1.sam",
+       )
 
 
 rule polypolish:
     input:
-       alignments=("{sample}/preprocess_for_polypolish/{sample}.filter.1.sam",
-                   "{sample}/preprocess_for_polypolish/{sample}.filter.2.sam"),
-       assembly=get_circlator_contigs
+        alignments=get_polypolish_alignment_files,
+        assembly=get_circlator_contigs
     output:
         fasta="{sample}/polypolish/{sample}.polish.fasta"
     params:
@@ -129,3 +154,6 @@ rule polypolish:
         **config["polypolish"]["resources"],
     wrapper:
         f"{manager.wrappers}/wrappers/polypolish"
+
+
+

@@ -2,7 +2,8 @@
     "assembler": {
         "canu": "canu --version",
         "flye": "flye --version",
-        "unicycler": "unicycler --version"
+        "unicycler": "unicycler --version",
+        "hifiasm": "hifiasm --version"
     },
     "optional": {
         "ccs": {

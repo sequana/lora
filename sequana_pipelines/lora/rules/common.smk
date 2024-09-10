@@ -44,22 +44,35 @@ def get_raw_data(wildcards):
 
 
 # utility function to get dictionary of sample names and their input Illumina files
+
+if config["polypolish"]["do"]:
+    from sequana_pipetools.snaketools import FastQFactory
+    input_pattern = config["polypolish"]["input_pattern"]
+    input_readtag = config["polypolish"]["input_readtag"]
+    input_directory = config["polypolish"]["input_directory"]
+    Ifact = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
+else:
+    # this is maybe not required. create a dummy struct.
+    Ifact = lambda: None
+    setattr(illumina_factory, 'paired', False)  #
+
+    
 def _get_illumina_data():
     if config["polypolish"]["do"]:
-        from sequana_pipetools.snaketools import FastQFactory
-        input_pattern = config["polypolish"]["input_pattern"]
-        input_readtag = config["polypolish"]["input_readtag"]
-        input_directory = config["polypolish"]["input_directory"]
-        ff = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
-        if ff.paired is False:
-            logger.error("Your Illumina data must be paired.")
-            sys.exit(1)
-        samples = {
-        tag: [ff.get_file1(tag), ff.get_file2(tag)] for tag in ff.tags
-        }
+        if Ifact.paired:
+            samples = {
+                tag: [
+                      Ifact.get_file1(tag), 
+                      Ifact.get_file2(tag)] for tag in Ifact.tags
+            }
+        else:
+            samples = {
+                tag: [Ifact.get_file1(tag)] for tag in Ifact.tags
+            }
         return samples
     return {}
 illumina_data = _get_illumina_data()
+
 
 def get_illumina_data(wildcards):
     """Get raw illumina data."""

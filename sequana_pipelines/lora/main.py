@@ -55,7 +55,7 @@ help = init_click(
             "--do-correction",
             "--do-coverage",
             "--do-prokka",
-            "--filter-read-length-below",
+            "--min-length-required",
             "--mode",
         ],
         "Pipeline Specific Completeness": ["--checkm-rank", "--checkm-name", "--busco-lineage"],
@@ -64,6 +64,12 @@ help = init_click(
             "--pacbio-ccs-min-passes",
             "--pacbio-ccs-min-rq",
             "--pacbio-build-ccs",
+        ],
+        "Pipeline Specific to Polypolish": [
+            "--do-polypolish",
+            "--polypolish-input-directory",
+            "--polypolish-input-pattern",
+            "--polypolish-input-readtag",
         ],
     },
 )
@@ -120,7 +126,7 @@ BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
     type=click.INT,
     default=1000,
     show_default=True,
-    help="Minimum read required. Reads with value below are filtered. Note that Canu already filters reads below 1kb by default.",
+    help="Minimum read length required. Reads with value below are filtered. Note that Canu already filters reads below 1kb by default.",
 )
 @click.option(
     "--mode",
@@ -128,20 +134,20 @@ BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
     default="default",
     type=click.Choice(["default", "eukaryota", "bacteria"]),
     show_default=True,
-    help="If mode is set to 'bacteria', blast, circlator, busco, prokka, sequana_coverage, checkm are ON."
-    " If mode is set to eukaryota, only blast and busco tasks are ON. Default sets all these tasks OFF.",
+    help="If mode is set to 'bacteria', busco, prokka, sequana_coverage and checkm are ON."
+    " If mode is set to eukaryota, only busco tasks is ON.",
 )
 @click.option(
     "--do-prokka",
     "do_prokka",
     is_flag=True,
-    help="Run prokka on final contigs",
+    help="Run prokka on final contigs. For Bacteria only. Set automatically to True if '--mode bacteria' is used",
 )
 @click.option(
     "--do-correction",
     "do_correction",
     is_flag=True,
-    help="Run canu correction before hifiasm or flye.",
+    help="Run canu correction before hifiasm or flye. Not fully tested",
 )
 @click.option(
     "--pacbio-build-ccs",
@@ -159,10 +165,10 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     help="Tells LORA that the input data is made of nanopore or pacbio data.",
 )
 @click.option(
-    "--do-circlator/--no-circlator",
+    "--do-circlator",
     "circlator",
     default=False,
-    help="Run circlator after assembler.",
+    help="Run circlator after assembler. Useful with Canu, Hifiasm. Flye is suppose to perform circularisation.",
 )
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
 @click.option("--blastdb", "blastdb", help="Path to your blast database")
@@ -198,6 +204,41 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     show_default=True,
     type=click.FLOAT,
     help="minimum quality required to build the CCS. Set to 0.99 for HIFI quality",
+)
+@click.option(
+    "--do-polypolish",
+    "do_polypolish",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Run polypolish on long read contigs.",
+)
+@click.option(
+    "--polypolish-input-directory",
+    "polypolish_input_directory",
+    default=".",
+    type=click.Path(exists=True, file_okay=False),
+    show_default=True,
+    help="""Where to find Illumina input files for polishing""",
+)
+@click.option(
+    "--polypolish-input-pattern",
+    "polypolish_input_pattern",
+    default="*fastq.gz",
+    type=click.STRING,
+    show_default=True,
+    help=f"pattern to find Illumina input files",
+)
+@click.option(
+    "--polypolish-input-readtag",
+    "polypolish_input_readtag",
+    default="_R[12]_",
+    show_default=True,
+    type=click.STRING,
+    help="""pattern for the paired/single end FastQ of Illumina data for polishing. If your files are
+        tagged with _R1_ or _R2_, please set this value to '_R[12]_'. If your
+        files are tagged with  _1 and _2, you must change this readtag
+        accordingly to '_[12]'.""",
 )
 def main(**options):
     """ """
@@ -342,20 +383,26 @@ def main(**options):
     cfg["canu_correction"]["genome_size"] = options.genome_size
     cfg["flye"]["genome_size"] = options.genome_size
 
-    # by default, CCS required. If we have BAM as input, it may be original subreads, in which case you want to do
-    # the CCS (possibly) or it coudld already HIFI/CCS data in which case you do not want to dot it. So, we require the
-    # user to tell us if he wants to build CCS
-
+    # by default, CCS required. If we have BAM as input, it may be original subreads, in which case you
+    # want to do the CCS (possibly) or it coudld already HIFI/CCS data in which case you do not want to
+    # dot it. So, we require the user to tell us if he wants to build CCS
     if options.do_ccs:
         cfg.ccs["do"] = True
         # if options.data_type == "pacbio" and options.input_pattern.endswith(".bam") is False:
-        #    logger.warning("You chose to build pacbio CCS reads but your input files do not end in .bam ; that's probably not what you want.")
+        # logger.warning("You chose to build pacbio CCS reads but your input files do not
+        # end in .bam ; that's probably not what you want.")
     else:
         cfg.ccs["do"] = False
         # cfg.flye['preset'] = "pacbio-corr"
 
     cfg["ccs"]["min-rq"] = options.pacbio_ccs_min_rq
     cfg["ccs"]["min-passes"] = options.pacbio_ccs_min_passes
+
+    # poplypolish
+    cfg["polypolish"]["do"] = options.do_polypolish
+    cfg["polypolish"]["input_directory"] = os.path.abspath(options.polypolish_input_directory)
+    cfg["polypolish"]["input_pattern"] = options.polypolish_input_pattern
+    cfg["polypolish"]["input_readtag"] = options.polypolish_input_readtag
 
     # finalise the command and save it; copy the snakemake. update the config
     # file and save it.
