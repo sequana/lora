@@ -54,7 +54,7 @@ if config["polypolish"]["do"]:
 else:
     # this is maybe not required. create a dummy struct.
     Ifact = lambda: None
-    setattr(illumina_factory, 'paired', False)  #
+    setattr(Ifact, 'paired', False)  #
 
     
 def _get_illumina_data():

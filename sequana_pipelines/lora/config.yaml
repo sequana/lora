@@ -138,7 +138,7 @@ canu_correction:
 # Hifiasm v0.15.1
 #
 # :Parameters:
-#   
+#
 # - options: any options recognised by `canu` cli
 # - threads: Number of threads to use
 hifiasm:
@@ -224,11 +224,12 @@ polypolish:
     input_directory:
     input_pattern: "*.fastq.gz"
     input_readtag: "_R[12]"
-    options:
+    options: 'polish'
     resources:
         mem: 4G
 
-polypolish_bwa:
+# somehow this step requires up to 8G memory
+polypolish_filter:
     resources:
         mem: 8G
 

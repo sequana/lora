@@ -244,7 +244,7 @@ mapping:
                 type: any
                 required: true
 
-    "polypolish_bwa":
+    "polypolish_filter":
         type: map
         mapping:
             "resources":
