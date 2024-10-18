@@ -40,9 +40,10 @@ apptainers:
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
     seqkit: https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
-    sequana_coverage: https://zenodo.org/record/10460105/files/sequana_0.16.5.img
+    sequana_coverage: https://zenodo.org/record/13946414/files/sequana_coverage_0.18.0.img
     unicycler: https://zenodo.org/record/10469285/files/unicycler_0.5.0.img
-
+    mosdepth: https://zenodo.org/record/12805460/files/mosdepth_0.3.8.img 
+    
 
 ##############################################################################
 # CCS
@@ -323,6 +324,11 @@ sequana_coverage:
     resources:
         mem: 8G
 
+bam2bed:
+    options: ''
+    threads: 4
+    resources:
+        mem: 8G
 
 
 
