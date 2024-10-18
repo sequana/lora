@@ -123,7 +123,7 @@ rule fastp:
     params:
         min_length_required=config["fastp"]["min_length_required"]
     resources:
-        **config["canu"]["resources"],
+        **config["fastp"]["resources"],
     threads:
         config['fastp']['threads']
     container:

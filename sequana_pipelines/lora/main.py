@@ -109,9 +109,9 @@ BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
 @click.option(
     "--assembler",
     "assembler",
-    type=click.Choice(["canu", "hifiasm", "flye", "unicycler"]),
+    type=click.Choice(["canu", "hifiasm", "flye", "unicycler", "necat", "pecat"]),
     required=True,
-    help="An assembler in canu, hifiasm, flye (unicycler not yet implemented). We recommend flye that also performs circularisation.",
+    help="An assembler in canu, hifiasm, flye (unicycler not yet implemented). We recommend flye that also performs circularisation. ",
 )
 @click.option(
     "--genome-size",
@@ -369,7 +369,7 @@ def main(**options):
     # handle genome size
     try:
         # is this a number ?
-        int(optioms.genome_size)
+        int(options.genome_size)
     except:
         if not options.genome_size.endswith(("k", "m", "g")):
             logger.error(
@@ -382,6 +382,19 @@ def main(**options):
     cfg["canu"]["genome_size"] = options.genome_size
     cfg["canu_correction"]["genome_size"] = options.genome_size
     cfg["flye"]["genome_size"] = options.genome_size
+
+    def _convert(x):
+        if x.endswith("k"):
+            x = int(x.strip("k")) * 1000
+        elif x.endswith("m"):
+            x = int(x.strip("m")) * 1000000
+        elif x.endswith("g"):
+            x = int(x.strip("g")) * 1000000000
+        else:
+            x = int(x.strip())
+
+    cfg["necat"]["genome_size"] = _convert(options.genome_size)
+    cfg["pecat"]["genome_size"] = _convert(options.genome_size)
 
     # by default, CCS required. If we have BAM as input, it may be original subreads, in which case you
     # want to do the CCS (possibly) or it coudld already HIFI/CCS data in which case you do not want to

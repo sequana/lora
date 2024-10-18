@@ -30,6 +30,8 @@ apptainers:
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     miniasm: https://zenodo.org/record/13550867/files/miniasm_0.3.0.img
     multiqc: https://zenodo.org/record/10205070/files/multiqc_1.16.0.img
+    necat: https://zenodo.org/record/13907089/files/necat_0.0.1.img
+    pecat: https://zenodo.org/record/13942767/files/pecat_0.0.3.img
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
     minimap2: https://zenodo.org/record/7822910/files/samtools_1.17_minimap2_2.24.0.img
     polypolish: https://zenodo.org/record/13732628/files/polypolish_0.6.0.img
@@ -147,12 +149,34 @@ hifiasm:
     resources:
         mem: 8G
 
+##############################################################################
+# necat
+#
+# :Parameters:
+#
+# - options: any options recognised by `necat` cli
+#
+necat:
+    options:
+    genome_size:
+    min_required_length: 1000
+    threads: 4
+    resources:
+        mem: 16G
+
+pecat:
+    options:
+    genome_size:
+    min_required_length: 1000
+    threads: 4
+    resources:
+        mem: 16G
 
 ##############################################################################
 # Flye
 #
 # :Parameters:
-#  
+#
 # - preset: Any preset in this list: ['pacbio-raw', 'pacbio-corr', 'pacbio-hifi', 'nano-raw', 'nano-corr', 'nano-hq']
 # - options: any options recognised by `flye` cli
 # - threads: Number of threads to use

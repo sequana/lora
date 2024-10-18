@@ -40,6 +40,8 @@ VERSION_PARSER = {
         "checkm": checkm_version_parser,
         "circlator": strip_version_parser,
         "flye": strip_version_parser,
+        "necat": lambda x: "0.0.1",
+        "pecat": lambda x: "0.0.3",
         "unicycler": unicycler_version_parser,
         "hifiasm": strip_version_parser,
         "minimap2": strip_version_parser,

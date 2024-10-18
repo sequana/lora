@@ -47,11 +47,11 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
     if config["checkm"]["do"]:
         fill_checkm_result(analysis, samples, lora_dir)
         for sample in samples:
-            analysis[sample]['genus'] = config["checkm"]["taxon_rank"]
-            analysis[sample]['rank'] = config["checkm"]["taxon_name"]
+            analysis[sample]["genus"] = config["checkm"]["taxon_rank"]
+            analysis[sample]["rank"] = config["checkm"]["taxon_name"]
     for sample in samples:
         if os.path.exists(f"{sample}/bandage/{sample}_graph.png"):
-            analysis[sample]['bandage_image'] = f"{sample}/bandage/{sample}_graph.png"
+            analysis[sample]["bandage_image"] = f"{sample}/bandage/{sample}_graph.png"
 
     # we want to sort the results by contig size so let us store the list of contigs
     # sorted alphabetically.
@@ -61,9 +61,9 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
             with open(lora_dir / sample / f"sorted_contigs/{sample}.names.txt", "r") as fin:
                 data = fin.readlines()
                 ctg_names = [x.strip(">\n").split()[0] for x in data if len(x.strip("\n"))]
-            analysis[sample]['contig_order'] = ctg_names
+            analysis[sample]["contig_order"] = ctg_names
         else:
-            analysis[sample]['contig_order'] = sorted(list(analysis[sample].keys()))
+            analysis[sample]["contig_order"] = sorted(list(analysis[sample].keys()))
 
     # create summary report
     create_summary(summary_name, lora_name, summary_results, config, lora_dir)
@@ -107,7 +107,6 @@ def get_quast_information(samples: List[str], lora_dir: Path) -> Dict:
     quast_report = f"{lora_dir}/{{}}/quast/report.tsv"
     quast_results = {}
 
-
     with ExitStack() as stack:
         # open all report file
         files = [(sample, stack.enter_context(open(quast_report.format(sample)))) for sample in samples]
@@ -123,7 +122,7 @@ def get_quast_information(samples: List[str], lora_dir: Path) -> Dict:
     index_mapped = QUAST_KEY.index("Mapped (%)")
     for sample in samples:
         m = float(quast_results[sample][index_mapped])
-        quast_results[sample][index_mapped] = min(m, 100.)
+        quast_results[sample][index_mapped] = min(m, 100.0)
     return quast_results
 
 
@@ -143,7 +142,7 @@ def fill_blast_result(
     """Get blast results."""
     blast_report = f"{lora_dir}/{{0}}/blast/{{0}}.tsv"
     for sample in samples:
-        df = read_csv(blast_report.format(sample), sep="\t", names=BLAST_KEY)
+        df = read_csv(blast_report.format(sample), sep="\t", names=BLAST_KEY, low_memory=False)
         # blast results are grouped by seqId and stitle. The best bitscore for each couple is kept.
         top_alignments = df.loc[df.groupby(["qseqid", "stitle"], sort=False)["bitscore"].idxmax()].set_index("qseqid")
         for contig in top_alignments.index.unique():
@@ -211,13 +210,11 @@ def fill_checkm_result(
             # return None otherwise on purpose
 
         for sample, filin in zip(samples, files):
-            values = [value for value in (_filter(line, sample) for line in filin[1].readlines() if _filter(line, sample))]
+            values = [
+                value for value in (_filter(line, sample) for line in filin[1].readlines() if _filter(line, sample))
+            ]
             values = values[0]
-            info = {
-                "Completeness": values[11],
-                "Contamination": values[12],
-                "Heterogenity": values[13]
-            }
+            info = {"Completeness": values[11], "Contamination": values[12], "Heterogenity": values[13]}
             analysis_dict[sample]["checkm"] = info
 
             # add base64 image

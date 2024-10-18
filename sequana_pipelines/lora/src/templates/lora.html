@@ -36,7 +36,7 @@
           </thead>
           <tbody>
             {% for sample, values in summary_results.items() %}
-            <tr 
+            <tr
               id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}
               class="even:bg-slate-50 border-t border-gray-300"
             >

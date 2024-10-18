@@ -15,7 +15,7 @@ mapping:
     "assembler":
         type: str
         required: true
-        enum: ['canu', 'hifiasm', 'flye', 'unicycler']
+        enum: ['canu', 'hifiasm', 'flye', 'unicycler', 'necat', 'pecat']
 
     "apptainers":
         type: any
@@ -73,6 +73,18 @@ mapping:
             "resources":
                 type: any
                 required: true
+
+    "bam2bed":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
 
     "canu":
         type: map
@@ -140,6 +152,44 @@ mapping:
                 required: true
             "resources":
                 type: any
+                required: true
+
+    "pecat":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "genome_size":
+                type: int
+                required: true
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+            "min_required_length":
+                type: int
+                required: true
+
+    "necat":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "genome_size":
+                type: int
+                required: true
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+            "min_required_length":
+                type: int
                 required: true
 
     "flye":

@@ -6,7 +6,9 @@ assembler_output = {
     "canu": "{sample}/canu/{sample}.contigs.fasta",
     "hifiasm": "{sample}/hifiasm/{sample}.contigs.fasta",
     "flye": "{sample}/flye/{sample}.contigs.fasta",
-    "unicycler": "{sample}/unicycler/{sample}.contigs.fasta"
+    "unicycler": "{sample}/unicycler/{sample}.contigs.fasta",
+    "necat": "{sample}/necat/6-bridge_contigs/polished_contigs.fasta",
+    "pecat": "{sample}/pecat/6-polish/racon/primary.fasta"
 }
 
 polishing_output = {
