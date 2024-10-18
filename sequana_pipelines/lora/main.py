@@ -392,6 +392,7 @@ def main(**options):
             x = int(x.strip("g")) * 1000000000
         else:
             x = int(x.strip())
+        return x
 
     cfg["necat"]["genome_size"] = _convert(options.genome_size)
     cfg["pecat"]["genome_size"] = _convert(options.genome_size)
