@@ -13,6 +13,8 @@ rule pecat_config:
         min_required_length=config["pecat"]["min_required_length"],
     threads:
          config['pecat']['threads']
+    container:
+        config["apptainers"]["pecat"]
     shell:
         """
         pecat.pl config {output.config}
@@ -25,6 +27,9 @@ rule pecat_config:
         sed -i -e "s/^reads=/reads={wildcards.sample}\/pecat\/fastq_list.txt/g" {output.config}
         sed -i -e "s/^prep_min_length=3000/prep_min_length={params.min_required_length}/g" {output.config}
         sed -i -e "s/^threads=4/threads={threads}/g" {output.config}
+        # for haplotypes:
+        sed -i -e "s/^asm2_assemble_options=/asm2_assemble_options= --max_trivial_length 10000 --contig_format dual,prialt/g" {output.config}
+
         """
 
 rule pecat_correct:
@@ -39,6 +44,8 @@ rule pecat_correct:
          config['pecat']['threads']
     resources:
         **config["pecat"]["resources"],
+    container:
+        config["apptainers"]["pecat"]
     shell:
         """
         pecat.pl correct {input.config} 2>&1 1>{log}
@@ -58,8 +65,8 @@ rule pecat_assemble:
          config['pecat']['threads']
     resources:
         **config["pecat"]["resources"],
-    #container:
-    #    config["apptainers"]["pecat"]
+    container:
+        config["apptainers"]["pecat"]
     shell:
         """
         pecat.pl assemble {input.config} 2>&1 1>{log}
@@ -80,8 +87,8 @@ rule pecat_unzip:
          config['pecat']['threads']
     resources:
         **config["pecat"]["resources"],
-    #container:
-    #    config["apptainers"]["pecat"]
+    container:
+        config["apptainers"]["pecat"]
     shell:
         """
         pecat.pl unzip {input.config} 2>&1 1>{log}
