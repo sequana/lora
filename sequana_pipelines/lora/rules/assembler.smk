@@ -161,8 +161,8 @@ rule necat_assemble:
          config['necat']['threads']
     resources:
         **config["necat"]["resources"],
-    #container:
-    #    config["apptainers"]["necat"] 
+    container:
+        config["apptainers"]["necat"] 
     shell:
         """
         necat.pl assemble {input.config} 2>&1 1>{log}
@@ -181,8 +181,8 @@ rule necat_bridge:
          config['necat']['threads']
     resources:
         **config["necat"]["resources"],
-    #container:
-    #    config["apptainers"]["necat"] 
+    container:
+        config["apptainers"]["necat"] 
     shell:
         """
         necat.pl bridge {input.config} 2>&1 1>{log}
