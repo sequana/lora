@@ -160,9 +160,9 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
 @click.option(
     "--data-type",
     "data_type",
-    type=click.Choice(["pacbio-raw", "pacbio-corr", "pacbio-hifi", "nanopore"]),
+    type=click.Choice(["pacbio-raw", "pacbio-corr", "pacbio-hifi", "nano-raw", "nano-corr", "nano-hq"]),
     required=True,
-    help="Tells LORA that the input data is made of nanopore or pacbio data.",
+    help="Tells LORA that the input data is made of nanopore or pacbio data and what quality. .",
 )
 @click.option(
     "--do-circlator",
@@ -268,10 +268,24 @@ def main(**options):
     cfg.prokka.do = True if (options.do_prokka or options.mode == "bacteria") else False
 
     #
-    if options.data_type == "nanopore":
-        cfg["canu"]["preset"] = "nanopore"
+    if options.data_type == "nano-hq":
+        cfg["canu"]["preset"] = "nanopore"  # canu has only one option (nanopore)
+        cfg["canu_correction"]["preset"] = "nanopore"
+        cfg["flye"]["preset"] = "nano-hq"  # this could also be nano-corr or nano-hifi
+        cfg["minimap2"]["preset"] = "map-ont"
+        cfg["quast"]["preset"] = "nanopore"
+        cfg["circlator"]["data_type"] = "pacbio-corrected"
+    if options.data_type == "nano-raw":
+        cfg["canu"]["preset"] = "nanopore"  # canu has only one option (nanopore)
         cfg["canu_correction"]["preset"] = "nanopore"
         cfg["flye"]["preset"] = "nano-raw"  # this could also be nano-corr or nano-hifi
+        cfg["minimap2"]["preset"] = "map-ont"
+        cfg["quast"]["preset"] = "nanopore"
+        cfg["circlator"]["data_type"] = "pacbio-corrected"
+    if options.data_type == "nano-corr":
+        cfg["canu"]["preset"] = "nanopore"  # canu has only one option (nanopore)
+        cfg["canu_correction"]["preset"] = "nanopore"
+        cfg["flye"]["preset"] = "nano-corr"  # this could also be nano-corr or nano-hifi
         cfg["minimap2"]["preset"] = "map-ont"
         cfg["quast"]["preset"] = "nanopore"
         cfg["circlator"]["data_type"] = "pacbio-corrected"

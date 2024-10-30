@@ -169,6 +169,7 @@ pecat:
     options:
     genome_size:
     min_required_length: 1000
+    min_coverage: 80
     threads: 4
     resources:
         mem: 16G

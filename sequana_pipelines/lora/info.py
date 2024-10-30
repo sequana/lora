@@ -1481,4 +1481,7 @@ def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v5/data/l
     return dict(files)
 
 
-busco = get_busco_lineages_and_urls()
+try:
+    busco = get_busco_lineages_and_urls()
+except requests.exceptions.ConnectionError:
+    busco = {}

@@ -110,6 +110,8 @@ rule necat_config:
         min_required_length=config["necat"]["min_required_length"],
     threads:
          config['necat']['threads']
+    container:
+        config["apptainers"]["necat"] 
     shell:
         """
          # create config 
@@ -139,8 +141,8 @@ rule necat_correct:
          config['necat']['threads']
     resources:
         **config["necat"]["resources"],
-    #container:
-    #    config["apptainers"]["necat"] 
+    container:
+        config["apptainers"]["necat"] 
     shell:
         """
         necat.pl correct {input.config} 2>&1 1>{log}

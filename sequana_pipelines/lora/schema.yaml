@@ -172,6 +172,9 @@ mapping:
             "min_required_length":
                 type: int
                 required: true
+            "min_coverage":
+                type: int
+                required: true
 
     "necat":
         type: map
