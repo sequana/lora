@@ -5,11 +5,11 @@ on:
     branches:
       - main
       - dev
-  workflow_dispatch:      
+  workflow_dispatch:
   pull_request:
     branches-ignore: []
   schedule:
-    - cron: '0 0 1 * *'
+    - cron: '0 0 2 * *'
 
 jobs:
   build-linux:
@@ -31,10 +31,10 @@ jobs:
       uses: actions/checkout@v2
 
     - name: conda/mamba
-      uses: mamba-org/provision-with-micromamba@main
+      uses: mamba-org/setup-micromamba@v1
       with:
           environment-file: environment.yml
-          extra-specs: |
+          create-args: >-
             python=${{ matrix.python }}
 
 
