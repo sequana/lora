@@ -61,7 +61,7 @@ def test_standalone_script_nanopore(tmpdir):
         str(tmpdir),
         "--force",
         "--data-type",
-        "nanopore",
+        "nano-hq",
         # "--mode",
         # "eukaryota",
         "--assembler",

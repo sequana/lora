@@ -1,12 +1,12 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
+[project]
 name = "sequana-lora"
 version = "1.0.0"
 description = "Run assembler (Canu, Flye, Hifiasm) on a set of long read files"
-authors = ["Sequana Team"]
+authors =[{name="Sequana Team", email="thomas.cokelaer@pasteur.fr"}]
 license = "BSD-3"
 repository = "https://github.com/sequana/lora"
 readme = "README.rst"
@@ -19,26 +19,28 @@ classifiers = [
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Scientific/Engineering :: Information Analysis",
 ]
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "sequana-pipetools >=1.2.0",
+    "pandas >= 2.0.0",
+    "Jinja2 >=3.1.2",
+    "click-completion >=0.5.2",
+    "click >=8.1.7"
+]
+
+[tool.poetry]
 packages = [
     { include = "sequana_pipelines" }
 ]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-sequana-pipetools = "^1.0.5"
-pandas = "^2.0.0"
-Jinja2 = "^3.1.2"
-click-completion = "^0.5.2"
-click = "^8.1.7"
-
-[tool.poetry.scripts]
+[project.scripts]
 sequana_lora = "sequana_pipelines.lora.main:main"
 
 [tool.poetry.group.dev.dependencies]

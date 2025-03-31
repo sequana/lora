@@ -28,6 +28,7 @@ manager = PipelineManagerDirectory("lora", config, schema="schema.yaml")
 csv_filename = config.get("input_csv")
 input_directory = config.get("input_directory")
 input_pattern = config.get("input_pattern", "*.bam")
+exclude_pattern = config.get("input_pattern", None)
 if csv_filename:
     # fill samples raw data using input csv
     with open(csv_filename) as csv_file:
@@ -35,7 +36,7 @@ if csv_filename:
         manager.samples = {sample: files for sample, *files in csv_reader}
 elif input_directory and os.path.isdir(input_directory):
     # use input directory and pattern
-    ff = FileFactory(os.path.join(input_directory, input_pattern))
+    ff = FileFactory(os.path.join(input_directory, input_pattern), exclude_pattern=exclude_pattern)
     manager.samples = {
         sample: [file] for sample, file in zip(ff.filenames, ff.realpaths)
     }
