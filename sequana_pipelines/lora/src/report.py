@@ -34,14 +34,36 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
         for sample, busco_result in get_busco_information(samples, lora_dir):
             summary_results[sample] += busco_result
 
-    # get blast and sequana information per contigs
+    # make sure analysis exsits so that lora.html is populated
     analysis = defaultdict(lambda: defaultdict(dict))
+    for sample in samples:
+        analysis[sample] = defaultdict(lambda: defaultdict(dict))
+
+    # get blast/checkm/sequana information per contigs
     if config["blast"]["do"]:
         fill_blast_result(analysis, samples, lora_dir)
     if config["sequana_coverage"]["do"]:
         fill_sequana_coverage(analysis, samples, lora_dir)
     if config["checkm"]["do"]:
         fill_checkm_result(analysis, samples, lora_dir)
+        for sample in samples:
+            analysis[sample]["genus"] = config["checkm"]["taxon_rank"]
+            analysis[sample]["rank"] = config["checkm"]["taxon_name"]
+    for sample in samples:
+        if os.path.exists(f"{sample}/bandage/{sample}_graph.png"):
+            analysis[sample]["bandage_image"] = f"{sample}/bandage/{sample}_graph.png"
+
+    # we want to sort the results by contig size so let us store the list of contigs
+    # sorted alphabetically.
+    for sample in samples:
+        # for older reports
+        if os.path.exists(lora_dir / sample / f"sorted_contigs/{sample}.names.txt"):
+            with open(lora_dir / sample / f"sorted_contigs/{sample}.names.txt", "r") as fin:
+                data = fin.readlines()
+                ctg_names = [x.strip(">\n").split()[0] for x in data if len(x.strip("\n"))]
+            analysis[sample]["contig_order"] = ctg_names
+        else:
+            analysis[sample]["contig_order"] = sorted(list(analysis[sample].keys()))
 
     # create summary report
     create_summary(summary_name, lora_name, summary_results, config, lora_dir)
@@ -84,15 +106,23 @@ def get_quast_information(samples: List[str], lora_dir: Path) -> Dict:
     """Get quast information."""
     quast_report = f"{lora_dir}/{{}}/quast/report.tsv"
     quast_results = {}
+
     with ExitStack() as stack:
         # open all report file
         files = [(sample, stack.enter_context(open(quast_report.format(sample)))) for sample in samples]
         # get lines of interest from all samples
         iter_quast_results = (
-            (sample, (value for key, value in (line.rstrip().split("\t") for line in filin) if key in SET_QUAST_KEY))
+            (sample, (value for key, value in (line.rstrip().split("\t") for line in filin) if key in QUAST_KEY))
             for sample, filin in files
         )
         quast_results = {sample: list(_iter_value_to_float(results)) for sample, results in iter_quast_results}
+
+    # quast sometimes report mapping rate > 100%
+    # use QUAST_KEY here and above to make sure we retrive the correct key position
+    index_mapped = QUAST_KEY.index("Mapped (%)")
+    for sample in samples:
+        m = float(quast_results[sample][index_mapped])
+        quast_results[sample][index_mapped] = min(m, 100.0)
     return quast_results
 
 
@@ -112,7 +142,7 @@ def fill_blast_result(
     """Get blast results."""
     blast_report = f"{lora_dir}/{{0}}/blast/{{0}}.tsv"
     for sample in samples:
-        df = read_csv(blast_report.format(sample), sep="\t", names=BLAST_KEY)
+        df = read_csv(blast_report.format(sample), sep="\t", names=BLAST_KEY, low_memory=False)
         # blast results are grouped by seqId and stitle. The best bitscore for each couple is kept.
         top_alignments = df.loc[df.groupby(["qseqid", "stitle"], sort=False)["bitscore"].idxmax()].set_index("qseqid")
         for contig in top_alignments.index.unique():
@@ -143,11 +173,16 @@ def fill_sequana_coverage(
             contig_results = json.load(json_file)
             contig = contig_results["data"]["chrom_name"]
             # get general mapping information
-            analysis_dict[sample][contig]["coverage"] = {
+            info = {
                 "length": contig_results["data"]["length"],
                 "DOC": f"{contig_results['data']['DOC']:.3f}",
                 "BOC": f"{contig_results['data']['BOC']:.3f}",
             }
+            if contig in analysis_dict[sample]:
+                analysis_dict[sample][contig]["coverage"] = info
+            else:
+                analysis_dict[sample][contig] = {}
+                analysis_dict[sample][contig]["coverage"] = info
             # add base64 image
             image_name = os.path.join(os.path.dirname(json_file.name), "coverage.png")
             with open(image_name, "rb") as f:
@@ -160,7 +195,7 @@ def fill_checkm_result(
     """Get checkm information."""
     checkm_report = f"{lora_dir}/{{}}/checkm/results.txt"
     checkm_image = f"{lora_dir}/{{}}/checkm/{{}}.marker_pos_plot.png"
-    
+
     with ExitStack() as stack:
         # open all report file
         files = [(sample, stack.enter_context(open(checkm_report.format(sample)))) for sample in samples]
@@ -175,13 +210,12 @@ def fill_checkm_result(
             # return None otherwise on purpose
 
         for sample, filin in zip(samples, files):
-            values = [value for value in (_filter(line, sample) for line in filin[1].readlines() if _filter(line, sample))]
+            values = [
+                value for value in (_filter(line, sample) for line in filin[1].readlines() if _filter(line, sample))
+            ]
             values = values[0]
-            analysis_dict[sample]["checkm"] = {
-                "Completeness": values[11],
-                "Contamination": values[12],
-                "Heterogenity": values[13]
-            }
+            info = {"Completeness": values[11], "Contamination": values[12], "Heterogenity": values[13]}
+            analysis_dict[sample]["checkm"] = info
 
             # add base64 image
             image_name = checkm_image.format(sample, sample)

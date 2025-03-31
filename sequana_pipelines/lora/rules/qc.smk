@@ -6,7 +6,8 @@ rule seqkit_sort:
     input:
         get_final_contigs
     output:
-        "{sample}/sorted_contigs/{sample}.fasta"
+        ctg="{sample}/sorted_contigs/{sample}.fasta",
+        names="{sample}/sorted_contigs/{sample}.names.txt"
     threads:
         config["seqkit_sort"]["threads"]
     resources:
@@ -15,16 +16,44 @@ rule seqkit_sort:
         config['apptainers']['seqkit']
     shell:
         """
-        seqkit sort --threads {threads} --by-length --reverse {input} -o {output}
+        seqkit sort --threads {threads} --by-length --reverse {input} -o {output.ctg}
+        grep ">" {output.ctg} > {output.names}
         """
 
-rule minimap2_and_genomecov:
+
+rule fasta2paf:
+    input:
+        rules.seqkit_sort.output.ctg
+    output:
+        paf="{sample}/graph/{sample}.paf"
+    container:
+        config["apptainers"]["minimap2"]
+    shell:
+        """
+        minimap2 -x ava-pb -t4 {input} {input} > {output}
+        """
+
+
+rule paf2gfa:
+    input:
+        ctg=rules.seqkit_sort.output.ctg,
+        paf=rules.fasta2paf.output.paf
+    output:
+        gfa="{sample}/graph/{sample}.gfa"
+    container:
+        config["apptainers"]["miniasm"]
+    shell:
+        """
+        miniasm -f {input.ctg} {input.paf} > {output.gfa}
+        """
+
+
+rule minimap2:
     input:
         fastq = get_fastq,
         contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
         bam = "{sample}/minimap2/{sample}.bam",
-        bed = "{sample}/minimap2/{sample}.bed"
     params:
         preset = config['minimap2']['preset'],
         options = config['minimap2']['options']
@@ -39,26 +68,68 @@ rule minimap2_and_genomecov:
         minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq} \
             | samtools sort -@ $(({threads} - 1)) -o {output.bam}\
             && samtools index {output.bam}\
-            && samtools depth -aa {output.bam} > {output.bed}
+        """
+
+rule bam2bed:
+    input:
+        bam=rules.minimap2.output.bam
+    output:
+        bed="{sample}/minimap2/{sample}.bed"
+    container:
+        config['apptainers']['mosdepth']
+    params:
+        mapq=0,
+        second_mapq=35
+    threads:
+        config['bam2bed']['threads']
+    resources:
+        **config["bam2bed"]["resources"],
+    shell:
+        """
+        mosdepth -t {threads} -Q {params.mapq}  -b1 {wildcards.sample}/minimap2/lenny1 {input.bam}
+        mosdepth -t {threads} -Q {params.second_mapq} -b1 {wildcards.sample}/minimap2/lenny2 {input.bam}
+        paste <(gunzip -c {wildcards.sample}/minimap2/lenny1.regions.bed.gz | cut -f 1,3,4) <(gunzip -c {wildcards.sample}/minimap2/lenny2.regions.bed.gz | cut -f 4 ) > {output.bed}
+        rm -f {wildcards.sample}/minimap2/lenny?.*
         """
 
 
 rule sequana_coverage:
     input:
-        bed = "{sample}/minimap2/{sample}.bed"
+        bed=rules.bam2bed.output.bed,
+        contigs = "{sample}/sorted_contigs/{sample}.fasta"
     output:
-        html = "{sample}/sequana_coverage/multiqc_report.html"
+        html="{sample}/sequana_coverage/multiqc_report.html"
     params:
-        config['sequana_coverage']['options']
+        circular="-o " if config["sequana_coverage"]["circular"] else "",
+        chunksize=config["sequana_coverage"]["chunksize"],
+        double_threshold=config["sequana_coverage"]["double_threshold"],
+        gc_window_size=config["sequana_coverage"]["gc_window_size"],
+        high_threshold=config["sequana_coverage"]["high_threshold"],
+        low_threshold=config["sequana_coverage"]["low_threshold"],
+        mixture_models=config["sequana_coverage"]["mixture_models"],
+        options=config["sequana_coverage"]["options"],
+        window_size=config["sequana_coverage"]["window_size"],
+        output_directory="{sample}/sequana_coverage"
+    log:
+        "logs/sequana_coverage/{sample}_sequana_coverage.log"
     resources:
         **config["sequana_coverage"]["resources"],
     container:
         config['apptainers']['sequana_coverage']
     shell:
         """
-        sequana_coverage {params} -i {input.bed} -o --output-directory {wildcards.sample}/sequana_coverage
+        sequana_coverage --input-file {input.bed} \
+            -H {params.high_threshold} \
+            -L {params.low_threshold} \
+            --clustering-parameter {params.double_threshold} \
+            --chunk-size {params.chunksize} \
+            --window-gc {params.gc_window_size} \
+            --mixture-models {params.mixture_models} \
+            --output-directory {params.output_directory} \
+            --window-median {params.window_size} \
+            --reference-file {input.contigs} \
+            {params.options}
         """
-
 
 rule quast:
     input:
@@ -88,7 +159,7 @@ rule busco:
     output:
         directory("{sample}/busco")
     log:
-        "{sample}/logs/{sample}_busco.out"
+        "{sample}/logs/busco.out"
     params:
         mode = "genome",
         lineage = config['busco']['lineage'],
@@ -113,13 +184,15 @@ rule prokka:
         config['prokka']['options']
     threads:
         config['prokka']['threads']
+    log:
+        "{sample}/logs/prokka.out"
     container:
         config['apptainers']['prokka']
     resources:
         **config["prokka"]["resources"],
     shell:
         """
-        prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs}
+        prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs} 2>&1 >{log}
         """
 
 
@@ -182,9 +255,9 @@ rule multiqc:
 
 
 rule checkm_marker:
-    output: 
+    output:
         marker="marker"
-    threads: 
+    threads:
          1
     container:
         config['apptainers']['checkm']
@@ -195,7 +268,7 @@ rule checkm_marker:
         **config["checkm"]["resources"],
     shell:
         """
-        checkm taxon_set {params.taxon_rank} {params.taxon_name} {output.marker}
+        checkm taxon_set {params.taxon_rank} "{params.taxon_name}" {output.marker}
         """
 
 rule checkm:

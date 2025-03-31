@@ -2,6 +2,9 @@
     "assembler": {
         "canu": "canu --version",
         "flye": "flye --version",
+        "necat": "necat.pl -h",
+        "pecat": "pecat.pl -h",
+        "unicycler": "unicycler --version",
         "hifiasm": "hifiasm --version"
     },
     "optional": {

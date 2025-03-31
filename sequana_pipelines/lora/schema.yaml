@@ -15,7 +15,7 @@ mapping:
     "assembler":
         type: str
         required: true
-        enum: ['canu', 'hifiasm', 'flye', 'unicycler']
+        enum: ['canu', 'hifiasm', 'flye', 'unicycler', 'necat', 'pecat']
 
     "apptainers":
         type: any
@@ -60,7 +60,7 @@ mapping:
             "resources":
                 type: any
                 required: true
- 
+
     "bam_to_fastq":
         type: map
         mapping:
@@ -73,6 +73,18 @@ mapping:
             "resources":
                 type: any
                 required: true
+
+    "bam2bed":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
 
     "canu":
         type: map
@@ -142,6 +154,47 @@ mapping:
                 type: any
                 required: true
 
+    "pecat":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "genome_size":
+                type: int
+                required: true
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+            "min_required_length":
+                type: int
+                required: true
+            "min_coverage":
+                type: int
+                required: true
+
+    "necat":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: false
+            "genome_size":
+                type: int
+                required: true
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+            "min_required_length":
+                type: int
+                required: true
+
     "flye":
         type: map
         mapping:
@@ -152,6 +205,9 @@ mapping:
             "options":
                 type: text
                 required: false
+            "genome_size":
+                type: str
+                required: true
             "threads":
                 type: int
                 required: true
@@ -241,11 +297,30 @@ mapping:
                 type: any
                 required: true
 
-    "polypolish_bwa":
+    "polypolish_filter":
         type: map
         mapping:
             "resources":
                 type: any
+                required: true
+
+    "fastp":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "options":
+                type: text
+                required: false
+            "min_length_required":
+                type: int
+                required: false
+            "resources":
+                type: any
+                required: true
+            "threads":
+                type: int
                 required: true
 
     "checkm":
@@ -312,7 +387,7 @@ mapping:
                 required: true
 
 
- "sequana_coverage":
+    "sequana_coverage":
         type: map
         mapping:
             "do":
@@ -438,7 +513,7 @@ mapping:
                 required: true
             "blastdb":
                 type: str
-                required: true
+                required: false
                 nullable: false
             "evalue":
                 type: str

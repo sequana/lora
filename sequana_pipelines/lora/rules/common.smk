@@ -6,7 +6,9 @@ assembler_output = {
     "canu": "{sample}/canu/{sample}.contigs.fasta",
     "hifiasm": "{sample}/hifiasm/{sample}.contigs.fasta",
     "flye": "{sample}/flye/{sample}.contigs.fasta",
-    "unicycler": "{sample}/uniclycler/{sample}.contigs.fasta"
+    "unicycler": "{sample}/unicycler/{sample}.contigs.fasta",
+    "necat": "{sample}/necat/6-bridge_contigs/polished_contigs.fasta",
+    "pecat": "{sample}/pecat/6-polish/racon/primary.fasta"
 }
 
 polishing_output = {
@@ -32,6 +34,8 @@ def requested_output(manager):
         output_list += [expand("{sample}/polypolish/{sample}.polish.fasta", sample=manager.samples)]
     if config["checkm"]["do"]:
         output_list += [expand("{sample}/checkm/{sample}.marker_pos_plot.png", sample=manager.samples)]
+    if config["assembler"] in ["flye", "unicycler"]:
+        output_list += [expand("{sample}/bandage/{sample}_graph.png", sample=manager.samples)]
 
     return output_list
 
@@ -42,22 +46,35 @@ def get_raw_data(wildcards):
 
 
 # utility function to get dictionary of sample names and their input Illumina files
+
+if config["polypolish"]["do"]:
+    from sequana_pipetools.snaketools import FastQFactory
+    input_pattern = config["polypolish"]["input_pattern"]
+    input_readtag = config["polypolish"]["input_readtag"]
+    input_directory = config["polypolish"]["input_directory"]
+    Ifact = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
+else:
+    # this is maybe not required. create a dummy struct.
+    Ifact = lambda: None
+    setattr(Ifact, 'paired', False)  #
+
+    
 def _get_illumina_data():
     if config["polypolish"]["do"]:
-        from sequana_pipetools.snaketools import FastQFactory
-        input_pattern = config["polypolish"]["input_pattern"]
-        input_readtag = config["polypolish"]["input_readtag"]
-        input_directory = config["polypolish"]["input_directory"]
-        ff = FastQFactory(os.sep.join([input_directory, input_pattern]), read_tag=input_readtag)
-        if ff.paired is False:
-            logger.error("Your Illumina data must be paired.")
-            sys.exit(1)
-        samples = {
-        tag: [ff.get_file1(tag), ff.get_file2(tag)] for tag in ff.tags
-        }
+        if Ifact.paired:
+            samples = {
+                tag: [
+                      Ifact.get_file1(tag), 
+                      Ifact.get_file2(tag)] for tag in Ifact.tags
+            }
+        else:
+            samples = {
+                tag: [Ifact.get_file1(tag)] for tag in Ifact.tags
+            }
         return samples
     return {}
 illumina_data = _get_illumina_data()
+
 
 def get_illumina_data(wildcards):
     """Get raw illumina data."""
@@ -83,12 +100,19 @@ def get_bam(wildcards):
     return manager.samples[wildcards.sample][0]
 
 
-def get_fastq(wildcards):
-    """Convert bam to fastq format."""
+def get_raw_fastq(wildcards):
     filename = manager.samples[wildcards.sample][0]
     if filename.endswith(".bam"):
         return f"{wildcards.sample}/bam_to_fastq/{wildcards.sample}.fastq"
     return filename
+
+
+def get_fastq(wildcards):
+    """Convert bam to fastq format."""
+    if config["fastp"]["do"]:
+        return f"{wildcards.sample}/fastp/{wildcards.sample}.fastq.gz"
+    else:
+        return get_raw_fastq(wildcards)
 
 
 def get_corrected_fastq(wildcards):

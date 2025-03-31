@@ -23,6 +23,9 @@
     </div>
     <div class="p-12 text-base font-light leading-8 text-slate-700 flex-auto">
       <h1 class="text-3xl font-semibold mb-4">General Information</h1>
+
+      <p class="text-3xl font-light text-base">The following table gives you basic statistics about the final assembly. Please click on the sample of interest in the first column to switch from one sample to the other. The default page shows the first sample.</p>
+
       <div class="overflow-x-auto w-full">
         <table id="lora_summary" class="w-full border-collapse table-auto mb-3">
           <thead class="font-medium border-b-2 border-gray-300">
@@ -33,7 +36,7 @@
           </thead>
           <tbody>
             {% for sample, values in summary_results.items() %}
-            <tr 
+            <tr
               id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}
               class="even:bg-slate-50 border-t border-gray-300"
             >
@@ -47,12 +50,30 @@
         </div>
       </table>
       </div>
-      {% if analysis %}
+
+      <div class="overflow-x-auto w-full">
+      <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700">
+      </div>
+
+
         {% for sample, contigs_dict in analysis.items() %}
           <div id="{{sample}}" class="hidden">
-            <h1 class="text-2xl font-semibold mb-4">{{sample}}</h1>
+      	      <h1 class="text-2xl font-semibold mb-4">{{sample}} sample:</h1>
+      	      <p class="text-2xl font-semibold mb-4 text-base"> Download contig file for {{sample}}: <a
+class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">here</a>. </p>
+              {% if 'bandage_image' in analysis[sample] %}
+              
+              <figure class="max-w-lg mx-auto">
+              <img class="h-auto max-w-full mx-auto filter grayscale hover:grayscale-0"
+                    src="{{analysis[sample]['bandage_image']}}"  />
+              <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">
+                Graph relation between contigs found before any circularisation. </figcaption>
+              </figure>
+              {% endif %}
 
               {% if 'checkm' in analysis[sample] %}
+              <h2 class="font-medium mb-2 text-xl">{{contig}}</h2>
+	          <h2 class="text-2xl font-semibold mb-4">General CheckM results using {{analysis[sample]['genus']}} / {{analysis[sample]['rank']}}</h2>
               <div class="flex items-center justify-around mb-4">
                 <table id="{{sample}}_checkm" class="table-auto w-1/6 text-left">
                   <tbody>
@@ -66,15 +87,20 @@
                 </table>
                 <img class="checkm" src="data:image/png;base64,{{analysis[sample]['checkm_image']}}" />
               </div>
+              {% else %}
+      	      <p class="text-2xl font-semibold mb-4 text-base">
+               checkM not available (not set in the config file?) </p>
               {% endif %}
 
-            {% for contig, results in contigs_dict.items() %}
-              <h2 class="font-medium mb-2 text-xl">{{contig}}</h2>
-              {% if 'coverage' in results %}
+
+            {% for contig in contigs_dict['contig_order'] %}
+
+              {% if 'coverage' in analysis[sample][contig] %}
+              <h2 class="font-medium mb-2 text-xl">Sequana coverage for {{contig}}</h2>
                 <div class="flex items-center justify-around mb-4">
                   <table id="{{sample}}_{{contig}}_sequana" class="table-auto w-1/6 text-left">
                     <tbody>
-                      {% for key, value in results['coverage'].items() %}
+                      {% for key, value in analysis[sample][contig]['coverage'].items() %}
                       <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
                         <th class="px-2 py-2">{{key}}</th>
                         <td class="px-2 py-2 text-right">{{value}}</td>
@@ -82,19 +108,26 @@
                       {% endfor %}
                     </tbody>
                   </table>
-                  <img src="data:image/png;base64,{{results['cov_image']}}" />
+
+                  <a href="{{sample}}/sequana_coverage/{{contig}}/{{contig}}.cov.html">
+                  <img src="data:image/png;base64,{{analysis[sample][contig]['cov_image']}}" />
+                  </a>
                 </div>
+              {% elif contig == contigs_dict['contig_order'][0] %}
+      	      <p class="text-2xl font-semibold mb-4 text-base"> 
+               sequana coverage not available (not set in the config file?) </p>
               {% endif %}
 
 
-              {% if 'blast' in results %}
+              {% if 'blast' in analysis[sample][contig] %}
                 <div class="overflow-x-auto w-full">
+                  <h2 class="font-medium mb-2 text-xl">Blast results for {{contig}}</h2>
                   <table 
                     id="{{sample}}_{{contig}}_blast"
                     class="table-auto w-full border-collapse mb-3"
                   >
                     <thead class="font-medium border-b-2 border-gray-300">
-                        {% for title in results['blast'][0].keys() %}
+                        {% for title in analysis[sample][contig]['blast'][0].keys() %}
                           <th class="
                             {{ 'text-left' if loop.first else 'text-right' }}
                             py-2 px-2
@@ -102,7 +135,7 @@
                         {% endfor %}
                     </thead>
                     <tbody>
-                      {% for blast in results['blast'] %}
+                      {% for blast in analysis[sample][contig]['blast'] %}
                       <tr class="{{ '' if loop.first else 'border-b border-gray-300' }}">
                         {% for value in blast.values() %}
                         <td class="
@@ -115,11 +148,13 @@
                     </tbody>
                   </table>
                 </div>
+              {% elif contig == contigs_dict['contig_order'][0] %}
+      	      <p class="text-2xl font-semibold mb-4 text-base"> 
+               blast results not available (not set in the config file?) </p>
               {% endif %} 
             {% endfor %}
           </div>
         {% endfor %}
-      {% endif %}
     </div>
     <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50">
         <p>
