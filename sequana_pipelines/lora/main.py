@@ -240,6 +240,13 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
         files are tagged with  _1 and _2, you must change this readtag
         accordingly to '_[12]'.""",
 )
+@click.option(
+    "--reference",
+    "reference",
+    default=None,
+    show_default=False,
+    type=click.Path(exists=True, file_okay=True),
+)
 def main(**options):
     """ """
     # the real stuff is here

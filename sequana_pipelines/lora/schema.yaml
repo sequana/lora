@@ -23,6 +23,10 @@ mapping:
     "sequana_wrappers":
         type: str
 
+    "reference_file":
+        type: str
+        required: true
+
     "ccs":
         type: map
         mapping:
@@ -496,7 +500,20 @@ mapping:
             "resources":
                 type: any
                 required: true
-    
+
+    "ragtag_scaffold":
+        type: map
+        mapping:
+            "options":
+                type: text
+                required: true
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+
     "seqkit_head":
         type: map
         mapping:

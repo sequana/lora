@@ -9,6 +9,7 @@ minimap2
 pbindex
 prokka
 quast.py
+ragtag_scaffold
 samtools
 sequana_coverage
 seqkit

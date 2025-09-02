@@ -12,6 +12,7 @@ input_directory: ''
 input_pattern: '*.bam'
 input_csv: ''
 assembler: 'flye'
+reference_file: ''
 
 # apptainers links
 apptainers:
@@ -29,6 +30,7 @@ apptainers:
     hifiasm: https://zenodo.org/record/10610397/files/hifiasm_0.19.8.img
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     miniasm: https://zenodo.org/record/13550867/files/miniasm_0.3.0.img
+    mosdepth: https://zenodo.org/record/12805460/files/mosdepth_0.3.8.img
     multiqc: https://zenodo.org/record/10205070/files/multiqc_1.16.0.img
     necat: https://zenodo.org/record/13907089/files/necat_0.0.1.img
     pecat: https://zenodo.org/record/13942767/files/pecat_0.0.3.img
@@ -37,13 +39,13 @@ apptainers:
     polypolish: https://zenodo.org/record/13732628/files/polypolish_0.6.0.img
     prokka: https://zenodo.org/record/7848754/files/prokka_1.14.6.img
     quast: https://zenodo.org/record/7848771/files/quast_5.2.0.img
+    ragtag: https://zenodo.org/record/13759601/files/ragtag_2.1.0.img
     samtools: https://zenodo.org/record/7437898/files/samtools_1.16.1.img
     seqkit: https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
     sequana_coverage: https://zenodo.org/record/13946414/files/sequana_coverage_0.18.0.img
     unicycler: https://zenodo.org/record/10469285/files/unicycler_0.5.0.img
-    mosdepth: https://zenodo.org/record/12805460/files/mosdepth_0.3.8.img 
-    
+
 
 ##############################################################################
 # CCS
@@ -483,3 +485,10 @@ multiqc:
         mem: 8G
 
 
+
+#################################################################################
+ragtag_scaffold:
+    options:
+    threads: 1
+    resources:
+        mem: 8G
