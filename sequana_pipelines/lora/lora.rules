@@ -61,6 +61,7 @@ include: "rules/ccs.smk"
 include: "rules/assembler.smk"
 include: "rules/polish.smk"
 include: "rules/qc.smk"
+include: "rules/scaffold.smk"
 
 
 rule rulegraph:
