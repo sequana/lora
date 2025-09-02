@@ -241,8 +241,8 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
         accordingly to '_[12]'.""",
 )
 @click.option(
-    "--reference",
-    "reference",
+    "--reference-file",
+    "reference_file",
     default=None,
     show_default=False,
     type=click.Path(exists=True, file_okay=True),
@@ -270,6 +270,7 @@ def main(**options):
     cfg.input_directory = os.path.abspath(options.input_directory)
     cfg.input_pattern = options.input_pattern
     cfg.input_csv = os.path.abspath(options.input_csv) if options.input_csv else ""
+    cfg.reference_file = os.path.abspath(options.reference_file) if options.reference_file else ""
 
     # prokka
     cfg.prokka.do = True if (options.do_prokka or options.mode == "bacteria") else False
