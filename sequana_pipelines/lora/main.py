@@ -168,6 +168,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     "--do-circlator",
     "circlator",
     default=False,
+    is_flag=True,
     help="Run circlator after assembler. Useful with Canu, Hifiasm. Flye is suppose to perform circularisation.",
 )
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
@@ -353,7 +354,7 @@ def main(**options):
     cfg.circlator["do"] = True if options.circlator else False
     if options.assembler == "canu" and options.circlator is False:
         logger.warning(
-            "\U0001F449 \u2757 Canu would higly benefit for circlator. However, you did not set it. please conider using --circlator."
+            "\U0001F449 \u2757 Canu would higly benefit for circlator. However, you did not set it. please conider using --do-circlator."
         )
 
     # blast
@@ -407,11 +408,11 @@ def main(**options):
 
     def _convert(x):
         if x.endswith("k"):
-            x = int(x.strip("k")) * 1000
+            x = int(float(x.strip("k")) * 1000)
         elif x.endswith("m"):
-            x = int(x.strip("m")) * 1000000
+            x = int(float(x.strip("m")) * 1000000)
         elif x.endswith("g"):
-            x = int(x.strip("g")) * 1000000000
+            x = int(float(x.strip("g")) * 1000000000)
         else:
             x = int(x.strip())
         return x

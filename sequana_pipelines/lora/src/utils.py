@@ -49,6 +49,7 @@ VERSION_PARSER = {
     1: {
         "seqtk": seqtk_version_parser,
     },
+    255: {},
 }
 APPTAINER_CORRESPONDANCE = {
     "canu_correction": "canu",
