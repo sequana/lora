@@ -132,7 +132,8 @@ rule fastp:
         "{sample}/logs/fastp.log",
     shell:
         """
-        fastp --in1 {input} --length_required {params.min_length_required} --out1 {output} --disable_adapter_trimming --disable_quality_filtering --html {output.html} --json {output.json} --thread {threads} 2>&1 > {log}
+        # reduce RAM usage by first streaming from disk instead of fully loading
+        zcat {input} | fastp -i /dev/stdin --length_required {params.min_length_required} --out1 {output} --disable_adapter_trimming --disable_quality_filtering --html {output.html} --json {output.json} --thread {threads} 2>&1 > {log}
         """
 
 
