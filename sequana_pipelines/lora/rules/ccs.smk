@@ -132,7 +132,16 @@ rule fastp:
         "{sample}/logs/fastp.log",
     shell:
         """
-        fastp --in1 {input} --length_required {params.min_length_required} --out1 {output} --disable_adapter_trimming --disable_quality_filtering --html {output.html} --json {output.json} --thread {threads} 2>&1 > {log}
+        # reduce RAM usage by first streaming from disk instead of fully loading
+        # bam_to_fastq does not compress the data
+
+        if [[ "{input}" == *.gz ]]; then
+            catcmd="zcat"
+        else
+            catcmd="cat"
+        fi
+
+        $catcmd  {input} | fastp -i /dev/stdin --length_required {params.min_length_required} --out1 {output} --disable_adapter_trimming --disable_quality_filtering --html {output.html} --json {output.json} --thread {threads} 2>&1 > {log}
         """
 
 
