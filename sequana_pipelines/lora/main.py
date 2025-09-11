@@ -177,7 +177,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     "--busco-lineage",
     "lineage",
     type=BUSCO_OR_DIR,
-    help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage. If the lineage is not a valid path, we download it locally. This may take time. Full list is on https://github.com/sequana/lora//wiki/busco",
+    help="Lineage or path to lineage file for BUSCO. Note that we support only version 5 of the BUSCO lineage. If the lineage is not a valid path, we download it locally. The full list is available on https://github.com/sequana/lora/wiki/busco . For bacteria, you may simply use 'bacteria'",
 )
 @click.option(
     "--checkm-rank",

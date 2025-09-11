@@ -31,7 +31,7 @@ apptainers:
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
     miniasm: https://zenodo.org/record/13550867/files/miniasm_0.3.0.img
     mosdepth: https://zenodo.org/record/12805460/files/mosdepth_0.3.8.img
-    multiqc: https://zenodo.org/record/10205070/files/multiqc_1.16.0.img
+    multiqc: https://zenodo.org/record/17100751/files/multiqc_1.27.0-zenodo1.img
     necat: https://zenodo.org/record/13907089/files/necat_0.0.1.img
     pecat: https://zenodo.org/record/13942767/files/pecat_0.0.3.img
     pbindex: https://zenodo.org/record/7817189/files/pbbam_2.3.0.img
@@ -463,7 +463,7 @@ fastp:
     min_length_required: 1000
     threads: 4
     resources:
-        mem: 4G
+        mem: 8G
 
 
 

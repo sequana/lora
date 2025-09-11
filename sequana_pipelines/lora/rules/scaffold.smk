@@ -17,6 +17,6 @@ rule ragtag_scaffold:
         config['apptainers']['ragtag']
     shell:
         """
-        ragtag_scaffold.py {input.ctg} {input.ref} -w -o {wildcards.sample}/ragtag_scaffold 2>{log}
+        ragtag_scaffold.py {input.ref} {input.ctg} -w -o {wildcards.sample}/ragtag_scaffold 2>{log}
         """
 
