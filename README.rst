@@ -39,6 +39,25 @@ retrieve the pipeline itself and its configuration files and then execute the pi
 
 Or use `sequanix <https://sequana.readthedocs.io/en/master/sequanix.html>`_ interface.
 
+
+Example 1 Pacbio - HiFi data
+----------------------------
+
+With HiFi data, set the data-type to pacbio-hifi. We recommend flye that is quite fast with HiFi data.
+No need to install third-party software if you use the --apptainer-prefix. It will download required files once for all.
+--do-coverage is optional but recommended to check the quality of the final contigs and their coverage.
+
+::
+
+    sequana_lora \
+        --input-directory FILLME \
+        --data-type pacbio-hifi \
+        --assembler flye \
+        --apptainer-prefix A_DIRECTORY_TO_STORE_CONTAINERS \
+        --do-coverage  \
+        --genome-size 35m
+
+
 Example 1 Pacbio subreads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
