@@ -10,7 +10,7 @@
    :target: https://github.com/sequana/lora/actions/workflows/main.yaml
 
 
-This is is the **lora** pipeline from the `Sequana <https://sequana.readthedocs.org>`_ project
+This is the **lora** pipeline from the `Sequana <https://sequana.readthedocs.org>`_ project
 
 :Overview: Run assembler (Canu, flye, hifiasm) on a set of long read files
 :Input: A set of BAM files from Pacbio sequencers, or FastQ files for Nanopore sequencers.
