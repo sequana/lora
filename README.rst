@@ -20,7 +20,9 @@ This is the **lora** pipeline from the `Sequana <https://sequana.readthedocs.org
 :Citation(pipeline):
     .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4047837.svg
        :target: https://doi.org/10.5281/zenodo.4047837
+    https://www.biorxiv.org/content/10.64898/2026.01.06.697901v1
 
+.. image:: https://raw.githubusercontent.com/sequana/lora/master/sequana_pipelines/lora/dag.png
 
 
 Installation
