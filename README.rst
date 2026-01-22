@@ -152,6 +152,8 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
+1.0.2     * dummy release for linking releases on Zenodo
+1.0.1     * Fix bs4 requirements
 1.0.0     * uniformised extension with other pipelines. fix regression on
             schema file
           * update sequana container to v0.16.5
