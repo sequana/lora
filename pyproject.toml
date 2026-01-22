@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "sequana-lora"
-version = "1.0.1"
+version = "1.0.2"
 description = "Run assembler (Canu, Flye, Hifiasm) on a set of long read files"
 authors =[{name="Sequana Team", email="thomas.cokelaer@pasteur.fr"}]
 license = "BSD-3"
