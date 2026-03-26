@@ -68,11 +68,20 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
     # create summary report
     create_summary(summary_name, lora_name, summary_results, config, lora_dir)
 
+    # embed logo
+    logo_path = Path(__file__).parent / "templates" / "sequana_logo.png"
+    logo_b64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
+
     # create lora report
     env = Environment(loader=PackageLoader("sequana_pipelines.lora.src", "templates"))
     template = env.get_template("lora.html")
     report_output = template.render(
-        summary_header=summary_header, summary_results=summary_results, analysis=analysis, version=version
+        summary_header=summary_header,
+        summary_results=summary_results,
+        analysis=analysis,
+        version=version,
+        blast_done=config["blast"]["do"],
+        logo_b64=logo_b64,
     )
     with open(lora_name, "w") as fout:
         print(report_output, file=fout)
@@ -89,6 +98,9 @@ def create_summary(summary_name: str, lora_name: str, quast_info: Dict, config: 
     lora_dir = Path(lora_dir)
     env = Environment(loader=PackageLoader("sequana_pipelines.lora.src", "templates"))
     template = env.get_template("summary.html")
+    logo_path = Path(__file__).parent / "templates" / "sequana_logo.png"
+    logo_b64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
+
     report_output = template.render(
         lora_dir=lora_dir,
         lora_report=lora_name,
@@ -97,6 +109,7 @@ def create_summary(summary_name: str, lora_name: str, quast_info: Dict, config: 
         version=version,
         rulegraph=(lora_dir / ".sequana" / "rulegraph.svg").read_text(),
         dependencies=get_tools_versions(config),
+        logo_b64=logo_b64,
     )
     with open(summary_name, "w") as fout:
         print(report_output, file=fout)
@@ -128,10 +141,15 @@ def get_quast_information(samples: List[str], lora_dir: Path) -> Dict:
 
 def get_busco_information(samples: List[str], lora_dir: Path) -> Iterator[Tuple[str, List]]:
     """Get busco information."""
-    busco_report = f"{lora_dir}/{{0}}/busco/short_summary_{{0}}.txt"
     with ExitStack() as stack:
-        files = [(sample, stack.enter_context(open(busco_report.format(sample)))) for sample in samples]
-        for sample, filin in files:
+        for sample in samples:
+            busco_dir = Path(str(lora_dir)) / sample / "busco"
+            # BUSCO 5.x: short_summary.specific.<lineage>.<name>.txt
+            # Fall back to legacy short_summary_<sample>.txt
+            matches = sorted(busco_dir.glob("short_summary*.txt"))
+            if not matches:
+                raise FileNotFoundError(f"No BUSCO short_summary txt file found in {busco_dir}")
+            filin = stack.enter_context(open(matches[0]))
             iter_busco = (line.strip().split()[0] for line in filin if any(key in line for key in BUSCO_KEY))
             yield sample, list(_iter_value_to_float(iter_busco))
 

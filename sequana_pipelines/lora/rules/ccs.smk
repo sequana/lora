@@ -1,5 +1,5 @@
 """Parallelized Pacbio CCS"""
-CCS_MAX_CHUNKS = config['ccs']['max-chunks']
+CCS_MAX_CHUNKS = config.ccs.max_chunks
 
 
 checkpoint index_bam:
@@ -8,7 +8,7 @@ checkpoint index_bam:
     output:
         directory("{sample}/pbindex")
     container:
-        config['apptainers']['pbindex']
+        config.apptainers.pbindex
     shell:
         """
         COUNTER=0
@@ -45,15 +45,15 @@ rule ccs:
         report = "{sample}/ccs/{sample}_{flowcell}.{chunk}_report.txt"
     params:
         max_chunks = CCS_MAX_CHUNKS,
-        min_rq = config['ccs']['min-rq'],
-        min_passes = config['ccs']['min-passes'],
-        options = config['ccs']['options']
+        min_rq = config.ccs.min_rq,
+        min_passes = config.ccs.min_passes,
+        options = config.ccs.options
     threads:
-        config['ccs']['threads']
+        config.ccs.threads
     container:
-        config['apptainers']['ccs']
+        config.apptainers.ccs
     resources:
-        **config["ccs"]["resources"],
+        **config.ccs.resources,
     shell:
         """
         ccs {input.bam} {output.bam} --chunk {wildcards.chunk}/{params.max_chunks} --min-rq {params.min_rq}\
@@ -67,11 +67,11 @@ rule ccs_merge:
     output:
         "{sample}/ccs/{sample}_{flowcell}.ccs.bam"
     params:
-        config['samtools_merge']['options']
+        config.samtools_merge.options
     container:
-        config['apptainers']['samtools']
+        config.apptainers.samtools
     threads:
-        config['samtools_merge']['threads']
+        config.samtools_merge.threads
     shell:
         """
         samtools merge -@ $(({threads} - 1)) {params} {output} {input}
@@ -84,9 +84,9 @@ rule flowcell_merge:
     output:
         "{sample}/ccs/{sample}.ccs.bam"
     container:
-        config['apptainers']['samtools']
+        config.apptainers.samtools
     threads:
-        config['samtools_merge']['threads']
+        config.samtools_merge.threads
     shell:
         """
         samtools merge -@ $(({threads} - 1)) {params} {output} {input}
@@ -99,13 +99,13 @@ rule bam_to_fastq:
     output:
         fastq = "{sample}/bam_to_fastq/{sample}.fastq"
     params:
-        config['bam_to_fastq']['options']
+        config.bam_to_fastq.options
     threads:
-        config['bam_to_fastq']['threads']
+        config.bam_to_fastq.threads
     container:
-        config['apptainers']['samtools']
+        config.apptainers.samtools
     resources:
-        **config["canu"]["resources"],
+        **config.canu.resources,
     shell:
         """
         samtools bam2fq -@ $(({threads} - 1)) {params} {input} > {output.fastq}
@@ -121,13 +121,13 @@ rule fastp:
         html="{sample}/fastp/{sample}.html",
         json="{sample}/fastp/{sample}.json"
     params:
-        min_length_required=config["fastp"]["min_length_required"]
+        min_length_required=config.fastp.min_length_required
     resources:
-        **config["fastp"]["resources"],
+        **config.fastp.resources,
     threads:
-        config['fastp']['threads']
+        config.fastp.threads
     container:
-        config['apptainers']['fastp']
+        config.apptainers.fastp
     log:
         "{sample}/logs/fastp.log",
     shell:
@@ -143,10 +143,3 @@ rule fastp:
 
         $catcmd  {input} | fastp -i /dev/stdin --length_required {params.min_length_required} --out1 {output} --disable_adapter_trimming --disable_quality_filtering --html {output.html} --json {output.json} --thread {threads} 2>&1 > {log}
         """
-
-
-
-
-
-
-

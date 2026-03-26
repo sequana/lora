@@ -8,20 +8,20 @@ rule medaka_consensus:
     output:
         "{sample}/medaka_consensus/{sample}.polish.fasta"
     params:
-        model = config["medaka_consensus"]["model"],
-        options = config["medaka_consensus"]["options"]
+        model = config.medaka_consensus.model,
+        options = config.medaka_consensus.options
     threads:
-        config["medaka_consensus"]["threads"]
+        config.medaka_consensus.threads
     container:
-        config["apptainers"]["medaka"]
+        config.apptainers.medaka
     resources:
-        **config["medaka_consensus"]["resources"]
-    wrapper:
-        f"{manager.wrappers}/wrappers/medaka/consensus"
+        **config.medaka_consensus.resources
+    shell:
+        manager.get_shell("medaka/consensus", "v1")
 
 
 rule circlator:
-    # if circlator requires data_type pacbio-corrected, uses ouput of canu 
+    # if circlator requires data_type pacbio-corrected, uses ouput of canu
     # otherwise, uses input fastq
     input:
         contig = get_medaka_consensus_contigs,
@@ -29,14 +29,14 @@ rule circlator:
     output:
         "{sample}/circlator/{sample}.circle.fasta"
     params:
-        options = config['circlator']['options'],
-        data_type=config['circlator']['data_type']
+        options = config.circlator.options,
+        data_type=config.circlator.data_type
     threads:
-        config['circlator']['threads']
+        config.circlator.threads
     resources:
-        **config["circlator"]["resources"],
+        **config.circlator.resources,
     container:
-        config['apptainers']['circlator']
+        config.apptainers.circlator
     shell:
         """
         outdir={wildcards.sample}/circlator/
@@ -51,9 +51,9 @@ rule polypolish_index:
     output:
         index="{sample}/logs/{sample}_indexing_polishing.done"
     container:
-        config['apptainers']['bwa']
+        config.apptainers.bwa
     resources:
-        **config["polypolish"]["resources"],
+        **config.polypolish.resources,
     shell:
         """
         bwa index {input.contigs} && touch {output.index}
@@ -68,9 +68,9 @@ rule polypolish_R1_mapping:
     output:
         aln="{sample}/preprocess_for_polypolish/{sample}.1.sam",
     resources:
-        **config["polypolish"]["resources"],
+        **config.polypolish.resources,
     container:
-        config['apptainers']['bwa']
+        config.apptainers.bwa
     shell:
         """
         bwa mem -a {input.contigs} {input.illumina[0]} > {output.aln}
@@ -87,9 +87,9 @@ if Ifact.paired:
         output:
             aln="{sample}/preprocess_for_polypolish/{sample}.2.sam"
         resources:
-            **config["polypolish"]["resources"],
+            **config.polypolish.resources,
         container:
-            config['apptainers']['bwa']
+            config.apptainers.bwa
         shell:
             """
             bwa mem -a {input.contigs} {input.illumina[1]} > {output.aln}
@@ -104,9 +104,9 @@ if Ifact.paired:
             filter1="{sample}/preprocess_for_polypolish/{sample}.filter.1.sam",
             filter2="{sample}/preprocess_for_polypolish/{sample}.filter.2.sam"
         resources:
-            **config["polypolish_filter"]["resources"],
+            **config.polypolish_filter.resources,
         container:
-            config['apptainers']['polypolish']
+            config.apptainers.polypolish
         shell:
             """
             polypolish filter \
@@ -136,15 +136,12 @@ rule polypolish:
     output:
         fasta="{sample}/polypolish/{sample}.polish.fasta"
     params:
-        options=config['polypolish'].get('options', "")
+        options=config.polypolish.get('options', "")
     log:
         "{sample}/logs/{sample}_polypolish.log"
     container:
-        config['apptainers']['polypolish']
+        config.apptainers.polypolish
     resources:
-        **config["polypolish"]["resources"],
-    wrapper:
-        f"{manager.wrappers}/wrappers/polypolish"
-
-
-
+        **config.polypolish.resources,
+    shell:
+        manager.get_shell("polypolish/polish", "v1")

@@ -6,8 +6,6 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # ============================================================================
-sequana_wrappers: "v24.8.29"
-
 input_directory: ''
 input_pattern: '*.bam'
 input_csv: ''
@@ -60,9 +58,9 @@ apptainers:
 # - resources: computing resources needed to run the job on a cluster
 ccs:
     do: true
-    min-rq: 0.99
-    min-passes: 10
-    max-chunks: 10
+    min_rq: 0.99
+    min_passes: 10
+    max_chunks: 10
     options: ''
     threads: 4
     resources:
@@ -381,6 +379,7 @@ unicycler:
 busco:
     do: false
     lineage: ''
+    downloads_path: ''
     options: '--offline'
     threads: 4
     resources:
@@ -416,12 +415,34 @@ seqkit_head:
 # Blast
 #
 # :Parameters:
-#   
+#
 # - do: if unchecked, this rule is ignored
-# - db_dir: Path to BLAST databases.
+# - blastdb: Path to local BLAST databases (ignored when remote is true).
 # - evalue: Expectation value (E) threshold for saving hits.
-# - options: any options recognised by `blastn` cli (except --outfmt)
-# - threads: Number of threads to use.
+# - options: any options recognised by `blastn` cli (except --outfmt); ignored when remote is true.
+# - threads: Number of threads to use for local BLAST (ignored when remote is true).
+# - remote: if true, submit jobs to NCBI BLAST via their URL API instead of running locally.
+#     No local database is needed. Requires an internet connection and a valid email address.
+#     Jobs are submitted in parallel (one per contig) and results are in the same format as local BLAST.
+#     Sequences longer than 50 kb are truncated before submission to keep NCBI queue times short
+#     (NCBI accepts up to ~1 Mb, but shorter queries are processed faster).
+# - remote_db: NCBI database to use when remote is true.
+#     Common values: nt (nucleotide collection, default), nr (non-redundant protein),
+#     refseq_genomic, refseq_rna, refseq_protein, swissprot.
+# - email: contact email required by NCBI's usage policy (mandatory when remote is true).
+# - api_key: optional NCBI API key. Without a key NCBI limits requests to 3/s and
+#     may throttle CPU-intensive queries against large databases (nt, nr). With a
+#     key the limit rises to 10/s and throttling is less aggressive. Obtain one
+#     for free at https://www.ncbi.nlm.nih.gov/account/ (sign in → API Key Management).
+# - entrez_query: optional Entrez query to restrict the remote BLAST search to a
+#     subset of the database — equivalent to the "Organism" box on the NCBI BLAST
+#     web form. Greatly reduces search time and avoids CPU throttling when you
+#     already know the organism group. Leave empty to search the full database.
+#     Examples:
+#       Bacteria[Organism]
+#       Streptococcus[Organism]
+#       Fungi[Organism]
+#       Streptococcus[Organism] OR Lactobacillus[Organism]
 #
 # for max_target_seqs see https://academic.oup.com/bioinformatics/article/35/9/1613/5106166
 blast:
@@ -430,6 +451,11 @@ blast:
     evalue: '1e-10'
     options: ' -max_target_seqs 100'
     threads: 4
+    remote: false
+    remote_db: 'nt'
+    email: ''
+    api_key: ''
+    entrez_query: ''
     resources:
         mem: 12G
 

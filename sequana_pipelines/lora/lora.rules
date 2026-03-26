@@ -24,6 +24,7 @@ configfile: "config.yaml"
 
 
 manager = PipelineManagerDirectory("lora", config, schema="schema.yaml")
+config = manager.config
 
 csv_filename = config.get("input_csv")
 input_directory = config.get("input_directory")
@@ -72,8 +73,8 @@ rule rulegraph:
     params:
         configname="config.yaml",
         required_local_files=["schema.yaml", "rules"],
-    wrapper:
-        "main/wrappers/rulegraph"
+    run:
+        manager.get_run("rulegraph/run", "v1")(input, output, params)
 
 
 rule create_svg:
@@ -82,11 +83,9 @@ rule create_svg:
     output:
         ".sequana/rulegraph.svg",
     container:
-        config["apptainers"]["graphviz"]
+        config.apptainers.graphviz
     shell:
-        """
-        dot -Tsvg {input}  -o {output}
-        """
+        manager.get_shell("graphviz/dot2svg", "v1")
 
 
 onsuccess:
