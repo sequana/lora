@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 .. image:: https://badge.fury.io/py/sequana-lora.svg
      :target: https://pypi.python.org/pypi/sequana_lora
@@ -11,20 +10,7 @@
    :target: https://github.com/sequana/lora/actions/workflows/main.yaml
 
 
-This is the **lora** pipeline from the `Sequana <https://sequana.readthedocs.org>`_ project
 
-:Overview: Run assembler (Canu, flye, hifiasm) on a set of long read files
-:Input: A set of BAM files from Pacbio sequencers, or FastQ files for Nanopore sequencers.
-:Output: HTML reports with assemblies for each sample.
-:Status: prod
-:Citation: Cokelaer et al, (2017), ‘Sequana’: a Set of Snakemake NGS pipelines, Journal of Open Source Software, 2(16), 352, JOSS DOI doi:10.21105/joss.00352
-:Citation(pipeline):
-    .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18337877.svg
-        :target: https://doi.org/10.5281/zenodo.18337877
-    https://www.biorxiv.org/content/10.64898/2026.01.06.697901v1
-
-.. image:: https://raw.githubusercontent.com/sequana/lora/master/sequana_pipelines/lora/dag.png
-=======
 LORA — Long Read Assembly pipeline
 ====================================
 
@@ -40,10 +26,13 @@ LORA — Long Read Assembly pipeline
            Journal of Open Source Software, 2(16), 352,
            `doi:10.21105/joss.00352 <https://doi.org/10.21105/joss.00352>`_
 
+    .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18337877.svg
+        :target: https://doi.org/10.5281/zenodo.18337877
+    https://www.biorxiv.org/content/10.64898/2026.01.06.697901v1
+
 
 .. image:: https://raw.githubusercontent.com/sequana/lora/master/sequana_pipelines/lora/dag.png
    :alt: Pipeline DAG
->>>>>>> d4b72d7 (Refactor pipeline rules, update README and report templates)
 
 
 Installation
@@ -82,8 +71,6 @@ This creates a ``lora/`` working directory containing ``config.yaml`` and a
 
     sh lora.sh
 
-<<<<<<< HEAD
-=======
 Or launch directly from step 1 with ``--execute`` (skips the review step)::
 
     sequana_lora ... --execute
@@ -92,7 +79,6 @@ To watch live progress in the terminal, add ``--monitor``::
 
     sequana_lora ... --execute --monitor
 
->>>>>>> d4b72d7 (Refactor pipeline rules, update README and report templates)
 
 Required options
 ----------------
