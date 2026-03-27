@@ -13,22 +13,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
   </head>
   <body class="h-full flex flex-col font-sans text-base font-normal">
-    <div class="p-12 bg-sky-600 text-white flex-initial">
-      <p class="text-3xl font-semibold">
-        LORA Report
-      </p>
-      <p class="text-xl font-light">
-        Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
-      </p>
+    <div class="p-12 bg-sky-600 text-white flex-initial flex items-center gap-6">
+      <img src="data:image/png;base64,{{logo_b64}}" alt="Sequana logo" class="h-16 w-16 rounded-full flex-shrink-0" />
+      <div class="flex-auto">
+        <p class="text-3xl font-semibold">LORA Report</p>
+        <p class="text-xl font-light">
+          Report created with <a class="underline hover:text-sky-200" href="https://github.com/sequana/lora">LORA</a> (v{{version}})
+        </p>
+      </div>
+      <a href="summary.html" class="flex items-center gap-1 text-sm font-medium bg-white text-sky-700 hover:bg-sky-50 px-4 py-2 rounded-lg flex-shrink-0">
+        ← Summary
+      </a>
     </div>
     <div class="p-12 text-base font-light leading-8 text-slate-700 flex-auto">
-      <h1 class="text-3xl font-semibold mb-4">General Information</h1>
+      <h1 class="text-3xl font-semibold mb-4">Assembly Summary</h1>
 
-      <p class="text-3xl font-light text-base">The following table gives you basic statistics about the final assembly. Please click on the sample of interest in the first column to switch from one sample to the other. The default page shows the first sample.</p>
+      <p class="mb-4">The table below shows key assembly statistics for each sample, including contig counts, assembly size, read mapping rate, and BUSCO completeness scores where available. Click on any row to display the detailed per-sample results in the sections below.</p>
 
       <div class="overflow-x-auto w-full">
         <table id="lora_summary" class="w-full border-collapse table-auto mb-3">
-          <thead class="font-medium border-b-2 border-gray-300">
+          <thead class="bg-sky-600 text-white font-medium">
             <th class="text-left py-1 px-3">Sample</th>
             {% for header in summary_header %}
             <th class="text-right py-1 px-3">{{header}}</th>
@@ -38,7 +42,7 @@
             {% for sample, values in summary_results.items() %}
             <tr
               id={{"defaultOpenAssembly" if loop.first else "row_" ~ loop.index0}}
-              class="even:bg-slate-50 border-t border-gray-300"
+              class="odd:bg-white even:bg-sky-50 border-t border-gray-200"
             >
               <td class="text-left font-medium py-1 px-3">{{sample}}</td>
               {% for value in values %}
@@ -47,8 +51,7 @@
             </tr>
             {% endfor %}
           </tbody>
-        </div>
-      </table>
+        </table>
       </div>
 
       <div class="overflow-x-auto w-full">
@@ -58,45 +61,81 @@
 
         {% for sample, contigs_dict in analysis.items() %}
           <div id="{{sample}}" class="hidden">
-      	      <h1 class="text-2xl font-semibold mb-4">{{sample}} sample:</h1>
-      	      <p class="text-2xl font-semibold mb-4 text-base"> Download contig file for {{sample}}: <a
-class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">here</a>. </p>
+      	      <h1 class="text-2xl font-semibold mb-4">{{sample}}</h1>
+      	      <p class="mb-4">Download the final contig sequences for this sample: <a
+class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">{{sample}}.fasta</a>.</p>
+
               {% if 'bandage_image' in analysis[sample] %}
-              
+              <h2 class="font-medium mb-2 text-xl">Assembly graph</h2>
+              <p class="mb-2 text-sm text-gray-500">Assembly graph produced by Bandage showing contig connectivity before circularisation. Hover the image to view it in colour.</p>
               <figure class="max-w-lg mx-auto">
               <img class="h-auto max-w-full mx-auto filter grayscale hover:grayscale-0"
                     src="{{analysis[sample]['bandage_image']}}"  />
               <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">
-                Graph relation between contigs found before any circularisation. </figcaption>
+                Contig assembly graph (greyscale; hover for colour). </figcaption>
               </figure>
               {% endif %}
 
+              {% if 'Complete BUSCOs' in summary_header %}
+              <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+                <div class="bg-slate-100 px-4 py-2 border-b border-gray-200">
+                  <h2 class="text-lg font-semibold text-slate-700">BUSCO completeness</h2>
+                </div>
+                <div class="px-4 py-4">
+                  <p class="mb-3 text-sm text-gray-500">BUSCO assesses genome completeness by searching for a set of near-universal single-copy orthologs. Values show counts of complete (single-copy and duplicated), fragmented, and missing BUSCOs.</p>
+                  <table class="table-auto w-auto text-left">
+                    <tbody>
+                      {% set busco_start = summary_header.index('Complete BUSCOs') %}
+                      {% for i in range(4) %}
+                      <tr class="{{'' if loop.first else 'border-t'}} border-gray-300">
+                        <th class="px-2 py-2">{{ summary_header[busco_start + i] }}</th>
+                        <td class="px-2 py-2 text-right">{{ summary_results[sample][busco_start + i] }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {% endif %}
+
               {% if 'checkm' in analysis[sample] %}
-              <h2 class="font-medium mb-2 text-xl">{{contig}}</h2>
-	          <h2 class="text-2xl font-semibold mb-4">General CheckM results using {{analysis[sample]['genus']}} / {{analysis[sample]['rank']}}</h2>
-              <div class="flex items-center justify-around mb-4">
-                <table id="{{sample}}_checkm" class="table-auto w-1/6 text-left">
-                  <tbody>
-                    {% for key, value in analysis[sample]['checkm'].items() %}
-                    <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
-                      <th class="px-2 py-2">{{key}}</th>
-                      <td class="px-2 py-2 text-right">{{value}}</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-                <img class="checkm" src="data:image/png;base64,{{analysis[sample]['checkm_image']}}" />
+              <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+                <div class="bg-slate-100 px-4 py-2 border-b border-gray-200">
+                  <h2 class="text-lg font-semibold text-slate-700">CheckM genome quality — {{analysis[sample]['rank']}} (rank: {{analysis[sample]['genus']}})</h2>
+                </div>
+                <div class="px-4 py-4">
+                  <p class="mb-3 text-sm text-gray-500">CheckM estimates genome completeness and contamination by placing the assembly in a reference genome tree and identifying lineage-specific marker genes.</p>
+                  <div class="flex items-center justify-around">
+                    <table id="{{sample}}_checkm" class="table-auto w-1/6 text-left">
+                      <tbody>
+                        {% for key, value in analysis[sample]['checkm'].items() %}
+                        <tr class="{{'' if loop.first else 'border-t' }} border-gray-300">
+                          <th class="px-2 py-2">{{key}}</th>
+                          <td class="px-2 py-2 text-right">{{value}}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                    <img class="checkm" src="data:image/png;base64,{{analysis[sample]['checkm_image']}}" />
+                  </div>
+                </div>
               </div>
               {% else %}
-      	      <p class="text-2xl font-semibold mb-4 text-base">
-               checkM not available (not set in the config file?) </p>
+      	      <p class="mt-6 mb-4 text-gray-500 italic">CheckM was not run for this sample. Enable it by setting <code>checkm.do: true</code> in the config file.</p>
               {% endif %}
 
 
             {% for contig in contigs_dict['contig_order'] %}
+              <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+                <!-- contig title bar -->
+                <div class="bg-slate-100 px-4 py-2 border-b border-gray-200">
+                  <h2 class="text-lg font-semibold text-slate-700">{{contig}}</h2>
+                </div>
+                <div class="px-4 py-4">
 
               {% if 'coverage' in analysis[sample][contig] %}
-              <h2 class="font-medium mb-2 text-xl">Sequana coverage for {{contig}}</h2>
+              <h3 class="font-medium mb-2 text-base">Sequana coverage</h3>
+              <p class="mb-2 text-sm text-gray-500">Depth of coverage (DOC) and breadth of coverage (BOC) computed by Sequana. Click the image to open the interactive coverage report for this contig.</p>
                 <div class="flex items-center justify-around mb-4">
                   <table id="{{sample}}_{{contig}}_sequana" class="table-auto w-1/6 text-left">
                     <tbody>
@@ -114,19 +153,18 @@ class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">here</a>
                   </a>
                 </div>
               {% elif contig == contigs_dict['contig_order'][0] %}
-      	      <p class="text-2xl font-semibold mb-4 text-base"> 
-               sequana coverage not available (not set in the config file?) </p>
+      	      <p class="mb-4 text-gray-500 italic">Sequana coverage was not run for this sample. Enable it by setting <code>sequana_coverage.do: true</code> in the config file.</p>
               {% endif %}
-
 
               {% if 'blast' in analysis[sample][contig] %}
                 <div class="overflow-x-auto w-full">
-                  <h2 class="font-medium mb-2 text-xl">Blast results for {{contig}}</h2>
-                  <table 
+                  <h3 class="font-medium mb-2 text-base mt-4">BLAST hits</h3>
+                  <p class="mb-2 text-sm text-gray-500">Top BLAST alignments for this contig against the configured database. For each subject sequence, the hit with the highest bitscore is shown (up to 5 results).</p>
+                  <table
                     id="{{sample}}_{{contig}}_blast"
                     class="table-auto w-full border-collapse mb-3"
                   >
-                    <thead class="font-medium border-b-2 border-gray-300">
+                    <thead class="bg-green-600 text-white font-medium">
                         {% for title in analysis[sample][contig]['blast'][0].keys() %}
                           <th class="
                             {{ 'text-left' if loop.first else 'text-right' }}
@@ -136,7 +174,7 @@ class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">here</a>
                     </thead>
                     <tbody>
                       {% for blast in analysis[sample][contig]['blast'] %}
-                      <tr class="{{ '' if loop.first else 'border-b border-gray-300' }}">
+                      <tr class="odd:bg-white even:bg-green-50 border-t border-gray-200">
                         {% for value in blast.values() %}
                         <td class="
                           {{ 'text-left' if loop.first else 'text-right' }}
@@ -148,18 +186,45 @@ class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">here</a>
                     </tbody>
                   </table>
                 </div>
+              {% elif blast_done %}
+              <h3 class="font-medium mb-2 text-base mt-4">BLAST hits</h3>
+              <div class="mt-2 mb-4 border border-amber-200 bg-amber-50 rounded-lg px-4 py-3 text-sm text-amber-800">
+                <div class="flex items-center justify-between">
+                  <p class="font-medium">No BLAST hits found for {{contig}}.</p>
+                  <button onclick="var d=this.parentElement.nextElementSibling; d.classList.toggle('hidden'); this.textContent=d.classList.contains('hidden')?'Why? ▾':'Hide ▴';"
+                          class="ml-4 text-xs font-medium underline hover:text-amber-900 flex-shrink-0">Why? ▾</button>
+                </div>
+                <div class="hidden mt-2">
+                  <p class="mb-2">This can have several causes:</p>
+                  <ul class="list-disc list-outside ml-5 space-y-1">
+                    <li><strong>NCBI CPU throttling</strong> — when using remote BLAST, NCBI may silently reject queries for large contigs against the full <code>nt</code> database if too many requests originate from the same IP. The job returns a READY status but with zero hits.</li>
+                    <li><strong>E-value threshold</strong> — the configured e-value may be too stringent for this contig.</li>
+                    <li><strong>Organism not in the searched database</strong> — if <code>entrez_query</code> is set, the organism may not be represented in the filtered subset.</li>
+                    <li><strong>Genuine absence</strong> — the contig sequence may not match anything in the database (novel organism, contamination, assembly artefact).</li>
+                  </ul>
+                  <p class="mt-2">
+                    <strong>Workarounds:</strong> restrict the search with <code>entrez_query: 'Bacteria[Organism]'</code> and/or switch to
+                    <code>remote_db: 'refseq_genomic'</code> to reduce NCBI load (see the
+                    <a class="underline hover:text-amber-900" href="https://github.com/sequana/lora#blast-identification">LORA README</a>).
+                    For reliable results on large contigs, consider downloading a local <code>nt</code> database (~270 GB) and running BLAST locally with <code>blast.remote: false</code>.
+                  </p>
+                </div>
+              </div>
               {% elif contig == contigs_dict['contig_order'][0] %}
-      	      <p class="text-2xl font-semibold mb-4 text-base"> 
-               blast results not available (not set in the config file?) </p>
-              {% endif %} 
+      	      <p class="mb-4 text-gray-500 italic">BLAST was not run for this sample. Enable it by setting <code>blast.do: true</code> in the config file.</p>
+              {% endif %}
+
+                </div>
+              </div>
             {% endfor %}
           </div>
         {% endfor %}
     </div>
-    <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50">
+    <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50 text-sm text-gray-500">
         <p>
-          <strong>LORA</strong> by <a class="text-indigo-500 active:text-indigo-600"href="https://sequana.readthedocs.io/en/main/">Sequana Team</a>. The source code is licensed
-          <a class="text-indigo-500 active:text-indigo-600" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
+          <a class="text-indigo-500 hover:underline" href="https://github.com/sequana/lora">LORA</a>
+          by the <a class="text-indigo-500 hover:underline" href="https://sequana.readthedocs.io/en/main/">Sequana Team</a>
+          — licensed <a class="text-indigo-500 hover:underline" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
         </p>
     </footer>
     <!-- Javascript -->

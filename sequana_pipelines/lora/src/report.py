@@ -68,11 +68,20 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
     # create summary report
     create_summary(summary_name, lora_name, summary_results, config, lora_dir)
 
+    # embed logo
+    logo_path = Path(__file__).parent / "templates" / "sequana_logo.png"
+    logo_b64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
+
     # create lora report
     env = Environment(loader=PackageLoader("sequana_pipelines.lora.src", "templates"))
     template = env.get_template("lora.html")
     report_output = template.render(
-        summary_header=summary_header, summary_results=summary_results, analysis=analysis, version=version
+        summary_header=summary_header,
+        summary_results=summary_results,
+        analysis=analysis,
+        version=version,
+        blast_done=config["blast"]["do"],
+        logo_b64=logo_b64,
     )
     with open(lora_name, "w") as fout:
         print(report_output, file=fout)
@@ -89,6 +98,9 @@ def create_summary(summary_name: str, lora_name: str, quast_info: Dict, config: 
     lora_dir = Path(lora_dir)
     env = Environment(loader=PackageLoader("sequana_pipelines.lora.src", "templates"))
     template = env.get_template("summary.html")
+    logo_path = Path(__file__).parent / "templates" / "sequana_logo.png"
+    logo_b64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
+
     report_output = template.render(
         lora_dir=lora_dir,
         lora_report=lora_name,
@@ -97,6 +109,7 @@ def create_summary(summary_name: str, lora_name: str, quast_info: Dict, config: 
         version=version,
         rulegraph=(lora_dir / ".sequana" / "rulegraph.svg").read_text(),
         dependencies=get_tools_versions(config),
+        logo_b64=logo_b64,
     )
     with open(summary_name, "w") as fout:
         print(report_output, file=fout)
@@ -128,10 +141,15 @@ def get_quast_information(samples: List[str], lora_dir: Path) -> Dict:
 
 def get_busco_information(samples: List[str], lora_dir: Path) -> Iterator[Tuple[str, List]]:
     """Get busco information."""
-    busco_report = f"{lora_dir}/{{0}}/busco/short_summary_{{0}}.txt"
     with ExitStack() as stack:
-        files = [(sample, stack.enter_context(open(busco_report.format(sample)))) for sample in samples]
-        for sample, filin in files:
+        for sample in samples:
+            busco_dir = Path(str(lora_dir)) / sample / "busco"
+            # BUSCO 5.x: short_summary.specific.<lineage>.<name>.txt
+            # Fall back to legacy short_summary_<sample>.txt
+            matches = sorted(busco_dir.glob("short_summary*.txt"))
+            if not matches:
+                raise FileNotFoundError(f"No BUSCO short_summary txt file found in {busco_dir}")
+            filin = stack.enter_context(open(matches[0]))
             iter_busco = (line.strip().split()[0] for line in filin if any(key in line for key in BUSCO_KEY))
             yield sample, list(_iter_value_to_float(iter_busco))
 
@@ -158,6 +176,26 @@ def fill_blast_result(
                 pass
 
 
+def _gc_per_contig(fasta_path: str) -> Dict[str, float]:
+    """Return a dict mapping contig name → GC content (%) from a FASTA file."""
+    gc: Dict[str, float] = {}
+    name, bases, g_c = None, 0, 0
+    with open(fasta_path) as fh:
+        for line in fh:
+            line = line.rstrip()
+            if line.startswith(">"):
+                if name is not None and bases:
+                    gc[name] = round(g_c / bases * 100, 2)
+                name = line[1:].split()[0]
+                bases, g_c = 0, 0
+            else:
+                bases += len(line)
+                g_c += line.upper().count("G") + line.upper().count("C")
+    if name is not None and bases:
+        gc[name] = round(g_c / bases * 100, 2)
+    return gc
+
+
 def fill_sequana_coverage(
     analysis_dict: DefaultDict[str, DefaultDict[str, Dict]], samples: List[str], lora_dir: Path
 ) -> None:
@@ -167,6 +205,13 @@ def fill_sequana_coverage(
     iter_json = (
         (sample, sequana_file) for sample in samples for sequana_file in glob.iglob(sequana_report.format(sample))
     )
+    # pre-compute GC per contig from the sorted FASTA
+    gc_cache: Dict[str, Dict[str, float]] = {}
+    for sample in samples:
+        fasta = os.path.join(str(lora_dir), sample, "sorted_contigs", f"{sample}.fasta")
+        if os.path.exists(fasta):
+            gc_cache[sample] = _gc_per_contig(fasta)
+
     with ExitStack() as stack:
         files = [(sample, stack.enter_context(open(sequana_file))) for sample, sequana_file in iter_json]
         for sample, json_file in files:
@@ -177,6 +222,7 @@ def fill_sequana_coverage(
                 "length": contig_results["data"]["length"],
                 "DOC": f"{contig_results['data']['DOC']:.3f}",
                 "BOC": f"{contig_results['data']['BOC']:.3f}",
+                "GC (%)": gc_cache.get(sample, {}).get(contig, "—"),
             }
             if contig in analysis_dict[sample]:
                 analysis_dict[sample][contig]["coverage"] = info

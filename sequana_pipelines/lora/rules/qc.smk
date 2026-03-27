@@ -9,11 +9,11 @@ rule seqkit_sort:
         ctg="{sample}/sorted_contigs/{sample}.fasta",
         names="{sample}/sorted_contigs/{sample}.names.txt"
     threads:
-        config["seqkit_sort"]["threads"]
+        config.seqkit_sort.threads
     resources:
-        **config["seqkit_sort"]["resources"],
+        **config.seqkit_sort.resources,
     container:
-        config['apptainers']['seqkit']
+        config.apptainers.seqkit
     shell:
         """
         seqkit sort --threads {threads} --by-length --reverse {input} -o {output.ctg}
@@ -27,7 +27,7 @@ rule fasta2paf:
     output:
         paf="{sample}/graph/{sample}.paf"
     container:
-        config["apptainers"]["minimap2"]
+        config.apptainers.minimap2
     shell:
         """
         minimap2 -x ava-pb -t4 {input} {input} > {output}
@@ -41,7 +41,7 @@ rule paf2gfa:
     output:
         gfa="{sample}/graph/{sample}.gfa"
     container:
-        config["apptainers"]["miniasm"]
+        config.apptainers.miniasm
     shell:
         """
         miniasm -f {input.ctg} {input.paf} > {output.gfa}
@@ -55,14 +55,14 @@ rule minimap2:
     output:
         bam = "{sample}/minimap2/{sample}.bam",
     params:
-        preset = config['minimap2']['preset'],
-        options = config['minimap2']['options']
+        preset = config.minimap2.preset,
+        options = config.minimap2.options
     threads:
-        config['minimap2']['threads']
+        config.minimap2.threads
     container:
-        config['apptainers']['minimap2']
+        config.apptainers.minimap2
     resources:
-        **config["minimap2"]["resources"],
+        **config.minimap2.resources,
     shell:
         """
         minimap2 {params.options} -t {threads} -ax {params.preset} {input.contigs} {input.fastq} \
@@ -76,14 +76,14 @@ rule bam2bed:
     output:
         bed="{sample}/minimap2/{sample}.bed"
     container:
-        config['apptainers']['mosdepth']
+        config.apptainers.mosdepth
     params:
         mapq=0,
         second_mapq=35
     threads:
-        config['bam2bed']['threads']
+        config.bam2bed.threads
     resources:
-        **config["bam2bed"]["resources"],
+        **config.bam2bed.resources,
     shell:
         """
         mosdepth -t {threads} -Q {params.mapq}  -b1 {wildcards.sample}/minimap2/lenny1 {input.bam}
@@ -100,22 +100,22 @@ rule sequana_coverage:
     output:
         html="{sample}/sequana_coverage/multiqc_report.html"
     params:
-        circular="-o " if config["sequana_coverage"]["circular"] else "",
-        chunksize=config["sequana_coverage"]["chunksize"],
-        double_threshold=config["sequana_coverage"]["double_threshold"],
-        gc_window_size=config["sequana_coverage"]["gc_window_size"],
-        high_threshold=config["sequana_coverage"]["high_threshold"],
-        low_threshold=config["sequana_coverage"]["low_threshold"],
-        mixture_models=config["sequana_coverage"]["mixture_models"],
-        options=config["sequana_coverage"]["options"],
-        window_size=config["sequana_coverage"]["window_size"],
+        circular="-o " if config.sequana_coverage.circular else "",
+        chunksize=config.sequana_coverage.chunksize,
+        double_threshold=config.sequana_coverage.double_threshold,
+        gc_window_size=config.sequana_coverage.gc_window_size,
+        high_threshold=config.sequana_coverage.high_threshold,
+        low_threshold=config.sequana_coverage.low_threshold,
+        mixture_models=config.sequana_coverage.mixture_models,
+        options=config.sequana_coverage.options,
+        window_size=config.sequana_coverage.window_size,
         output_directory="{sample}/sequana_coverage"
     log:
         "logs/sequana_coverage/{sample}_sequana_coverage.log"
     resources:
-        **config["sequana_coverage"]["resources"],
+        **config.sequana_coverage.resources,
     container:
-        config['apptainers']['sequana_coverage']
+        config.apptainers.sequana_coverage
     shell:
         """
         sequana_coverage --input-file {input.bed} \
@@ -128,7 +128,8 @@ rule sequana_coverage:
             --output-directory {params.output_directory} \
             --window-median {params.window_size} \
             --reference-file {input.contigs} \
-            {params.options}
+            {params.options} \
+            >{log} 2>&1
         """
 
 rule quast:
@@ -138,14 +139,14 @@ rule quast:
     output:
         "{sample}/quast/quast.done"
     params:
-        preset = config['quast']['preset'],
-        options = config['quast']['options']
+        preset = config.quast.preset,
+        options = config.quast.options
     threads:
-        config['quast']['threads']
+        config.quast.threads
     container:
-        config['apptainers']['quast']
+        config.apptainers.quast
     resources:
-        **config["quast"]["resources"],
+        **config.quast.resources,
     shell:
         """
         quast.py {params.options} -t {threads} {input.contigs} --{params.preset} {input.fastq} -o {wildcards.sample}/quast\
@@ -162,17 +163,18 @@ rule busco:
         "{sample}/logs/busco.out"
     params:
         mode = "genome",
-        lineage = config['busco']['lineage'],
+        lineage = config.busco.lineage,
         short_summary_filename = "short_summary_{sample}.txt",
-        options = config['busco']['options']
+        downloads_path = config.busco.downloads_path,
+        options = config.busco.options
     threads:
-        config['busco']['threads']
+        config.busco.threads
     container:
-        config['apptainers']['busco']
+        config.apptainers.busco
     resources:
-        **config["busco"]["resources"],
-    wrapper:
-        f"{manager.wrappers}/wrappers/busco"
+        **config.busco.resources,
+    shell:
+        manager.get_shell("busco/run", "v1")
 
 
 rule prokka:
@@ -181,15 +183,15 @@ rule prokka:
     output:
         "{sample}/prokka/{sample}.gbk"
     params:
-        config['prokka']['options']
+        config.prokka.options
     threads:
-        config['prokka']['threads']
+        config.prokka.threads
     log:
         "{sample}/logs/prokka.out"
     container:
-        config['apptainers']['prokka']
+        config.apptainers.prokka
     resources:
-        **config["prokka"]["resources"],
+        **config.prokka.resources,
     shell:
         """
         prokka {params} --force --cpus {threads} --outdir {wildcards.sample}/prokka --prefix {wildcards.sample} {input.contigs} 2>&1 >{log}
@@ -202,37 +204,71 @@ rule seqkit_head:
     output:
         "{sample}/subset_contigs/{sample}.subset.fasta"
     params:
-        n_first = config["seqkit_head"]["n_first"]
+        n_first = config.seqkit_head.n_first
     container:
-        config['apptainers']['seqkit']
+        config.apptainers.seqkit
     shell:
         """
         seqkit head -n {params.n_first} -o {output} {input}
         """
 
 
-rule blast:
-    input:
-        contigs = "{sample}/subset_contigs/{sample}.subset.fasta"
-    output:
-        "{sample}/blast/{sample}.tsv"
-    params:
-        db = config['blast']['blastdb'],
-        evalue = config['blast']['evalue'],
-        outfmt = " ".join(BLAST_KEY),
-        options = config['blast']['options']
-    threads:
-        config['blast']['threads']
-    container:
-        config['apptainers']['blast']
-    resources:
-        **config["blast"]["resources"],
-    shell:
-        """
-        export BLASTDB={params.db}
-        blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads} \
-            {params.options} -outfmt "6 {params.outfmt}"
-        """
+if config.blast.get("remote", False):
+    localrules: blast
+    rule blast:
+        input:
+            contigs = "{sample}/subset_contigs/{sample}.subset.fasta"
+        output:
+            "{sample}/blast/{sample}.tsv"
+        log:
+            "{sample}/blast/{sample}.blast.log"
+        params:
+            email = config.blast.get("email", ""),
+            database = config.blast.get("remote_db", "nt"),
+            evalue = config.blast.evalue,
+            max_target_seqs = 100,
+            api_key = config.blast.get("api_key", ""),
+            entrez_query = config.blast.get("entrez_query", ""),
+        resources:
+            **config.blast.resources,
+        run:
+            import sys
+            from sequana_pipelines.lora.src.remote_blast import run_remote_blast
+            with open(log[0], "w") as log_fh:
+                run_remote_blast(
+                    fasta_path=input.contigs,
+                    output_tsv=output[0],
+                    email=params.email,
+                    database=params.database,
+                    evalue=params.evalue,
+                    max_target_seqs=params.max_target_seqs,
+                    api_key=params.api_key,
+                    entrez_query=params.entrez_query,
+                    log_file=log_fh,
+                )
+else:
+    rule blast:
+        input:
+            contigs = "{sample}/subset_contigs/{sample}.subset.fasta"
+        output:
+            "{sample}/blast/{sample}.tsv"
+        params:
+            db = config.blast.blastdb,
+            evalue = config.blast.evalue,
+            outfmt = " ".join(BLAST_KEY),
+            options = config.blast.options
+        threads:
+            config.blast.threads
+        container:
+            config.apptainers.blast
+        resources:
+            **config.blast.resources,
+        shell:
+            """
+            export BLASTDB={params.db}
+            blastn -query {input.contigs} -db nt -evalue {params.evalue} -out {output} -num_threads {threads} \
+                {params.options} -outfmt "6 {params.outfmt}"
+            """
 
 rule multiqc:
     input:
@@ -240,18 +276,18 @@ rule multiqc:
     output:
        "multiqc/multiqc_report.html"
     params:
-        options=config["multiqc"]["options"],
-        input_directory=config['multiqc']['input_directory'],
-        config_file=config['multiqc']['config_file'],
-        modules=config['multiqc']['modules']
+        options=config.multiqc.options,
+        input_directory=config.multiqc.input_directory,
+        config_file=config.multiqc.config_file,
+        modules=config.multiqc.modules
     log:
         "multiqc/multiqc.log"
     resources:
-        **config["multiqc"]["resources"]
+        **config.multiqc.resources
     container:
-        config["apptainers"]["multiqc"]
-    wrapper:
-       f"{manager.wrappers}/wrappers/multiqc"
+        config.apptainers.multiqc
+    shell:
+        manager.get_shell("multiqc/run", "v1")
 
 
 rule checkm_marker:
@@ -260,12 +296,12 @@ rule checkm_marker:
     threads:
          1
     container:
-        config['apptainers']['checkm']
+        config.apptainers.checkm
     params:
-        taxon_rank=config["checkm"]["taxon_rank"],
-        taxon_name=config["checkm"]["taxon_name"]
+        taxon_rank=config.checkm.taxon_rank,
+        taxon_name=config.checkm.taxon_name
     resources:
-        **config["checkm"]["resources"],
+        **config.checkm.resources,
     shell:
         """
         checkm taxon_set {params.taxon_rank} "{params.taxon_name}" {output.marker}
@@ -279,18 +315,17 @@ rule checkm:
         results="{sample}/checkm/results.txt",
         png="{sample}/checkm/{sample}.marker_pos_plot.png"
     params:
-        taxon_rank=config["checkm"]["taxon_rank"],
-        taxon_name=config["checkm"]["taxon_name"]
+        taxon_rank=config.checkm.taxon_rank,
+        taxon_name=config.checkm.taxon_name
     threads:
-        config['checkm']['threads']
+        config.checkm.threads
     container:
-        config['apptainers']['checkm']
+        config.apptainers.checkm
     resources:
-        **config["checkm"]["resources"],
+        **config.checkm.resources,
     shell:
         """
         checkm analyze {input.marker} {wildcards.sample}/sorted_contigs/ {wildcards.sample}/checkm -x fasta -t {threads}
         checkm qa marker {wildcards.sample}/checkm/ -f {output.results}
         checkm marker_plot {wildcards.sample}/checkm/ {wildcards.sample}/sorted_contigs {wildcards.sample}/checkm/ -x fasta
         """
-

@@ -1455,7 +1455,7 @@ checkm["species"] = [
 ]
 
 
-def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v5/data/lineages/"):
+def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v5/data/lineages/", version="odb10"):
     """
     Fetches and prints the list of files and their URLs from the given URL.
 
@@ -1471,17 +1471,17 @@ def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v5/data/l
     # Find all anchor tags (<a>) that have an href attribute
     links = soup.find_all("a", href=True)
 
-    # Extract file names and their full URLs
+    # Extract file names and their full URLs, filtering to the requested version only
     files = [
-        (link.get_text().split("_odb10")[0], base_url + link["href"])
+        (link.get_text().split(f"_{version}")[0], base_url + link["href"])
         for link in links
-        if link["href"].endswith(("tar.gz", "zip", "tar", "gz"))
+        if link["href"].endswith(("tar.gz", "zip", "tar", "gz")) and f"_{version}" in link["href"]
     ]
 
     return dict(files)
 
 
 try:
-    busco = get_busco_lineages_and_urls()
+    busco = get_busco_lineages_and_urls(version="odb12")
 except requests.exceptions.ConnectionError:
     busco = {}

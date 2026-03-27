@@ -20,9 +20,6 @@ mapping:
     "apptainers":
         type: any
 
-    "sequana_wrappers":
-        type: str
-
     "reference_file":
         type: str
         required: true
@@ -33,13 +30,13 @@ mapping:
             "do":
                 type: bool
                 required: true
-            "max-chunks":
+            "max_chunks":
                 type: int
                 required: true
-            "min-rq":
+            "min_rq":
                 type: number
                 required: true
-            "min-passes":
+            "min_passes":
                 type: int
                 required: true
             "options":
@@ -475,6 +472,10 @@ mapping:
                 type: str
                 required: true
                 nullable: false
+            "downloads_path":
+                type: str
+                required: false
+                nullable: true
             "options":
                 type: text
                 required: false
@@ -541,6 +542,21 @@ mapping:
             "threads":
                 type: int
                 required: true
+            "remote":
+                type: bool
+                required: false
+            "remote_db":
+                type: str
+                required: false
+            "email":
+                type: str
+                required: false
+            "api_key":
+                type: str
+                required: false
+            "entrez_query":
+                type: str
+                required: false
             "resources":
                 type: any
                 required: true
