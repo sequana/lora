@@ -16,12 +16,15 @@
   <body class="h-full flex flex-col font-sans text-base font-normal">
     <div class="p-12 bg-sky-600 text-white flex-initial flex items-center gap-6">
       <img src="data:image/png;base64,{{logo_b64}}" alt="Sequana logo" class="h-16 w-16 rounded-full flex-shrink-0" />
-      <div>
+      <div class="flex-auto">
         <p class="text-3xl font-semibold">LORA Summary</p>
         <p class="text-xl font-light">
-          Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
+          Report created with <a class="underline hover:text-sky-200" href="https://github.com/sequana/lora">LORA</a> (v{{version}})
         </p>
       </div>
+      <a href="{{lora_report}}" class="flex items-center gap-1 text-sm font-medium bg-white text-sky-700 hover:bg-sky-50 px-4 py-2 rounded-lg flex-shrink-0">
+        LORA Report →
+      </a>
     </div>
     <div class="
       p-12
@@ -46,8 +49,8 @@
           <thead class="bg-sky-600 text-white font-medium">
             <tr>
               <th class="px-3 py-2">Sample</th>
-              <th class="px-3 py-2">Number of contigs</th>
-              <th class="px-3 py-2" colspan={{"3" if coverage_done else "2"}}>Links</th>
+              <th class="px-3 py-2">Contigs</th>
+              <th class="px-3 py-2" colspan={{"4" if coverage_done else "3"}}>Links</th>
             </tr>
           </thead>
           <tbody>
@@ -55,6 +58,7 @@
             <tr class="odd:bg-white even:bg-sky-50 border-t border-gray-200">
               <th class="px-3 py-2">{{sample}}</th>
               <td class="px-3 py-2">{{count}}</td>
+              <td class="px-3 py-2"><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/{{sample}}/sorted_contigs/{{sample}}.fasta">FASTA</a></td>
               <td class="px-3 py-2"><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/{{sample}}/quast/report.html">QUAST</a></td>
               <td class="px-3 py-2"><a class="text-indigo-500 active:text-indigo-600" href="{{lora_dir}}/{{sample}}/quast/icarus.html">Icarus</a></td>
               {% if coverage_done %}
@@ -88,10 +92,11 @@
         </table>
       </div>
     </div>
-  <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50">
+  <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50 text-sm text-gray-500">
       <p>
-        <strong>LORA</strong> by <a class="text-indigo-500 active:text-indigo-600" href="https://sequana.readthedocs.io/en/main/">Sequana Team</a>. The source code is licensed
-        <a class="text-indigo-500 active:text-indigo-600" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
+        <a class="text-indigo-500 hover:underline" href="https://github.com/sequana/lora">LORA</a>
+        by the <a class="text-indigo-500 hover:underline" href="https://sequana.readthedocs.io/en/main/">Sequana Team</a>
+        — licensed <a class="text-indigo-500 hover:underline" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
       </p>
   </footer>
     <!-- Javascript -->

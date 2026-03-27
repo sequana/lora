@@ -34,7 +34,8 @@ dependencies = [
     "Jinja2 >=3.1.2",
     "click-completion >=0.5.2",
     "click >=8.1.7",
-    "beautifulsoup4"
+    "beautifulsoup4",
+    "bioservices >=1.16.0"
 ]
 
 [tool.poetry]

@@ -15,12 +15,15 @@
   <body class="h-full flex flex-col font-sans text-base font-normal">
     <div class="p-12 bg-sky-600 text-white flex-initial flex items-center gap-6">
       <img src="data:image/png;base64,{{logo_b64}}" alt="Sequana logo" class="h-16 w-16 rounded-full flex-shrink-0" />
-      <div>
+      <div class="flex-auto">
         <p class="text-3xl font-semibold">LORA Report</p>
         <p class="text-xl font-light">
-          Report created with <a href="https://github.com/sequana/lora">LORA</a> (v{{version}})
+          Report created with <a class="underline hover:text-sky-200" href="https://github.com/sequana/lora">LORA</a> (v{{version}})
         </p>
       </div>
+      <a href="summary.html" class="flex items-center gap-1 text-sm font-medium bg-white text-sky-700 hover:bg-sky-50 px-4 py-2 rounded-lg flex-shrink-0">
+        ← Summary
+      </a>
     </div>
     <div class="p-12 text-base font-light leading-8 text-slate-700 flex-auto">
       <h1 class="text-3xl font-semibold mb-4">Assembly Summary</h1>
@@ -185,7 +188,28 @@ class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">{{sample
                 </div>
               {% elif blast_done %}
               <h3 class="font-medium mb-2 text-base mt-4">BLAST hits</h3>
-      	      <p class="mt-2 mb-4 text-gray-500 italic">No BLAST hits found for {{contig}} at the configured e-value threshold.</p>
+              <div class="mt-2 mb-4 border border-amber-200 bg-amber-50 rounded-lg px-4 py-3 text-sm text-amber-800">
+                <div class="flex items-center justify-between">
+                  <p class="font-medium">No BLAST hits found for {{contig}}.</p>
+                  <button onclick="var d=this.parentElement.nextElementSibling; d.classList.toggle('hidden'); this.textContent=d.classList.contains('hidden')?'Why? ▾':'Hide ▴';"
+                          class="ml-4 text-xs font-medium underline hover:text-amber-900 flex-shrink-0">Why? ▾</button>
+                </div>
+                <div class="hidden mt-2">
+                  <p class="mb-2">This can have several causes:</p>
+                  <ul class="list-disc list-outside ml-5 space-y-1">
+                    <li><strong>NCBI CPU throttling</strong> — when using remote BLAST, NCBI may silently reject queries for large contigs against the full <code>nt</code> database if too many requests originate from the same IP. The job returns a READY status but with zero hits.</li>
+                    <li><strong>E-value threshold</strong> — the configured e-value may be too stringent for this contig.</li>
+                    <li><strong>Organism not in the searched database</strong> — if <code>entrez_query</code> is set, the organism may not be represented in the filtered subset.</li>
+                    <li><strong>Genuine absence</strong> — the contig sequence may not match anything in the database (novel organism, contamination, assembly artefact).</li>
+                  </ul>
+                  <p class="mt-2">
+                    <strong>Workarounds:</strong> restrict the search with <code>entrez_query: 'Bacteria[Organism]'</code> and/or switch to
+                    <code>remote_db: 'refseq_genomic'</code> to reduce NCBI load (see the
+                    <a class="underline hover:text-amber-900" href="https://github.com/sequana/lora#blast-identification">LORA README</a>).
+                    For reliable results on large contigs, consider downloading a local <code>nt</code> database (~270 GB) and running BLAST locally with <code>blast.remote: false</code>.
+                  </p>
+                </div>
+              </div>
               {% elif contig == contigs_dict['contig_order'][0] %}
       	      <p class="mb-4 text-gray-500 italic">BLAST was not run for this sample. Enable it by setting <code>blast.do: true</code> in the config file.</p>
               {% endif %}
@@ -196,10 +220,11 @@ class="text-blue-600" href="{{sample}}/sorted_contigs/{{sample}}.fasta">{{sample
           </div>
         {% endfor %}
     </div>
-    <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50">
+    <footer class="flex justify-center flex-initial px-2 pb-10 pt-4 bg-gray-50 text-sm text-gray-500">
         <p>
-          <strong>LORA</strong> by <a class="text-indigo-500 active:text-indigo-600"href="https://sequana.readthedocs.io/en/main/">Sequana Team</a>. The source code is licensed
-          <a class="text-indigo-500 active:text-indigo-600" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
+          <a class="text-indigo-500 hover:underline" href="https://github.com/sequana/lora">LORA</a>
+          by the <a class="text-indigo-500 hover:underline" href="https://sequana.readthedocs.io/en/main/">Sequana Team</a>
+          — licensed <a class="text-indigo-500 hover:underline" href="https://opensource.org/licenses/BSD-3-Clause">BSD3</a>.
         </p>
     </footer>
     <!-- Javascript -->

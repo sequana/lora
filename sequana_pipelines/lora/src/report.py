@@ -176,6 +176,26 @@ def fill_blast_result(
                 pass
 
 
+def _gc_per_contig(fasta_path: str) -> Dict[str, float]:
+    """Return a dict mapping contig name → GC content (%) from a FASTA file."""
+    gc: Dict[str, float] = {}
+    name, bases, g_c = None, 0, 0
+    with open(fasta_path) as fh:
+        for line in fh:
+            line = line.rstrip()
+            if line.startswith(">"):
+                if name is not None and bases:
+                    gc[name] = round(g_c / bases * 100, 2)
+                name = line[1:].split()[0]
+                bases, g_c = 0, 0
+            else:
+                bases += len(line)
+                g_c += line.upper().count("G") + line.upper().count("C")
+    if name is not None and bases:
+        gc[name] = round(g_c / bases * 100, 2)
+    return gc
+
+
 def fill_sequana_coverage(
     analysis_dict: DefaultDict[str, DefaultDict[str, Dict]], samples: List[str], lora_dir: Path
 ) -> None:
@@ -185,6 +205,13 @@ def fill_sequana_coverage(
     iter_json = (
         (sample, sequana_file) for sample in samples for sequana_file in glob.iglob(sequana_report.format(sample))
     )
+    # pre-compute GC per contig from the sorted FASTA
+    gc_cache: Dict[str, Dict[str, float]] = {}
+    for sample in samples:
+        fasta = os.path.join(str(lora_dir), sample, "sorted_contigs", f"{sample}.fasta")
+        if os.path.exists(fasta):
+            gc_cache[sample] = _gc_per_contig(fasta)
+
     with ExitStack() as stack:
         files = [(sample, stack.enter_context(open(sequana_file))) for sample, sequana_file in iter_json]
         for sample, json_file in files:
@@ -195,6 +222,7 @@ def fill_sequana_coverage(
                 "length": contig_results["data"]["length"],
                 "DOC": f"{contig_results['data']['DOC']:.3f}",
                 "BOC": f"{contig_results['data']['BOC']:.3f}",
+                "GC (%)": gc_cache.get(sample, {}).get(contig, "—"),
             }
             if contig in analysis_dict[sample]:
                 analysis_dict[sample][contig]["coverage"] = info

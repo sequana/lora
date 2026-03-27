@@ -250,18 +250,44 @@ to change it::
 
     --blast-email your@email.com --blast-remote-db refseq_genomic
 
-**Restricting the search to an organism group (recommended)**
+**Restricting the search to an organism group (strongly recommended)**
 
-Searching all of ``nt`` for a large contig is slow and prone to NCBI throttling.
-Restrict the search to a taxonomic group by editing ``config.yaml`` after
-running ``sequana_lora``::
+Searching all of ``nt`` for a large contig is slow and prone to NCBI CPU
+throttling. Restrict the search by editing ``config.yaml`` after running
+``sequana_lora``. The ``entrez_query`` parameter is equivalent to filling the
+"Organism" box on the NCBI BLAST web form.
+
+*Option 1 — curated bacterial reference genomes (fastest, recommended for bacteria)*
+
+Use ``refseq_genomic`` as the database and restrict to bacteria. RefSeq contains
+only complete, curated reference genomes — a much smaller and higher-quality
+search space than ``nt``::
 
     blast:
-        entrez_query: 'Bacteria[Organism]'     # all bacteria
-        # entrez_query: 'Streptococcus[Organism]'   # single genus
+        remote_db: 'refseq_genomic'
+        entrez_query: 'Bacteria[Organism]'
 
-This is equivalent to filling the "Organism" box on the NCBI BLAST web form.
-It dramatically reduces search time and avoids throttling.
+*Option 2 — all bacteria in nt, reference sequences only*
+
+Stay on ``nt`` but filter to RefSeq-quality entries::
+
+    blast:
+        remote_db: 'nt'
+        entrez_query: 'Bacteria[Organism] AND refseq[filter]'
+
+*Option 3 — single genus*
+
+Useful when the organism is known::
+
+    blast:
+        remote_db: 'nt'
+        entrez_query: 'Streptococcus[Organism]'
+
+.. note::
+
+   If your organism is novel or not yet in RefSeq, fall back to
+   ``remote_db: nt`` with a broad ``entrez_query`` such as
+   ``Bacteria[Organism]``.
 
 **NCBI API key (optional but recommended)**
 
@@ -350,7 +376,20 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
-1.1.0
+1.1.0     * remote BLAST via NCBI URL API (no local database needed); sequential
+            submission to avoid IP-level CPU throttling
+          * entrez_query support to restrict BLAST to a taxonomic group
+            (e.g. Bacteria[Organism], refseq_genomic) — equivalent to the
+            "Organism" box on the NCBI BLAST web form
+          * NCBI API key support for higher rate limits (blast.api_key)
+          * bioservices >= 1.16.0 required for NCBIBlastAPI
+          * retry logic when NCBI returns READY with empty result set
+          * improved HTML reports: Sequana logo in header, back-to-summary
+            button, FASTA download link per sample, GC content in coverage
+            table, informative amber warning box when BLAST returns no hits
+          * update busco container to busco_6.0.0
+          * fix sequana_coverage log redirection (was showing 2 s in monitor)
+          * updated README with BLAST, entrez_query and refseq_genomic docs
 1.0.0     * uniformised extension with other pipelines. fix regression on
             schema file
           * update sequana container to v0.16.5

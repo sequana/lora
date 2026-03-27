@@ -167,7 +167,7 @@ def run_remote_blast(
         from bioservices import NCBIBlastAPI
     except ImportError:
         raise ImportError(
-            "bioservices >= 1.11 is required for remote BLAST. " "Install it with: pip install 'bioservices>=1.11'"
+            "bioservices >= 1.16.0 is required for remote BLAST. " "Install it with: pip install 'bioservices>=1.16.0'"
         )
 
     if not email:
