@@ -34,6 +34,8 @@ def requested_output(manager):
         output_list += [expand("{sample}/polypolish/{sample}.polish.fasta", sample=manager.samples)]
     if config.checkm.do:
         output_list += [expand("{sample}/checkm/{sample}.marker_pos_plot.png", sample=manager.samples)]
+    if config.long_read_sum.do:
+        output_list += [expand("{sample}/long_read_sum/QC_fastq.html", sample=manager.samples)]
     if config.assembler in ["flye", "unicycler"]:
         output_list += [expand("{sample}/bandage/{sample}_graph.png", sample=manager.samples)]
     if config.reference_file:

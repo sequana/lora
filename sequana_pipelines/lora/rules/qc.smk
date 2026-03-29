@@ -270,6 +270,44 @@ else:
                 {params.options} -outfmt "6 {params.outfmt}"
             """
 
+rule long_read_sum_prepare:
+    """Decompress the FASTQ for LongReadSum (runs on the host, no container needed)."""
+    input:
+        fastq=get_fastq
+    output:
+        fastq=temp("{sample}/long_read_sum/reads.fastq")
+    shell:
+        """
+        if [[ "{input.fastq}" == *.gz ]]; then
+            gunzip -c {input.fastq} > {output.fastq}
+        else
+            ln -sf $(realpath {input.fastq}) {output.fastq}
+        fi
+        """
+
+
+rule long_read_sum:
+    input:
+        fastq=rules.long_read_sum_prepare.output.fastq
+    output:
+        html="{sample}/long_read_sum/QC_fastq.html"
+    params:
+        options=config.long_read_sum.options,
+        output_directory="{sample}/long_read_sum"
+    threads:
+        config.long_read_sum.threads
+    log:
+        "logs/long_read_sum/{sample}.log"
+    resources:
+        **config.long_read_sum.resources,
+    container:
+        config.apptainers.long_read_sum
+    shell:
+        """
+        LongReadSum fq -i {input.fastq} -o {params.output_directory} {params.options} >{log} 2>&1
+        """
+
+
 rule multiqc:
     input:
         requested_output(manager)

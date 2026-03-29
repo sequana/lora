@@ -57,6 +57,7 @@ help = init_click(
             "--do-circlator",
             "--do-correction",
             "--do-coverage",
+            "--do-long-read-sum",
             "--do-prokka",
             "--min-length-required",
             "--mode",
@@ -184,6 +185,9 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     help="Run circlator after assembler. Useful with Canu, Hifiasm. Flye is suppose to perform circularisation.",
 )
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
+@click.option(
+    "--do-long-read-sum", "do_long_read_sum", is_flag=True, default=False, help="Run LongReadSum QC on input reads."
+)
 @click.option(
     "--blastdb", "blastdb", default=None, help="Path to your local BLAST database directory (sets blast.do=true)."
 )
@@ -495,6 +499,9 @@ def main(**options):
 
     # coverage if provided, or mode is bacteria
     cfg.sequana_coverage.do = True if (options.do_coverage or options.mode == "bacteria") else False
+
+    # long read sum
+    cfg.long_read_sum.do = options.do_long_read_sum
 
     # canu correction
     cfg.canu_correction.do = options.do_correction

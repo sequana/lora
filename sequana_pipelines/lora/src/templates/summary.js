@@ -6,6 +6,10 @@ document.body.style.setProperty("--calc-dep-height", "auto");
 const tableHeight = document.getElementById('dependencies').firstElementChild.clientHeight + "px";
 document.body.style.setProperty("--calc-dep-height", tableHeight);
 
+document.body.style.setProperty("--calc-methods-height", "auto");
+const methodsHeight = document.getElementById('methods').scrollHeight + "px";
+document.body.style.setProperty("--calc-methods-height", methodsHeight);
+
 /* Hide div */
 const hideDiv = (currentElm, idToHide) => {
   const elementToHide = document.getElementById(idToHide);

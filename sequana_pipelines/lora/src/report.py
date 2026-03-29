@@ -13,7 +13,7 @@ from pandas import read_csv
 from sequana_pipelines.lora import version
 
 from .enums import BLAST_KEY, BUSCO_KEY, QUAST_KEY, SET_QUAST_KEY
-from .utils import get_tools_versions
+from .utils import get_apptainer_version, get_tools_versions
 
 
 def create_reports(summary_name: str, lora_name: str, samples: List[str], config: Dict, lora_dir=Path(".")) -> None:
@@ -87,6 +87,141 @@ def create_reports(summary_name: str, lora_name: str, samples: List[str], config
         print(report_output, file=fout)
 
 
+TOOL_URLS = {
+    "lora": "https://github.com/sequana/lora",
+    "sequana": "https://github.com/sequana/sequana",
+    "ccs": "https://github.com/PacificBiosciences/ccs",
+    "fastp": "https://github.com/OpenGene/fastp",
+    "long_read_sum": "https://github.com/WGLab/LongReadSum",
+    "flye": "https://github.com/fenderglass/Flye",
+    "canu": "https://github.com/marbl/canu",
+    "hifiasm": "https://github.com/chhylp123/hifiasm",
+    "unicycler": "https://github.com/rrwick/Unicycler",
+    "necat": "https://github.com/xiaochuanle/NECAT",
+    "pecat": "https://github.com/lemene/PECAT",
+    "medaka": "https://github.com/nanoporetech/medaka",
+    "polypolish": "https://github.com/rrwick/Polypolish",
+    "circlator": "https://github.com/sanger-pathogens/circlator",
+    "quast": "https://github.com/ablab/quast",
+    "busco": "https://gitlab.com/ezlab/busco",
+    "checkm": "https://github.com/Ecogenomics/CheckM",
+    "minimap2": "https://github.com/lh3/minimap2",
+    "sequana_coverage": "https://github.com/sequana/sequana",
+    "prokka": "https://github.com/tseemann/prokka",
+    "blast": "https://blast.ncbi.nlm.nih.gov/",
+}
+
+
+def _a(label: str, tool_key: str) -> str:
+    """Return an HTML anchor for a tool name."""
+    url = TOOL_URLS.get(tool_key, "")
+    if url:
+        return f'<a href="{url}" target="_blank" class="text-indigo-500 hover:underline">{label}</a>'
+    return label
+
+
+def build_methods_text(config: Dict, versions: List) -> str:
+    """Build a Materials & Methods paragraph from the pipeline config and tool versions.
+    :param dict config: Config used by the pipeline.
+    :param list versions: List of (tool, version) tuples from get_tools_versions.
+    :returns str: An HTML prose M&M paragraph.
+    """
+    v = dict(versions)
+    apptainers = config.get("apptainers", {})
+
+    def ver(tool):
+        return v.get(tool, get_apptainer_version(tool, apptainers))
+
+    assembler = config["assembler"]
+    assembler_label = {
+        "flye": "Flye",
+        "canu": "Canu",
+        "hifiasm": "Hifiasm",
+        "unicycler": "Unicycler",
+        "necat": "NECAT",
+        "pecat": "PECAT",
+    }.get(assembler, assembler)
+
+    parts = [
+        f"The assembly was performed with {_a('LORA', 'lora')} (v{version}), a pipeline part of the "
+        f"{_a('Sequana', 'sequana')} framework "
+        f"(Cokelaer et al., Journal of Open Source Software, 2(16):352, 2017; "
+        f'<a href="https://doi.org/10.21105/joss.00352" target="_blank" class="text-indigo-500 hover:underline">'
+        f"https://doi.org/10.21105/joss.00352</a>)."
+    ]
+
+    if config["ccs"]["do"]:
+        parts.append(
+            f"PacBio subreads were converted to HiFi reads using {_a('CCS', 'ccs')} (v{ver('ccs')}, "
+            f"--min-rq {config['ccs']['min_rq']}, --min-passes {config['ccs']['min_passes']})."
+        )
+
+    if config["fastp"]["do"]:
+        parts.append(
+            f"Reads shorter than {config['fastp']['min_length_required']} bp were discarded "
+            f"using {_a('fastp', 'fastp')} (v{ver('fastp')})."
+        )
+
+    if config["long_read_sum"]["do"]:
+        parts.append(
+            f"Read quality metrics were computed with {_a('LongReadSum', 'long_read_sum')} (v{ver('long_read_sum')})."
+        )
+
+    parts.append(f"De novo genome assembly was performed with {_a(assembler_label, assembler)} (v{ver(assembler)}).")
+
+    if config["medaka_consensus"]["do"]:
+        parts.append(
+            f"The assembly was polished with {_a('Medaka', 'medaka')} (v{ver('medaka')}, "
+            f"model: {config['medaka_consensus']['model']})."
+        )
+
+    if config["polypolish"]["do"]:
+        parts.append(
+            f"Illumina-based polishing was carried out with {_a('Polypolish', 'polypolish')} (v{ver('polypolish')})."
+        )
+
+    if config["circlator"]["do"]:
+        parts.append(f"Contig circularization was attempted with {_a('Circlator', 'circlator')} (v{ver('circlator')}).")
+
+    parts.append(f"Assembly quality was assessed with {_a('QUAST', 'quast')} (v{ver('quast')}).")
+
+    if config["busco"]["do"]:
+        parts.append(
+            f"Assembly completeness was evaluated with {_a('BUSCO', 'busco')} (v{ver('busco')}, "
+            f"lineage: {config['busco']['lineage']})."
+        )
+
+    if config["checkm"]["do"]:
+        parts.append(
+            f"Genome completeness and contamination were estimated with {_a('CheckM', 'checkm')} (v{ver('checkm')}, "
+            f"{config['checkm']['taxon_rank']}: {config['checkm']['taxon_name']})."
+        )
+
+    if config["sequana_coverage"]["do"]:
+        parts.append(
+            f"Reads were mapped back to the assembly with {_a('Minimap2', 'minimap2')} (v{ver('minimap2')}) "
+            f"and coverage was analysed with {_a('Sequana Coverage', 'sequana_coverage')} (v{ver('sequana_coverage')})."
+        )
+
+    if config["prokka"]["do"]:
+        parts.append(f"Genome annotation was performed with {_a('Prokka', 'prokka')} (v{ver('prokka')}).")
+
+    if config["blast"]["do"]:
+        blast_db = (
+            config["blast"].get("remote_db", "nt")
+            if config["blast"].get("remote")
+            else config["blast"].get("blastdb", "nt")
+        )
+        mode = "remote NCBI" if config["blast"].get("remote") else "local"
+        parts.append(
+            f"Taxonomic identification was carried out by {mode} {_a('BLAST', 'blast')} search "
+            f"(blastn v{ver('blast')}) against the {blast_db} database "
+            f"(e-value threshold: {config['blast']['evalue']})."
+        )
+
+    return " ".join(parts)
+
+
 def create_summary(summary_name: str, lora_name: str, quast_info: Dict, config: Dict, lora_dir: Path) -> None:
     """Create the summary lora report.
     :param str summary_name: LORA summary report name.
@@ -101,14 +236,19 @@ def create_summary(summary_name: str, lora_name: str, quast_info: Dict, config: 
     logo_path = Path(__file__).parent / "templates" / "sequana_logo.png"
     logo_b64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
 
+    dependencies = get_tools_versions(config)
+    methods_text = build_methods_text(config, dependencies)
+
     report_output = template.render(
         lora_dir=lora_dir,
         lora_report=lora_name,
         coverage_done=config["sequana_coverage"]["do"],
+        long_read_sum_done=config["long_read_sum"]["do"],
         samples=((sample, quast_result[0]) for sample, quast_result in quast_info.items()),
         version=version,
         rulegraph=(lora_dir / ".sequana" / "rulegraph.svg").read_text(),
-        dependencies=get_tools_versions(config),
+        dependencies=dependencies,
+        methods_text=methods_text,
         logo_b64=logo_b64,
     )
     with open(summary_name, "w") as fout:
