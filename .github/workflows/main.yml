@@ -28,7 +28,7 @@ jobs:
         sudo apt-get install -y graphviz
 
     - name: checkout git repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: conda/mamba
       uses: mamba-org/setup-micromamba@v1
@@ -36,7 +36,6 @@ jobs:
           environment-file: environment.yml
           create-args: >-
             python=${{ matrix.python }}
-
 
     - name: install package itself
       shell: bash -l {0}
@@ -52,8 +51,6 @@ jobs:
       shell: bash -l {0}
       run: |
         pytest --cov-report term --cov=sequana_pipelines.lora
-      env:
-        SEQUANA_WRAPPERS: https://github.com/sequana/sequana-wrappers
 
     - name: coveralls
       shell: bash -l {0}

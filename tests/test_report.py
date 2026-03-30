@@ -21,12 +21,16 @@ def config():
     yield {
         "assembler": "flye",
         "ccs": {"do": False},
-        "blast": {"do": True},
-        "busco": {"do": True},
+        "blast": {"do": True, "evalue": 0},
+        "busco": {"do": True, "lineage": "dummy"},
+        "fastp": {"do": False},
         "checkm": {"do": False},
         "canu_correction": {"do": False},
         "circlator": {"do": False},
         "prokka": {"do": False},
+        "medaka_consensus": {"do": False},
+        "polypolish": {"do": False},
+        "long_read_sum": {"do": True},
         "sequana_coverage": {"do": True},
     }
 
@@ -42,7 +46,9 @@ def test_lora_create_lora_summary(mocker, tmpdir, config):
     lora_dir = test_dir / "resources"
     summary = tmpdir.join("summary.html")
     samples = ["toto", "tata"]
-    create_summary(summary, "lora.html", get_quast_information(samples, lora_dir), config, lora_dir)
+    quast_info = get_quast_information(samples, lora_dir)
+
+    create_summary(summary, "lora.html", quast_info, config, lora_dir)
     assert os.path.exists(summary)
 
 
@@ -79,7 +85,7 @@ def test_lora_create_both_reports(mocker, tmpdir, config):
 
 def test_lora_create_reports_no_blast_no_busco(mocker, tmpdir, config):
     """Reports with blast and busco disabled should still succeed."""
-    cfg = {**config, "blast": {"do": False}, "busco": {"do": False}}
+    cfg = {**config, "blast": {"do": False}, "busco": {"do": False, "lineage": "dummy"}}
 
     async def mock_run_version(tool, cmd, has_apptainer, apptainers):
         return tool, "1337"
