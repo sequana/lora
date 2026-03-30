@@ -42,6 +42,7 @@ apptainers:
     seqkit: https://zenodo.org/record/7821924/files/seqkit_2.4.0.img
     seqtk: https://zenodo.org/record/5729951/files/seqtk_1.3.0.img
     sequana_coverage: https://zenodo.org/record/13946414/files/sequana_coverage_0.18.0.img
+    long_read_sum: https://zenodo.org/record/19265676/files/long_read_sum_1.3.1.img
     unicycler: https://zenodo.org/record/10469285/files/unicycler_0.5.0.img
 
 
@@ -477,6 +478,22 @@ checkm:
 
 
 ##############################################################################
+# LongReadSum
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored.
+# - options: any options recognised by `LongReadSum f5s` cli
+# - threads: Number of threads to use
+long_read_sum:
+    do: false
+    options: ''
+    threads: 4
+    resources:
+        mem: 8G
+
+
+##############################################################################
 # fastp
 #
 # :Parameters:
@@ -504,7 +521,7 @@ fastp:
 ##       If you want your own multiqc, fill this entry
 multiqc:
     options: -p -f
-    modules: busco quast sequana_coverage prokka fastp
+    modules: busco quast sequana_coverage prokka fastp long_read_sum
     input_directory: .
     config_file: multiqc_config.yaml
     resources:

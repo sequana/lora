@@ -57,6 +57,7 @@ help = init_click(
             "--do-circlator",
             "--do-correction",
             "--do-coverage",
+            "--do-long-read-sum",
             "--do-prokka",
             "--min-length-required",
             "--mode",
@@ -185,6 +186,9 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
 )
 @click.option("--do-coverage", "do_coverage", is_flag="store_true", help="Run sequana coverage on contigs.")
 @click.option(
+    "--do-long-read-sum", "do_long_read_sum", is_flag=True, default=False, help="Run LongReadSum QC on input reads."
+)
+@click.option(
     "--blastdb", "blastdb", default=None, help="Path to your local BLAST database directory (sets blast.do=true)."
 )
 @click.option(
@@ -275,7 +279,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     default="*fastq.gz",
     type=click.STRING,
     show_default=True,
-    help=f"pattern to find Illumina input files",
+    help="pattern to find Illumina input files",
 )
 @click.option(
     "--polypolish-input-readtag",
@@ -490,11 +494,14 @@ def main(**options):
                 cfg.busco.lineage = f"busco_downloads/{options.lineage}_{options.busco_db_version}"
         # Always pass --datasets_version explicitly so BUSCO 6+ doesn't conflict
         # with its default (odb12) when an odb10 lineage is supplied.
-        if f"--datasets_version" not in cfg.busco.options:
+        if "--datasets_version" not in cfg.busco.options:
             cfg.busco.options = f"{cfg.busco.options} --datasets_version {options.busco_db_version}".strip()
 
     # coverage if provided, or mode is bacteria
     cfg.sequana_coverage.do = True if (options.do_coverage or options.mode == "bacteria") else False
+
+    # long read sum
+    cfg.long_read_sum.do = options.do_long_read_sum
 
     # canu correction
     cfg.canu_correction.do = options.do_correction

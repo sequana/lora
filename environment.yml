@@ -16,5 +16,6 @@ dependencies:
   - prokka
   - blast
   - blast
+  - fastp
   - pip:
     - sequana

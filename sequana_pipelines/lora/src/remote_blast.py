@@ -10,8 +10,6 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from .enums import BLAST_KEY
-
 # Maximum seconds to wait for a single job before giving up
 _JOB_TIMEOUT = 1800  # 30 min
 

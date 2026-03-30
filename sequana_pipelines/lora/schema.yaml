@@ -562,6 +562,22 @@ mapping:
                 required: true
 
 
+    "long_read_sum":
+        type: map
+        mapping:
+            "do":
+                type: bool
+                required: true
+            "options":
+                type: text
+                required: false
+            "threads":
+                type: int
+                required: true
+            "resources":
+                type: any
+                required: true
+
     "onsuccess":
         type: map
         mapping:
