@@ -1,5 +1,5 @@
 document.body.style.setProperty("--calc-svg-height", "auto");
-const svg = document.getElementsByTagName('svg')[0];
+const svg = document.getElementsByTagName("svg")[0];
 document.body.style.setProperty("--calc-svg-height", svg.getBBox().height + "pt");
 
 document.body.style.setProperty("--calc-dep-height", "auto");
@@ -7,7 +7,7 @@ const tableHeight = document.getElementById('dependencies').firstElementChild.cl
 document.body.style.setProperty("--calc-dep-height", tableHeight);
 
 document.body.style.setProperty("--calc-methods-height", "auto");
-const methodsHeight = document.getElementById('methods').scrollHeight + "px";
+const methodsHeight = document.getElementById("methods").scrollHeight + "px";
 document.body.style.setProperty("--calc-methods-height", methodsHeight);
 
 /* Hide div */
@@ -19,6 +19,6 @@ const hideDiv = (currentElm, idToHide) => {
   } else {
     elementToHide.classList.remove(`open-section-${idToHide}`);
   }
-  var spanElem = currentElm.querySelector('span');
+  var spanElem = currentElm.querySelector("span");
   spanElem.textContent = spanElem.textContent === "expand_more" ? "expand_less" : "expand_more";
 };
