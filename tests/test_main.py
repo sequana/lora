@@ -1,5 +1,4 @@
 import subprocess
-import sys
 
 import pytest
 import yaml
@@ -632,7 +631,6 @@ def test_busco_lineage_reuses_existing_dir(mocker, tmpdir):
     )
     mock_download = mocker.patch("sequana_pipelines.lora.main.download_and_extract_tar_gz")
     # pre-create the expected busco download dir so it appears already present
-    import os
 
     busco_dir = tmpdir.mkdir("busco_downloads").mkdir("bacteria_odb12")
     runner = CliRunner()

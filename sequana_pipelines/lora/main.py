@@ -279,7 +279,7 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     default="*fastq.gz",
     type=click.STRING,
     show_default=True,
-    help=f"pattern to find Illumina input files",
+    help="pattern to find Illumina input files",
 )
 @click.option(
     "--polypolish-input-readtag",
@@ -494,7 +494,7 @@ def main(**options):
                 cfg.busco.lineage = f"busco_downloads/{options.lineage}_{options.busco_db_version}"
         # Always pass --datasets_version explicitly so BUSCO 6+ doesn't conflict
         # with its default (odb12) when an odb10 lineage is supplied.
-        if f"--datasets_version" not in cfg.busco.options:
+        if "--datasets_version" not in cfg.busco.options:
             cfg.busco.options = f"{cfg.busco.options} --datasets_version {options.busco_db_version}".strip()
 
     # coverage if provided, or mode is bacteria

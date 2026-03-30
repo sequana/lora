@@ -9,6 +9,10 @@
 .. image:: https://github.com/sequana/lora/actions/workflows/main.yml/badge.svg
    :target: https://github.com/sequana/lora/actions/workflows/main.yaml
 
+.. image:: https://app.codacy.com/project/badge/Grade/09b850e80d7a498eace0f35f15284d4f
+    :target: https://app.codacy.com/gh/cokelaer/versionix/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+    :alt: Codacy grade
+
 
 
 LORA — Long Read Assembly pipeline
