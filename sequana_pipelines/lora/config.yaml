@@ -521,7 +521,7 @@ fastp:
 ##       If you want your own multiqc, fill this entry
 multiqc:
     options: -p -f
-    modules: busco quast sequana_coverage prokka fastp long_read_sum
+    modules: busco quast sequana_coverage prokka fastp
     input_directory: .
     config_file: multiqc_config.yaml
     resources:
