@@ -1472,7 +1472,7 @@ def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v6/data/l
     :param version: the ODB version (e.g. odb10, odb12, odb12.2)
     :return: dictionary of lineage names and their corresponding URLs
     """
-    response = requests.get(base_url)
+    response = requests.get(base_url, timeout=30)
     response.raise_for_status()  # Raise an exception for HTTP errors
 
     # Parse the HTML content with BeautifulSoup (use .text so that the encoding

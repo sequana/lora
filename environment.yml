@@ -13,7 +13,6 @@ dependencies:
 - quast
 - prokka
 - blast
-- blast
 - fastp
 - pulp>=2.8
 - pip:
