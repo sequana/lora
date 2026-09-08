@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -1455,33 +1457,48 @@ checkm["species"] = [
 ]
 
 
-def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v5/data/lineages/", version="odb10"):
-    """
-    Fetches and prints the list of files and their URLs from the given URL.
+def get_busco_lineages_and_urls(base_url="https://busco-data.ezlab.org/v6/data/lineages/", version="odb12"):
+    """Fetch the list of BUSCO lineages and their URLs for a given ODB version.
+
+    The listing hosted on busco-data.ezlab.org contains all datasets of all
+    versions. Note that a dataset name such as *odb12.2* is a different release
+    from *odb12*, so we match the version exactly (the version must be followed
+    by the release date).
+
+    When several dates are available for the same lineage, the most recent one
+    is kept.
 
     :param base_url: URL of the page to scrape
-    :return: List of tuples containing file names and their corresponding URLs
+    :param version: the ODB version (e.g. odb10, odb12, odb12.2)
+    :return: dictionary of lineage names and their corresponding URLs
     """
     response = requests.get(base_url)
     response.raise_for_status()  # Raise an exception for HTTP errors
 
-    # Parse the HTML content with BeautifulSoup
-    soup = BeautifulSoup(response.content, "html.parser")
+    # Parse the HTML content with BeautifulSoup (use .text so that the encoding
+    # advertised by the server is honoured)
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    # Find all anchor tags (<a>) that have an href attribute
-    links = soup.find_all("a", href=True)
+    # e.g. euglenozoa_odb12.2026-05-22.tar.gz --> (euglenozoa, 2026-05-22)
+    pattern = re.compile(
+        rf"^(?P<name>.+)_{re.escape(version)}\.(?P<date>\d{{4}}-\d{{2}}-\d{{2}})\.(?:tar\.gz|tgz|tar|zip|gz)$"
+    )
 
-    # Extract file names and their full URLs, filtering to the requested version only
-    files = [
-        (link.get_text().split(f"_{version}")[0], base_url + link["href"])
-        for link in links
-        if link["href"].endswith(("tar.gz", "zip", "tar", "gz")) and f"_{version}" in link["href"]
-    ]
+    lineages = {}
+    for link in soup.find_all("a", href=True):
+        match = pattern.match(link["href"])
+        if not match:
+            continue
+        name, date = match.group("name"), match.group("date")
+        # several dates may co-exist for a given lineage; keep the most recent
+        if name not in lineages or date > lineages[name][0]:
+            lineages[name] = (date, base_url + link["href"])
 
-    return dict(files)
+    return {name: url for name, (_, url) in lineages.items()}
 
 
 try:
     busco = get_busco_lineages_and_urls(version="odb12")
-except requests.exceptions.ConnectionError:
+except requests.exceptions.RequestException:  # pragma: no cover
+    # no network (or the server is down); lineage names are validated in main()
     busco = {}

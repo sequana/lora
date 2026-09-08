@@ -13,6 +13,10 @@
     :target: https://app.codacy.com/gh/sequana/lora/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
     :alt: Codacy grade
 
+.. image:: https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg
+    :target: https://pypi.python.org/pypi/sequana_lora
+    :alt: Python 3.11 | 3.12
+
 
 
 LORA — Long Read Assembly pipeline
@@ -30,11 +34,11 @@ LORA — Long Read Assembly pipeline
            Journal of Open Source Software, 2(16), 352,
            `doi:10.21105/joss.00352 <https://doi.org/10.21105/joss.00352>`_
 
-    Zenodo DOI: 
+    Zenodo DOI:
         .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.19330782.svg
             :target: https://doi.org/10.5281/zenodo.18337877
 
-    Biorxiv: 
+    Biorxiv:
         https://www.biorxiv.org/content/10.64898/2026.01.06.697901v1
 
 
@@ -383,7 +387,18 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
-1.1.0     * remote BLAST via NCBI URL API (no local database needed); sequential
+1.1.0     * fix BUSCO lineage retrieval: the v5 listing on busco-data.ezlab.org
+            now redirects to an empty S3 index, so no lineage could be found
+            (--busco-print-lineages printed nothing and any --busco-lineage was
+            rejected as invalid). We now use the v6 listing, which hosts both
+            odb10 and odb12 datasets
+          * BUSCO lineage names are matched on the exact ODB version (odb12.2 is
+            a distinct release from odb12) and the most recent release date is
+            kept for a given lineage. odb12.2 added to --busco-db-version
+          * --busco-print-lineages is now an eager option: it prints the
+            lineages and exits without requiring --assembler, --genome-size and
+            the other mandatory options
+          * remote BLAST via NCBI URL API (no local database needed); sequential
             submission to avoid IP-level CPU throttling
           * entrez_query support to restrict BLAST to a taxonomic group
             (e.g. Bacteria[Organism], refseq_genomic) — equivalent to the

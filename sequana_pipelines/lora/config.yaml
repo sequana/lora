@@ -23,7 +23,7 @@ apptainers:
     ccs: https://zenodo.org/record/7817325/files/ccs_6.4.0.img
     circlator: https://zenodo.org/record/7821905/files/circlator_1.5.5.img
     flye: https://zenodo.org/record/10409326/files/flye_2.9.3.img
-    fastp: https://zenodo.org/record/8036563/files/fastp_0.23.3.img
+    fastp: https://zenodo.org/record/17097941/files/fastp_1.0.1.img
     graphviz: https://zenodo.org/record/7928262/files/graphviz_7.0.5.img
     hifiasm: https://zenodo.org/record/10610397/files/hifiasm_0.19.8.img
     medaka: https://zenodo.org/record/7846295/files/medaka_1.7.3.img
