@@ -47,7 +47,7 @@ jobs:
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-        pip install coveralls pytest-cov pytest pytest-xdist
+        pip install coveralls pytest-cov pytest pytest-xdist pytest-mock pytest-asyncio
 
     - name: testing
       shell: bash -l {0}
