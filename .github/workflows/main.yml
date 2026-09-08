@@ -17,25 +17,27 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        python: [3.9, '3.10', '3.11']
+        python: ['3.11', '3.12']
       fail-fast: false
-
 
     steps:
 
     - name: install graphviz
       run: |
+        sudo apt-get update -qq
         sudo apt-get install -y graphviz
 
     - name: checkout git repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: conda/mamba
-      uses: mamba-org/setup-micromamba@v1
+      uses: mamba-org/setup-micromamba@v2
       with:
           environment-file: environment.yml
           create-args: >-
             python=${{ matrix.python }}
+          cache-environment: true
+          cache-downloads: true
 
     - name: install package itself
       shell: bash -l {0}
@@ -50,9 +52,10 @@ jobs:
     - name: testing
       shell: bash -l {0}
       run: |
-        pytest --cov-report term --cov=sequana_pipelines.lora
+        pytest -v --cov-report term-missing --cov=sequana_pipelines.lora
 
     - name: coveralls
+      continue-on-error: true
       shell: bash -l {0}
       run: |
         echo $COVERALLS_REPO_TOKEN

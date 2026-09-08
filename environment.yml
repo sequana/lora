@@ -1,21 +1,19 @@
 name: mapper
-
 channels:
-  - conda-forge
-  - bioconda
-  - defaults
-
+- conda-forge
+- bioconda
+- defaults
 dependencies:
-  - flye
-  - minimap2
-  - bowtie2
-  - samtools
-  - seqkit
-  - seqtk
-  - quast
-  - prokka
-  - blast
-  - blast
-  - fastp
-  - pip:
-    - sequana
+- flye
+- minimap2
+- bowtie2
+- samtools
+- seqkit
+- seqtk
+- quast
+- prokka
+- blast
+- fastp
+- pulp>=2.8
+- pip:
+  - sequana

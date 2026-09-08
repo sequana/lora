@@ -104,6 +104,28 @@ class ChoiceOrDir(click.ParamType):
         return value
 
 
+def print_busco_lineages(ctx, param, value):
+    """Print available lineages and exit (eager, so no other option is required)."""
+    if not value or ctx.resilient_parsing:
+        return
+
+    # --busco-db-version may not have been processed yet, hence the fallback on sys.argv
+    version = ctx.params.get("busco_db_version")
+    if version is None:
+        version = "odb12"
+        for i, arg in enumerate(sys.argv):
+            if arg == "--busco-db-version" and i + 1 < len(sys.argv):
+                version = sys.argv[i + 1]
+            elif arg.startswith("--busco-db-version="):
+                version = arg.split("=", 1)[1]
+
+    busco_db = get_busco_lineages_and_urls(version=version)
+    click.echo(f"Available BUSCO lineages for {version} ({len(busco_db)} entries):")
+    for name in sorted(busco_db):
+        click.echo(f"  {name}")
+    ctx.exit(0)
+
+
 #
 BUSCO_OR_DIR = ChoiceOrDir(busco.keys())
 
@@ -218,9 +240,10 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
 @click.option(
     "--busco-db-version",
     "busco_db_version",
-    type=click.Choice(["odb10", "odb12"]),
+    type=click.Choice(["odb10", "odb12", "odb12.2"]),
     default="odb12",
     show_default=True,
+    is_eager=True,
     help="BUSCO lineage database version to use.",
 )
 @click.option(
@@ -228,6 +251,9 @@ reads. You can replace this values using --pacbio-ccs-min-passes and --pacbio-cc
     "busco_print_lineages",
     is_flag=True,
     default=False,
+    is_eager=True,
+    expose_value=False,
+    callback=print_busco_lineages,
     help="Print all available BUSCO lineages for the selected --busco-db-version and exit.",
 )
 @click.option(
@@ -304,14 +330,6 @@ def main(**options):
     # the real stuff is here
     manager = SequanaManager(options, NAME)
     options = manager.options
-
-    # print lineages and exit early (no working directory needed)
-    if options.busco_print_lineages:
-        busco_db = get_busco_lineages_and_urls(version=options.busco_db_version)
-        click.echo(f"Available BUSCO lineages for {options.busco_db_version}:")
-        for name in sorted(busco_db.keys()):
-            click.echo(f"  {name}")
-        sys.exit(0)
 
     # creates the working directory
     manager.setup()
