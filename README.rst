@@ -387,7 +387,7 @@ Changelog
 ========= ====================================================================
 Version   Description
 ========= ====================================================================
-1.1.0     * fix BUSCO lineage retrieval: the v5 listing on busco-data.ezlab.org
+1.2.0     * fix BUSCO lineage retrieval: the v5 listing on busco-data.ezlab.org
             now redirects to an empty S3 index, so no lineage could be found
             (--busco-print-lineages printed nothing and any --busco-lineage was
             rejected as invalid). We now use the v6 listing, which hosts both
@@ -398,7 +398,8 @@ Version   Description
           * --busco-print-lineages is now an eager option: it prints the
             lineages and exits without requiring --assembler, --genome-size and
             the other mandatory options
-          * remote BLAST via NCBI URL API (no local database needed); sequential
+          * update fastp container to 1.0.1; add pulp>=2.8 to environment.yml
+1.1.0     * remote BLAST via NCBI URL API (no local database needed); sequential
             submission to avoid IP-level CPU throttling
           * entrez_query support to restrict BLAST to a taxonomic group
             (e.g. Bacteria[Organism], refseq_genomic) — equivalent to the
